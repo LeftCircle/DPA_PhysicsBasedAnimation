@@ -1,0 +1,30 @@
+Here is how you can use this starter kit.
+
+
+The directories and files are as follows:
+
+base       directory of C++ implemented code for the starter kit.
+
+include    directory of C++ header files
+
+WARNING: DO NOT CHANGE ANY OF THIS CODE IN THE BASE AND INCLUDE
+DIRECTORIES.  DO NOT PUT YOUR CODE IN THE BASE OR INCLUDE
+DIRECTORIES.  
+
+lib        directory where the compiled library will go
+
+models     a collection of models that may or may not be needed
+
+Makefile   The make file for building the library and executable
+
+python     directory with useful python scripts
+
+README     This file
+
+things     directory of code for (1) the executable, and (2) specific
+           animation cases that you implement
+
+TO COMPLETE YOUR PROJECT ASSIGNMENTS, YOU WILL CREATE CODE THAT YOU
+PLACE IN THE things DIRECTORY, AND, IF NECESSARY, THE MAKEFILE.
+
+
