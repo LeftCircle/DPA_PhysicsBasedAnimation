@@ -18,7 +18,7 @@ THINGS_OBJS = $(patsubst things/src/%.cpp,$(OBJDIR)/%.o,$(THINGS_SRC))
 OFILES = $(BASE_OBJS) $(filter-out $(OBJDIR)/pbalitesim.o,$(THINGS_OBJS))
 
 # Test files
-TEST_SRC = $(wildcard tests/*.cpp) $(wildcard tests/*.cpp)
+TEST_SRC = $(wildcard tests/*.cpp)
 CATCH_SRC = tests/catch2/catch_amalgamated.cpp
 TEST_OBJS = $(patsubst tests/%.cpp,$(OBJDIR)/test_%.o,$(filter %.cpp,$(TEST_SRC))) \
 			$(OBJDIR)/catch_amalgamated.o
@@ -59,6 +59,8 @@ $(OBJDIR)/test_%.o: tests/%.cpp | $(OBJDIR)
 
 $(OBJDIR)/catch_amalgamated.o: $(CATCH_SRC) | $(OBJDIR)
 	$(CC) $(TEST_CFLAGS) -c $< -o $@
+
+lib/libpba.a: base
 
 # Test target
 test_runner: $(TEST_OBJS) $(LIB)
