@@ -1,6 +1,6 @@
 CC = g++
 
-CFLAGS = -Wall -g -O2 -fPIC -fopenmp -std=c++17
+CFLAGS = -Wall -g -O2 -fPIC -fopenmp -std=c++20
 INCLUDES = -I./include/ -I/usr/local/include/ -I/usr/include/ -I./things/include
 
 TEST_CFLAGS = $(CFLAGS) -Itests/catch2

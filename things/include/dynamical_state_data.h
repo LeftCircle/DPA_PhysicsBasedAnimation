@@ -6,6 +6,7 @@
 #include <string>
 #include <memory>
 #include <stdexcept>
+#include <span>
 
 #include "Vector.h"
 #include "Color.h"
@@ -22,11 +23,9 @@ public:
 	
 	size_t add();
 
-    DSAv& get_positions() const noexcept { return _pos_iter->second; }
-	DSAv& get_velocities() const noexcept { return _vel_iter->second; }
-	DSAv& get_accelleration() const noexcept { return _acc_iter->second; }
-	DSAf& get_mass() const noexcept { return _mass_iter->second; }
-	DSAc& get_color() const noexcept { return _color_iter->second; }
+    std::span<Vector> get_positions() { return _pos_map_iter->second.get_span(); }
+	std::span<const Vector> get_positions() const { return _pos_map_iter->second.get_span(); }
+
 
 	template<typename T>
 	DSAttribute<T>& get_attribute(const std::string& name){
@@ -86,11 +85,11 @@ private:
 	std::map< std::string, DSAc > _color_attr;
 
 	// caching these to avoid map lookup for commonly used lookups
-	std::map< std::string, DSAv >::iterator _pos_iter;
-	std::map < std::string, DSAv >::iterator _vel_iter;
-	std::map < std::string, DSAv >::iterator _acc_iter;
-	std::map < std::string, DSAf >::iterator _mass_iter;
-	std::map < std::string, DSAc >::iterator _color_iter;
+	std::map< std::string, DSAv >::iterator _pos_map_iter;
+	std::map < std::string, DSAv >::iterator _vel_map_iter;
+	std::map < std::string, DSAv >::iterator _acc_map_iter;
+	std::map < std::string, DSAf >::iterator _mass_map_iter;
+	std::map < std::string, DSAc >::iterator _color_map_iter;
 	std::string _name;
 
 	void _initialize_default_attributes();

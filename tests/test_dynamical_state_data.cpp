@@ -8,16 +8,15 @@
 
 using namespace pba;
 
-TEST_CASE( "cache default state data on creation"){
-	// Create dynamical state data and ensure that the default data,
-	// positions, velocities, acceleration, and masss are cached. 
-
-	// factory func to create a shared pointer to a dynamical state data object. 
+TEST_CASE( "DSData only returns iterators to DSAttribute arrays"){
 	DynamicalStateData_sp dsd = create_dynamical_state_data();
 
-	DSAttribute<pba::Vector>& pos_attr_a = dsd->get_positions();
-	DSAv& pos_attr_b = dsd->get_attribute<Vector>("positions");
-	REQUIRE(&pos_attr_a == &pos_attr_b);
+	// We don't want to expose the DSAttributes directly, because then a 
+	// user might add to the attribute without expanding all the other attributes.
+	// Therefore, we only give access to the iterators of the DSAttributes.
+
+	auto& pos_iter = dsd->get_positions();
+	auto& vel_iter = dsd->get_velocities();
 }
 
 TEST_CASE( "Does dynamical state data have default attributes"){
@@ -47,5 +46,17 @@ TEST_CASE( " Test get positions and velocities after resize"){
 	// Confirm we don't have to recalculate the iterators after resizing the attributes
 	// Also check to see if we have to recalculate the iterators after adding 
 	// a new DSAttribute
+	REQUIRE(false);
+}
+
+TEST_CASE( " ensure that you cannot add a particle to only a single DSAttribute"){
+	// Adding a particle should expand all attributes, not just one. 
+	// TODO -> This might require a bit of refactoring. We should never be able
+	// to actually get the DSAttribute objects outside of the DynamicalStateData class.
+	// We should also never be able to access the array within the DSAttribute directly.
+	// This will ensure that we can control the particle count properly.
+
+	// The only time we can access the DSAttribute or its data directly is through 
+	// const accessors or through the DynamicalStateData class methods.
 	REQUIRE(false);
 }
