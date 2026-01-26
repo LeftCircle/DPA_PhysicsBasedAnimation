@@ -8,16 +8,44 @@
 
 using namespace pba;
 
-TEST_CASE( "DSData only returns iterators to DSAttribute arrays"){
+TEST_CASE( "Benchmark iterators vs accessors"){
+	// The goal of this benchmark is to see if using iterators is faster than using accessors
+	// for accessing and updating particle data.
 	DynamicalStateData_sp dsd = create_dynamical_state_data();
 
-	// We don't want to expose the DSAttributes directly, because then a 
-	// user might add to the attribute without expanding all the other attributes.
-	// Therefore, we only give access to the iterators of the DSAttributes.
+	constexpr size_t N = 1000000;
+	dsd->add(N);
 
-	auto& pos_iter = dsd->get_positions();
-	auto& vel_iter = dsd->get_velocities();
+	// get iterators once
+	//auto pos_it = dsd->get_pos_begin_iter();
+	//auto vel_it = dsd->get_vel_cbegin_iter();
+	//auto pos_end = dsd->get_pos_end_iter();
+
+	constexpr float dt = 0.01f;
+	
+	// Benchmark showed that the versions were basically identical, so just
+	// keeping and maintaining the accessor version.
+	// BENCHMARK("Using iterators to update positions"){
+	// 	auto pos_it = dsd->get_pos_begin_iter();
+	// 	auto vel_it = dsd->get_vel_cbegin_iter();
+	// 	auto pos_end = dsd->get_pos_end_iter();
+	// 	for( ; pos_it != pos_end; ++pos_it, ++vel_it ){
+	// 		*pos_it += (*vel_it) * dt;
+	// 	}
+	// 	return *pos_it;
+	// };
+
+	BENCHMARK("Using accessors to update positions"){
+		const size_t n = dsd->n_particles();
+		for( size_t i=0; i<n; i++ ){
+			const Vector& pos = dsd->get_position(i);
+			const Vector& vel = dsd->get_velocity(i);
+			dsd->set_position(i, pos + vel * dt);
+		}
+		return dsd->get_position(n-1);
+	};
 }
+
 
 TEST_CASE( "Does dynamical state data have default attributes"){
 	DynamicalStateData_sp dsd = create_dynamical_state_data();
@@ -29,34 +57,32 @@ TEST_CASE( "Does dynamical state data have default attributes"){
 	REQUIRE(dsd->has_color_attribute("color"));
 }
 
-TEST_CASE( "get iterator from map "){
-	// If we have something like lifetime, we don't want to have to grab the map and find 
-	// the lifetime iterator each time we look it up. If we can nab the dsattribribute once 
-	// at the start of compute, it will save a lot of time
-	DynamicalStateData_sp dsd = create_dynamical_state_data();
-
-	dsd->add_attribute("lifetime", DSAf("lifetime", 1.0f));
-	dsd->add();
-	DSAf& lifetime_dsa = dsd->get_attribute<float>("lifetime");
-	REQUIRE(lifetime_dsa.get(0) == 1.0);
-}
-
 
 TEST_CASE( " Test get positions and velocities after resize"){
 	// Confirm we don't have to recalculate the iterators after resizing the attributes
 	// Also check to see if we have to recalculate the iterators after adding 
 	// a new DSAttribute
-	REQUIRE(false);
+	DynamicalStateData_sp dsd = create_dynamical_state_data();
+	const size_t n1 = 10;
+	dsd->add(n1);
+	const Vector pos1(1.0, 2.0, 3.0);
+	const Vector pos2(4.0, 5.0, 6.0);
+	for (size_t i=0; i<n1; i++){
+		dsd->set_position(i, pos1);
+	}
+
+	REQUIRE(dsd->get_position(5) == pos1);
+
+	// Let's try adding a new vector attribute
+	dsd->add_attribute<Vector>("test_vec_attr", DSAv("test_vec_attr", Vector(0.0f, 0.0f, 0.0f)));
+
+	const size_t n2 = 20;
+	dsd->add(n2 - n1);
+	for (size_t i=0; i<n2; i++){
+		dsd->set_position(i, pos2);
+	}
+
+	REQUIRE(dsd->get_position(15) == pos2);
 }
 
-TEST_CASE( " ensure that you cannot add a particle to only a single DSAttribute"){
-	// Adding a particle should expand all attributes, not just one. 
-	// TODO -> This might require a bit of refactoring. We should never be able
-	// to actually get the DSAttribute objects outside of the DynamicalStateData class.
-	// We should also never be able to access the array within the DSAttribute directly.
-	// This will ensure that we can control the particle count properly.
 
-	// The only time we can access the DSAttribute or its data directly is through 
-	// const accessors or through the DynamicalStateData class methods.
-	REQUIRE(false);
-}

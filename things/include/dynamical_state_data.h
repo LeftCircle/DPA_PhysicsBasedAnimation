@@ -6,7 +6,6 @@
 #include <string>
 #include <memory>
 #include <stdexcept>
-#include <span>
 
 #include "Vector.h"
 #include "Color.h"
@@ -22,25 +21,37 @@ public:
     ~DynamicalStateData() = default;
 	
 	size_t add();
+	size_t add(size_t n);
 
-    std::span<Vector> get_positions() { return _pos_map_iter->second.get_span(); }
-	std::span<const Vector> get_positions() const { return _pos_map_iter->second.get_span(); }
+	// accessors for attributes by name
+	const Vector& get_vector_attribute(const std::string& name, size_t i) const;
+	const float& get_float_attribute(const std::string& name, size_t i) const;
+	const int& get_int_attribute(const std::string& name, size_t i) const;
+	const Color& get_color_attribute(const std::string& name, size_t i) const;
+
+	// accessors for common attributes
+	const Vector& get_position(size_t i) const { return _pos_map_iter->second.get(i); }
+	const Vector& get_velocity(size_t i) const { return _vel_map_iter->second.get(i); }
+	const Vector& get_acceleration(size_t i) const { return _acc_map_iter->second.get(i); }
+	const float& get_mass(size_t i) const { return _mass_map_iter->second.get(i); }
+	const Color& get_color(size_t i) const { return _color_map_iter->second.get(i); }
+
+	// setters for attributes by name
+	void set_vector_attribute(const std::string& name, size_t i, const Vector& v);
+	void set_float_attribute(const std::string& name, size_t i, const float& f);
+	void set_int_attribute(const std::string& name, size_t i, const int& val);
+	void set_color_attribute(const std::string& name, size_t i, const Color& c);
+
+	// setters for common attributes
+	void set_position(size_t i, const Vector& v) { _pos_map_iter->second.set(i, v); }
+	void set_velocity(size_t i, const Vector& v) { _vel_map_iter->second.set(i, v); }
+	void set_acceleration(size_t i, const Vector& v) { _acc_map_iter->second.set(i, v); }
+	void set_mass(size_t i, const float& m) { _mass_map_iter->second.set(i, m); }
+	void set_color(size_t i, const Color& c) { _color_map_iter->second.set(i, c); }
 
 
-	template<typename T>
-	DSAttribute<T>& get_attribute(const std::string& name){
-		if constexpr (std::is_same_v<T, int>) {
-			return _lookup_or_throw(_int_attr, name, "int");
-		} else if constexpr (std::is_same_v<T, float>) {
-			return _lookup_or_throw(_float_attr, name, "float");
-		} else if constexpr (std::is_same_v<T, Vector>) {
-			return _lookup_or_throw(_vec_attr, name, "vector");
-		} else if constexpr (std::is_same_v<T, Color>) {
-			return _lookup_or_throw(_color_attr, name, "color");
-		} else {
-			throw std::runtime_error("Unsupported attribute type requested");
-		}
-	}
+	size_t n_particles() const { return _n_particles; }
+
 	
 	template<typename T>
 	void add_attribute(const std::string& name, DSAttribute<T>&& attr){
@@ -99,6 +110,8 @@ private:
 		if (auto it = m.find(name); it != m.end()) return it->second;
 		else throw std::runtime_error("No " + type + " attribute with name: " + name);
 	}
+
+	void _resize_all_attributes(size_t n);
 
 };
 
