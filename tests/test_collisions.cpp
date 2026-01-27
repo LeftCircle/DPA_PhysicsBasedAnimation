@@ -7,6 +7,7 @@
 #include "Vector.h"
 #include "partial_solvers.h"
 #include "GISolver.h"
+#include "collision_object.h"
 
 using namespace pba;
 
@@ -22,6 +23,13 @@ TEST_CASE( " Test Particle Plane Collision "){
     const Vector velocity = (updated_position - initial_position) / dt;
 
     // The collision test should return the time that the collision occurs, or -1 if no collision
-    REQUIRE(collision_plane_sp->hit(initial_position, updated_position, velocity, dt) == 0.5);
-    REQUIRE(other_plane_sp->hit(initial_position, updated_position, velocity, dt) == -1.0);
+    CollisionHitInfo hit_info;
+    CollisionHitInfo miss_info;
+    collision_plane_sp->hit(initial_position, updated_position, velocity, dt, hit_info);
+    other_plane_sp->hit(initial_position, updated_position, velocity, dt, miss_info);
+    REQUIRE(hit_info.time_of_impact == 0.5);
+    REQUIRE(hit_info.position == Vector(0.0f, 0.0f, 0.0f));
+    REQUIRE(hit_info.normal == Vector(0.0f, 1.0f, 0.0f));
+    
+    REQUIRE(miss_info.time_of_impact == NO_COLLISION);
 }

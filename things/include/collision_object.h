@@ -9,13 +9,12 @@ namespace pba{
 
 inline constexpr double EPSILON = std::numeric_limits<double>::epsilon();
 
+inline constexpr double NO_COLLISION = std::numeric_limits<double>::infinity();
 struct CollisionHitInfo {
 	double time_of_impact;
-	Vector contact_point;
-	Vector contact_normal;
+	Vector position;
+	Vector normal;
 };
-
-inline constexpr CollisionHitInfo NO_COLLISION = CollisionHitInfo(-1.0, Vector(), Vector());
 
 class CollisionObject
 {
@@ -24,12 +23,13 @@ public:
 	CollisionObject() = default;
 	virtual ~CollisionObject() = default;
 
-	// Returns time of impact in [0,dt], or -1 if no collision
-	virtual CollisionHitInfo hit(
+	// Packs the data into hit_info. If there is no collision, time_of_impact is set to NO_COLLISION
+	virtual bool hit(
 		const Vector& start_pos,
 		const Vector& end_pos,
 		const Vector& velocity,
-		const double dt
+		const double dt,
+		CollisionHitInfo& hit_info
 	) const = 0;
 };
 
@@ -43,10 +43,11 @@ public:
 	: _point_on_plane(point_on_plane), _plane_normal(plane_normal.unitvector()) {}
 	~CollisionPlane() = default;
 
-	CollisionHitInfo hit(const Vector& start_pos,
+	bool hit(const Vector& start_pos,
 		const Vector& end_pos,
 		const Vector& velocity,
-		const double dt
+		const double dt,
+		CollisionHitInfo& hit_info
 	) const override;
 
 
@@ -54,6 +55,10 @@ private:
 	Vector _point_on_plane;
 	Vector _plane_normal;
 };
+
+inline CollisionObject_sp create_collision_plane(const Vector& point_on_plane, const Vector& plane_normal){
+	return std::make_shared<CollisionPlane>(point_on_plane, plane_normal);
+}
 
 } // end namespace pba
 

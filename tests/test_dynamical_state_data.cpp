@@ -35,15 +35,16 @@ TEST_CASE( "Benchmark iterators vs accessors"){
 	// 	return *pos_it;
 	// };
 
-	BENCHMARK("Using accessors to update positions"){
-		const size_t n = dsd->n_particles();
-		for( size_t i=0; i<n; i++ ){
-			const Vector& pos = dsd->get_position(i);
-			const Vector& vel = dsd->get_velocity(i);
-			dsd->set_position(i, pos + vel * dt);
-		}
-		return dsd->get_position(n-1);
-	};
+	// BENCHMARK("Using accessors to update positions"){
+	// 	const size_t n = dsd->n_particles();
+	// 	for( size_t i=0; i<n; i++ ){
+	// 		const Vector& pos = dsd->get_position(i);
+	// 		const Vector& vel = dsd->get_velocity(i);
+	// 		dsd->set_position(i, pos + vel * dt);
+	// 	}
+	// 	return dsd->get_position(n-1);
+	// };
+	REQUIRE(dsd->n_particles() == N);
 }
 
 

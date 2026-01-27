@@ -7,6 +7,9 @@
 #include "Vector.h"
 #include "partial_solvers.h"
 #include "GISolver.h"
+#include "collision_object.h"
+#include "collision_surface.h"
+#include "collision_handler.h"
 
 using namespace pba;
 
@@ -14,18 +17,34 @@ using namespace pba;
 TEST_CASE( "Test advance position "){
     auto dsd = create_dynamical_state_data();
     dsd->add(10);
-    dsd->set_velocity(0, Vector(1.0f, 0.0f, 0.0f));
+    dsd->set_velocity(0, Vector(1.0, 0.0, 0.0));
     GISolver_sp GIAdvancePosition = std::make_shared<PartialSolverAdvancePosition>(dsd);
     GIAdvancePosition->init();
     const double dt = 0.1;
     GIAdvancePosition->solve(dt);
 
-    REQUIRE( dsd->get_position(0) == Vector(0.1f, 0.0f, 0.0f) );
+    REQUIRE( dsd->get_position(0) == Vector(0.1, 0.0, 0.0) );
 
 }
 
 TEST_CASE(" Handle Collision With Static Plane") {
-    // Test that a particle being moved through a plane returns collision info
+    // Test that a particle colliding with a plane rebounds correctly
+    auto dsd = create_dynamical_state_data();
+    dsd->add(1);
+    dsd->set_position(0, Vector(0.0, 1.0, 0.0));
+    dsd->set_velocity(0, Vector(0.0, -1.0, 0.0));
+
+    // Create a plane at a 45 degree angle
+    auto collision_plane_sp = create_collision_plane(Vector(0.0, 0.0, 0.0), Vector(1.0, 1.0, 0.0));
     
-    
+    // Create a collision surface and register the plane to it
+    auto collision_surface_sp = std::make_shared<CollisionSurface>();
+    collision_surface_sp->add_collision_object(collision_plane_sp);
+
+    // Create a collision handler with the collision surface. 
+    auto collision_handler_sp = create_collision_handler();
+    collision_handler_sp->register_collision_surface(collision_surface_sp);
+
+    // Create a solver that advances positions and handles collisions
+    GISolver_sp advance_with_collisions = create_partial_solver_advance_with_collisions(dsd, collision_handler_sp);
 }
