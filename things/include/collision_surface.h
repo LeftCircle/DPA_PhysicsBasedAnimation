@@ -21,7 +21,7 @@ public:
 private:
 	std::vector<CollisionObject_sp> _collision_objects;
 
-}
+};
 
 
 } // end namespace pba

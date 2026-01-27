@@ -48,3 +48,7 @@ TEST_CASE(" Handle Collision With Static Plane") {
     // Create a solver that advances positions and handles collisions
     GISolver_sp advance_with_collisions = create_partial_solver_advance_with_collisions(dsd, collision_handler_sp);
 }
+
+TEST_CASE(" Test adding forces not of shared_ptr<ForceBase> into a shared ptr vec"){
+    REQUIRE(false);
+}
