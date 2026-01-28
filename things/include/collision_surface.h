@@ -23,6 +23,7 @@ private:
 
 };
 
+using CollisionSurface_sp = std::shared_ptr<CollisionSurface>;
 
 } // end namespace pba
 

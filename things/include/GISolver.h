@@ -17,7 +17,6 @@ public:
 	virtual void solve(const double dt) = 0;
 };
 
-
 using GISolver_sp = std::shared_ptr<pba::GISolverBase>;
 
 

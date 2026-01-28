@@ -27,6 +27,7 @@ TEST_CASE( " Test Particle Plane Collision "){
     CollisionHitInfo miss_info;
     collision_plane_sp->hit(initial_position, updated_position, velocity, dt, hit_info);
     other_plane_sp->hit(initial_position, updated_position, velocity, dt, miss_info);
+    
     REQUIRE(hit_info.time_of_impact == 0.5);
     REQUIRE(hit_info.position == Vector(0.0f, 0.0f, 0.0f));
     REQUIRE(hit_info.normal == Vector(0.0f, 1.0f, 0.0f));

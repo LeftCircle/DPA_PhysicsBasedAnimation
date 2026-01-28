@@ -35,7 +35,7 @@ TEST_CASE(" Handle Collision With Static Plane") {
     dsd->set_velocity(0, Vector(0.0, -1.0, 0.0));
 
     // Create a plane at a 45 degree angle
-    auto collision_plane_sp = create_collision_plane(Vector(0.0, 0.0, 0.0), Vector(1.0, 1.0, 0.0));
+    auto collision_plane_sp = create_collision_plane(Vector(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0));
     
     // Create a collision surface and register the plane to it
     auto collision_surface_sp = std::make_shared<CollisionSurface>();
@@ -46,7 +46,17 @@ TEST_CASE(" Handle Collision With Static Plane") {
     collision_handler_sp->register_collision_surface(collision_surface_sp);
 
     // Create a solver that advances positions and handles collisions
-    GISolver_sp advance_with_collisions = create_partial_solver_advance_with_collisions(dsd, collision_handler_sp);
+    GISolver_sp advance_with_collisions = create_advance_position_with_collisions(dsd, collision_handler_sp);
+
+    advance_with_collisions->init();
+    const double dt = 3.0;
+    advance_with_collisions->solve(dt);
+    // After collision, the particle should have bounced off the plane
+    // Assume fully elastic collision for this test
+    Vector expected_position = Vector(0.0, 2.0, 0.0);
+    Vector expected_velocity = Vector(0.0, 1.0, 0.0);
+    REQUIRE(dsd->get_position(0) == expected_position);
+    REQUIRE(dsd->get_velocity(0) == expected_velocity);
 }
 
 TEST_CASE(" Test adding forces not of shared_ptr<ForceBase> into a shared ptr vec"){
