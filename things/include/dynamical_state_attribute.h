@@ -25,6 +25,9 @@ public:
 	const T& get(size_t i ) const { return data[i]; }
 	T& get(size_t i ) { return data[i]; }
 
+	std::span<T> get_span() { return std::span<T>(data); }
+	std::span<const T> get_span() const { return std::span<const T>(data); }
+
 	void expand_to( size_t n )
 	{
         if( data.size() >= n ){ return; }

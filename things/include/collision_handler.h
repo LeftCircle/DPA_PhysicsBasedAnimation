@@ -28,7 +28,7 @@ private:
 
 using CollisionHandler_sp =  std::shared_ptr<CollisionHandler> ;
 
-CollisionHandler_sp create_collision_handler() { return std::make_shared<CollisionHandler>(); };
+inline CollisionHandler_sp create_collision_handler() { return std::make_shared<CollisionHandler>(); };
 
 } // end namespace pba
 

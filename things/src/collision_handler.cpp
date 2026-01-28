@@ -17,3 +17,6 @@ void CollisionHandler::handle_collisions(DynamicalStateData& dsd, const std::str
         // Check collisions against all registered collision surfaces
         for (const auto& cs : collision_surfaces) {
             // For each collision object in the surface
+        }
+    }
+}

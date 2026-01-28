@@ -6,6 +6,7 @@
 #include <string>
 #include <memory>
 #include <stdexcept>
+#include <span>
 
 #include "Vector.h"
 #include "Color.h"
@@ -35,6 +36,17 @@ public:
 	const Vector& get_acceleration(size_t i) const { return _acc_map_iter->second.get(i); }
 	const float& get_mass(size_t i) const { return _mass_map_iter->second.get(i); }
 	const Color& get_color(size_t i) const { return _color_map_iter->second.get(i); }
+
+	// Span for all attributes
+	std::span<const Vector> get_vector_attribute_span(const std::string& name) const;
+	std::span<const float> get_float_attribute_span(const std::string& name) const;
+	std::span<const int> get_int_attribute_span(const std::string& name) const;
+	std::span<const Color> get_color_attribute_span(const std::string& name) const;
+
+	std::span<Vector> get_vector_attribute_span(const std::string& name);
+	std::span<float> get_float_attribute_span(const std::string& name);
+	std::span<int> get_int_attribute_span(const std::string& name);
+	std::span<Color> get_color_attribute_span(const std::string& name);
 
 	// setters for attributes by name
 	void set_vector_attribute(const std::string& name, size_t i, const Vector& v);

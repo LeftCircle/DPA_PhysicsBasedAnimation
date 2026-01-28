@@ -86,4 +86,27 @@ TEST_CASE( " Test get positions and velocities after resize"){
 	REQUIRE(dsd->get_position(15) == pos2);
 }
 
+TEST_CASE( " Test get attribute spans "){
+	DynamicalStateData_sp dsd = create_dynamical_state_data();
+	const size_t n = 100;
+	dsd->add(n);
+
+	auto pos_span = dsd->get_vector_attribute_span("positions");
+	REQUIRE(pos_span.size() == n);
+
+	for (size_t i=0; i<n; i++){
+		REQUIRE(pos_span[i] == Vector(0.0f, 0.0f, 0.0f));
+	}
+
+	const Vector new_pos(1.0f, 2.0f, 3.0f);
+	for (size_t i=0; i<n; i++){
+		pos_span[i] = new_pos;
+	}
+
+	auto pos_span_const = dsd->get_vector_attribute_span("positions");
+	for (size_t i=0; i<n; i++){
+		REQUIRE(pos_span_const[i] == new_pos);
+	}
+}
+
 

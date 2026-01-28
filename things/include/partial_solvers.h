@@ -33,7 +33,7 @@ private:
 	CollisionHandler_sp _collision_handler;
 };
 
-GISolver_sp create_advance_position_with_collisions(DynamicalStateData_sp dsd, CollisionHandler_sp collision_handler){
+inline GISolver_sp create_advance_position_with_collisions(DynamicalStateData_sp dsd, CollisionHandler_sp collision_handler){
 	return std::make_shared<AdvancePositionWithCollisions>(dsd, collision_handler);
 }
 

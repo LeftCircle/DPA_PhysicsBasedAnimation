@@ -23,7 +23,7 @@ void AdvancePositionWithCollisions::solve(const double dt){
         const Vector& pos = _state_data->get_position(i);
         const Vector& vel = _state_data->get_velocity(i);
         Vector new_pos = pos + vel * dt;
-        _collision_handler->handle_collisions()
+        //_collision_handler->handle_collisions();
     }
-    _collision_handler->handle_collisions(*_state_data, dt);
+    //_collision_handler->handle_collisions(*_state_data, "new_positions", dt);
 }
