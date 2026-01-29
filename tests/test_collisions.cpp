@@ -128,6 +128,30 @@ TEST_CASE(" Test no fall through for cr of 0"){
     REQUIRE(dsd->get_velocity(0) == Vector(0.0, 0.0, 0.0));
 }
 
+TEST_CASE("Triangle Collision Test"){
+    // A test to see if a particle collides with a triangle. 
+    // Also checks to see if a particle that collides with the same plane
+    // as the triangle but not within it does not register a collision
+    auto triangle = std::make_shared<CollisionTriangle>(
+        Vector(0.0, 0.0, 0.0),
+        Vector(1.0, 0.0, 0.0),
+        Vector(0.0, 1.0, 0.0)
+    );
+    const double dt = 1.0;
+    const Vector initial_pos_hit = Vector(0.25, 0.25, 1.0);
+    const Vector updated_pos_hit = Vector(0.25, 0.25, -1.0);
+    const Vector velocity = (updated_pos_hit - initial_pos_hit) / dt;
+
+    const Vector initial_pos_miss = Vector(1.5, 1.5, 1.0);
+    const Vector updated_pos_miss = Vector(1.5, 1.5, -1.0);
+    const Vector velocity_miss = (updated_pos_miss - initial_pos_miss) / dt;
+
+    // Test hit
+    CollisionHitInfo hit_info;
+    REQUIRE(triangle->hit(initial_pos_hit, updated_pos_hit, velocity, dt, hit_info));
+    REQUIRE_FALSE(triangle->hit(initial_pos_miss, updated_pos_miss, velocity_miss, dt, hit_info));
+}
+
 TEST_CASE("Particle resting on plane does not bounce due to gravity"){
     // If a particle starts and is resting on a plane and the velocity is zero,
     // If we run the force solver to apply gravity, then the collision handling, 

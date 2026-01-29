@@ -36,8 +36,8 @@ private:
 	std::vector<double> _time_steps;
 };
 
-inline std::shared_ptr<GISolverSystem> create_gi_solver_system(const std::vector<GISolver_sp>& solvers, const std::vector<double>& time_steps);
-
+std::shared_ptr<GISolverSystem> create_gi_solver_system(const std::vector<GISolver_sp>& solvers, const std::vector<double>& time_steps);
+inline std::shared_ptr<GISolverSystem> create_gi_solver_system() { return std::make_shared<GISolverSystem>(); }
 
 } // namespace pba
 

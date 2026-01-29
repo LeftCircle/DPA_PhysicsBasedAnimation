@@ -61,6 +61,27 @@ inline CollisionObject_sp create_collision_plane(const Vector& point_on_plane, c
 	return std::make_shared<CollisionPlane>(point_on_plane, plane_normal);
 };
 
+class CollisionTriangle : public CollisionObject
+{
+
+public:
+	CollisionTriangle(const Vector& v0, const Vector& v1, const Vector& v2);
+	~CollisionTriangle() = default;
+
+	bool hit(const Vector& start_pos,
+		const Vector& end_pos,
+		const Vector& velocity,
+		const double dt,
+		CollisionHitInfo& hit_info
+	) const override;
+
+private:
+	Vector _v0;
+	Vector _v1;
+	Vector _v2;
+	Vector _normal;
+};
+
 } // end namespace pba
 
 #endif
