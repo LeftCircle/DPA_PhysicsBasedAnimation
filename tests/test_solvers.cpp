@@ -59,7 +59,3 @@ TEST_CASE(" Handle Collision With Static Plane") {
     REQUIRE(dsd->get_position(0) == expected_position);
     REQUIRE(dsd->get_velocity(0) == expected_velocity);
 }
-
-TEST_CASE(" Test adding forces not of shared_ptr<ForceBase> into a shared ptr vec"){
-    REQUIRE(false);
-}

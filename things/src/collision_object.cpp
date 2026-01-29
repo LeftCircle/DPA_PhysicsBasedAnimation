@@ -5,10 +5,84 @@ using namespace pba;
 // Some internal helper functions for special cases
 namespace {
 
-void _handle_end_collision_on_plane(const Vector& end_pos, const Vector& plane_normal, const double dt, CollisionHitInfo& hit_info) {
+bool _handle_end_collision_on_plane(
+	const Vector& end_pos,
+	const Vector& plane_normal,
+	const double dt,
+	CollisionHitInfo& hit_info
+	){
 	hit_info.time_of_impact = dt;
 	hit_info.position = end_pos;
 	hit_info.normal = plane_normal;
+	return true;
+}
+
+bool _handle_start_collision_on_plane(
+	const Vector& start_pos,
+	const Vector& plane_normal,
+	const double vel_dot,
+	CollisionHitInfo& hit_info
+	){
+	if (vel_dot > EPSILON) {
+		// No collision. The particle starts on the plane but is already moving away. 
+		hit_info.time_of_impact = NO_COLLISION;
+		return false;
+	} else {
+		// We have a collision. The particle starts on the plane but is moving towards it, so the
+		// time of impact is 0.
+		hit_info.time_of_impact = 0.0;
+		hit_info.position = start_pos;
+		hit_info.normal = plane_normal;
+		return true;
+	}
+}
+
+bool _handle_general_plane_collision_case(
+	const Vector& start_pos,
+	const Vector& velocity,
+	const double dt,
+	const double start_dot,
+	const double end_dot,
+	const Vector& plane_normal,
+	const Vector& point_on_plane,
+	CollisionHitInfo& hit_info
+	){
+	// Now we have the general collision case
+	if (start_dot * end_dot > 0) {
+		// The particle is on the same side of the collision plane
+		hit_info.time_of_impact = NO_COLLISION;
+		return false;
+	} else{
+		hit_info.time_of_impact = plane_normal * ( point_on_plane - start_pos ) / ( plane_normal * velocity );
+		if( hit_info.time_of_impact < 0.0 || hit_info.time_of_impact > dt ){
+			hit_info.time_of_impact = NO_COLLISION;
+			return false;
+		}
+		hit_info.position = start_pos + velocity * hit_info.time_of_impact;
+		hit_info.normal = plane_normal;
+		return true;
+	}
+}
+
+bool _point_plane_collision(
+	const Vector& point_on_plane,
+	const Vector& plane_normal,
+	const Vector& start_pos,
+	const Vector& end_pos,
+	const Vector& velocity,
+	const double dt,
+	CollisionHitInfo& hit_info
+	){
+	double end_dot = (end_pos - point_on_plane) * plane_normal;
+	double start_dot = (start_pos - point_on_plane) * plane_normal;
+	double vel_dot = velocity * plane_normal;
+    if (std::abs(end_dot) < EPSILON) {
+		return _handle_end_collision_on_plane(end_pos, plane_normal, dt, hit_info);	
+    } else if (std::abs(start_dot) <= EPSILON) {
+		return _handle_start_collision_on_plane(start_pos, plane_normal, vel_dot, hit_info);
+	} else {
+		return _handle_general_plane_collision_case(start_pos, velocity, dt, start_dot, end_dot, plane_normal, point_on_plane, hit_info);
+	}
 }
 
 } // end anonymous namespace
@@ -19,59 +93,28 @@ bool CollisionPlane::hit(
 	const Vector& velocity,
 	const double dt,
 	CollisionHitInfo& hit_info) const {
-    // Check wether the start and end points are on the same side of the plane
-    // First check for the edge case where the point is on the plane
-	double end_dot = (end_pos - _point_on_plane) * _plane_normal;
-    if (std::abs(end_dot) < EPSILON) {
-		_handle_end_collision_on_plane(end_pos, _plane_normal, dt, hit_info);
-		hit_info.time_of_impact = dt;
-        hit_info.position = end_pos;
-		hit_info.normal = _plane_normal;
-		return true;
-    }
-	double start_dot = (start_pos - _point_on_plane) * _plane_normal;
-	// Check to see if velocity is parallel to the plane or towards the plane
-	double vel_dot = velocity * _plane_normal;
-	if (std::abs(start_dot) <= EPSILON) {
-		_handle_start_collision_on_plane(start_pos, _plane_normal, vel_dot);
-		// Special case where the particle is starting on the plane
-		if (vel_dot > EPSILON) {
-			// No collision. The particle starts on the plane but is already moving away. 
-			hit_info.time_of_impact = NO_COLLISION;
-			return false;
-		} else {
-			// We have a collision. The particle starts on the plane but is moving towards it, so the
-			// time of impact is 0.
-			hit_info.time_of_impact = 0.0;
-			hit_info.position = start_pos;
-			hit_info.normal = _plane_normal;
-			return true;
-		}
-	}
-	return _handle_general_case(start_pos, end_pos, velocity, dt, start_dot, end_dot, hit_info);
-	// Now we have the general collision case
-	if (start_dot * end_dot > 0) {
-		// The particle is on the same side of the collision plane
-		hit_info.time_of_impact = NO_COLLISION;
-		return false;
-	} else{
-		hit_info.time_of_impact = _plane_normal * ( _point_on_plane - start_pos ) / ( _plane_normal * velocity );
-		if( hit_info.time_of_impact < 0.0 || hit_info.time_of_impact > dt ){
-			hit_info.time_of_impact = NO_COLLISION;
-			return false;
-		}
-		hit_info.position = start_pos + velocity * hit_info.time_of_impact;
-		hit_info.normal = _plane_normal;
-		return true;
-	}
+	return _point_plane_collision(_point_on_plane, _plane_normal, start_pos, end_pos, velocity, dt, hit_info);
 }
 
 
+CollisionTriangle::CollisionTriangle(const Triangle& tri)
+	: _triangle(tri) {
+	_edge1 = _triangle.v1 - _triangle.v0;
+	_edge2 = _triangle.v2 - _triangle.v0;
+	_not_normalized_normal = (_edge1 ^ _edge2);
+	_det = _not_normalized_normal * _not_normalized_normal;
+	assert(std::abs(_det) > EPSILON); // Ensure the triangle is not degenerate
+}
 
 CollisionTriangle::CollisionTriangle(const Vector& v0, const Vector& v1, const Vector& v2)
-	: _v0(v0), _v1(v1), _v2(v2) {
-	_normal = (_v1 - _v0) ^ (_v2 - _v0);
-	_normal.normalize();
+	: CollisionTriangle(Triangle{v0, v1, v2}) {}
+
+bool CollisionTriangle::_is_in_triangle(const Vector& p) const noexcept {
+	Vector v_to_p = p - _triangle.v0;
+	double u = _not_normalized_normal * (v_to_p ^ _edge2) / _det;
+	double v = _not_normalized_normal * (_edge1 ^ v_to_p) / _det;
+	double w = 1.0 - u - v;
+	return (u >= 0.0 && v >= 0.0 && w >= 0.0);
 }
 
 bool CollisionTriangle::hit(
@@ -81,37 +124,12 @@ bool CollisionTriangle::hit(
 	const double dt,
 	CollisionHitInfo& hit_info) const {
 	// First check for intersection with the plane of the triangle
-	CollisionHitInfo plane_hit_info;
-	CollisionPlane triangle_plane(_v0, _normal);
-	bool hit = triangle_plane.hit(start_pos, end_pos, velocity, dt, plane_hit_info);
-	if (!hit) {
+	bool plane_hit = _point_plane_collision(_triangle.v0, _not_normalized_normal, start_pos, end_pos, velocity, dt, hit_info);
+	if (!plane_hit) {
 		return false;
 	}
-	// Now check if the intersection point is within the triangle using barycentric coordinates
-	Vector P = plane_hit_info.position;
-	Vector v0 = _v1 - _v0;
-	Vector v1 = _v2 - _v0;
-	Vector v2 = P - _v0;
-
-	double d00 = v0 * v0;
-	double d01 = v0 * v1;
-	double d11 = v1 * v1;
-	double d20 = v2 * v0;
-	double d21 = v2 * v1;
-
-	double denom = d00 * d11 - d01 * d01;
-	if (std::abs(denom) < EPSILON) {
-		// Triangle is degenerate
-		hit_info.time_of_impact = NO_COLLISION;
-		return false;
-	}
-	double v = (d11 * d20 - d01 * d21) / denom;
-	double w = (d00 * d21 - d01 * d20) / denom;
-	double u = 1.0 - v - w;
-
-	if (u >= 0.0 && v >= 0.0 && w >= 0.0) {
-		// The intersection point is inside the triangle
-		hit_info = plane_hit_info;
+	// Now check if the intersection point is within the triangle
+	if (_is_in_triangle(hit_info.position)) {
 		return true;
 	} else {
 		hit_info.time_of_impact = NO_COLLISION;

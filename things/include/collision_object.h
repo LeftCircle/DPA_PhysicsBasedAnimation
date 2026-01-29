@@ -2,8 +2,10 @@
 #define _COLLISION_OBJECT_H
 
 #include <memory>
+#include <cassert>
 
 #include "Vector.h"
+#include "shapes.h"
 
 namespace pba{
 
@@ -65,7 +67,9 @@ class CollisionTriangle : public CollisionObject
 {
 
 public:
+	CollisionTriangle(const Triangle& triangle);
 	CollisionTriangle(const Vector& v0, const Vector& v1, const Vector& v2);
+	CollisionTriangle() = delete;
 	~CollisionTriangle() = default;
 
 	bool hit(const Vector& start_pos,
@@ -76,10 +80,13 @@ public:
 	) const override;
 
 private:
-	Vector _v0;
-	Vector _v1;
-	Vector _v2;
-	Vector _normal;
+	Triangle _triangle;
+	Vector _edge1;
+	Vector _edge2;
+	Vector _not_normalized_normal;
+	double _det;
+
+	bool _is_in_triangle(const Vector& p) const noexcept;
 };
 
 } // end namespace pba

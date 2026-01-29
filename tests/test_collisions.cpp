@@ -159,3 +159,10 @@ TEST_CASE("Particle resting on plane does not bounce due to gravity"){
 
     REQUIRE(false);
 }
+
+TEST_CASE("Test exact collision pushes the particle back slightly by epsilon"){
+    // To handle edge cases in the collisions, we should push the particle slightly
+    // above (the same side of the plane that the particle started on) the collision
+    // surface when the particle ends exactly on the collision 
+    REQUIRE(false);
+}
