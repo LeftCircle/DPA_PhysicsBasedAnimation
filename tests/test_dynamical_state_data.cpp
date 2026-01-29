@@ -95,10 +95,10 @@ TEST_CASE( " Test get attribute spans "){
 	REQUIRE(pos_span.size() == n);
 
 	for (size_t i=0; i<n; i++){
-		REQUIRE(pos_span[i] == Vector(0.0f, 0.0f, 0.0f));
+		REQUIRE(pos_span[i] == Vector(0.0, 0.0, 0.0));
 	}
 
-	const Vector new_pos(1.0f, 2.0f, 3.0f);
+	const Vector new_pos(1.0, 2.0, 3.0);
 	for (size_t i=0; i<n; i++){
 		pos_span[i] = new_pos;
 	}

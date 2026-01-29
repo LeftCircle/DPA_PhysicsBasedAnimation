@@ -72,7 +72,12 @@ tests: test_runner
 test: test_runner
 	./test_runner
 
+CLEANABLE_OBJS = $(filter-out $(OBJDIR)/catch_amalgamated.o,$(wildcard $(OBJDIR)/*.o))
+
 clean:
+	rm -f $(CLEANABLE_OBJS) $(LIB) bin/pbalitesim test_runner
+
+cleanall:
 	rm -rf $(OBJDIR) $(LIB) bin/pbalitesim test_runner
 
-.PHONY: all base sim tests test clean
+.PHONY: all base sim tests test clean cleanall

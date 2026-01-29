@@ -10,6 +10,7 @@ namespace pba{
 inline constexpr double EPSILON = std::numeric_limits<double>::epsilon();
 
 inline constexpr double NO_COLLISION = std::numeric_limits<double>::infinity();
+
 struct CollisionHitInfo {
 	double time_of_impact;
 	Vector position;
@@ -58,7 +59,7 @@ private:
 
 inline CollisionObject_sp create_collision_plane(const Vector& point_on_plane, const Vector& plane_normal){
 	return std::make_shared<CollisionPlane>(point_on_plane, plane_normal);
-}
+};
 
 } // end namespace pba
 

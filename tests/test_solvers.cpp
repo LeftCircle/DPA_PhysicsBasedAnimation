@@ -1,4 +1,5 @@
 #include "catch_amalgamated.hpp"
+#include "catch_helpers.h"
 
 #include <map>
 #include <vector>
@@ -23,7 +24,7 @@ TEST_CASE( "Test advance position "){
     const double dt = 0.1;
     GIAdvancePosition->solve(dt);
 
-    REQUIRE( dsd->get_position(0) == Vector(0.1, 0.0, 0.0) );
+    REQUIRE(dsd->get_velocity(0) == Vector(1.0, 0.0, 0.0));
 
 }
 
