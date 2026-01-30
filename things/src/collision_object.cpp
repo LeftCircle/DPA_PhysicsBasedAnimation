@@ -78,8 +78,9 @@ bool _point_plane_collision(
 	double vel_dot = velocity * plane_normal;
     if (std::abs(end_dot) < EPSILON) {
 		return _handle_end_collision_on_plane(end_pos, plane_normal, dt, hit_info);	
-    } else if (std::abs(start_dot) <= EPSILON) {
-		return _handle_start_collision_on_plane(start_pos, plane_normal, vel_dot, hit_info);
+    } else if (std::abs(start_dot) < EPSILON) {
+		throw(std::runtime_error("CollisionObject::_point_plane_collision: Particle starts too close to the plane. This may cause instability in the collision handling."));
+		return false;
 	} else {
 		return _handle_general_plane_collision_case(start_pos, velocity, dt, start_dot, end_dot, plane_normal, point_on_plane, hit_info);
 	}
@@ -101,8 +102,10 @@ CollisionTriangle::CollisionTriangle(const Triangle& tri)
 	: _triangle(tri) {
 	_edge1 = _triangle.v1 - _triangle.v0;
 	_edge2 = _triangle.v2 - _triangle.v0;
-	_not_normalized_normal = (_edge1 ^ _edge2);
-	_det = _not_normalized_normal * _not_normalized_normal;
+	_normal = (_edge1 ^ _edge2);
+	_normal.normalize();
+	_det = _edge1 * _edge1 * _edge2 * _edge2 - (_edge1 * _edge2) * (_edge1 * _edge2);
+	_one_over_area_scale = 1.0 / std::sqrt(_det);
 	assert(std::abs(_det) > EPSILON); // Ensure the triangle is not degenerate
 }
 
@@ -111,8 +114,8 @@ CollisionTriangle::CollisionTriangle(const Vector& v0, const Vector& v1, const V
 
 bool CollisionTriangle::_is_in_triangle(const Vector& p) const noexcept {
 	Vector v_to_p = p - _triangle.v0;
-	double u = _not_normalized_normal * (v_to_p ^ _edge2) / _det;
-	double v = _not_normalized_normal * (_edge1 ^ v_to_p) / _det;
+	double u = _normal * (v_to_p ^ _edge2) * _one_over_area_scale;
+	double v = _normal * (_edge1 ^ v_to_p) * _one_over_area_scale;
 	double w = 1.0 - u - v;
 	return (u >= 0.0 && v >= 0.0 && w >= 0.0);
 }
@@ -124,12 +127,18 @@ bool CollisionTriangle::hit(
 	const double dt,
 	CollisionHitInfo& hit_info) const {
 	// First check for intersection with the plane of the triangle
-	bool plane_hit = _point_plane_collision(_triangle.v0, _not_normalized_normal, start_pos, end_pos, velocity, dt, hit_info);
+	bool plane_hit = _point_plane_collision(_triangle.v0, _normal, start_pos, end_pos, velocity, dt, hit_info);
 	if (!plane_hit) {
 		return false;
 	}
 	// Now check if the intersection point is within the triangle
 	if (_is_in_triangle(hit_info.position)) {
+		Vector unit_normal = _normal.unitvector();
+		if ( (end_pos - start_pos) * _normal > 0 ) {
+			hit_info.normal = unit_normal * -1.0;
+		} else {
+			hit_info.normal = unit_normal;
+		}
 		return true;
 	} else {
 		hit_info.time_of_impact = NO_COLLISION;

@@ -69,7 +69,7 @@ TEST_CASE( " Test Multiple Collision Planes "){
 TEST_CASE( " Test point on plane does not fall through"){
     auto dsd = create_dynamical_state_data();
     dsd->add(1);
-    dsd->set_position(0, Vector(0.0, 0.0, 0.0));
+    dsd->set_position(0, Vector(0.0, MIN_END_DIST_FROM_COLLISION, 0.0));
     dsd->set_velocity(0, Vector(0.0, -1.0, 0.0));
     const double dt = 1.0;
 
@@ -83,7 +83,7 @@ TEST_CASE( " Test point on plane does not fall through"){
     auto solver = create_advance_position_with_collisions(dsd, collision_handler);
     solver->solve(dt);
 
-    REQUIRE(dsd->get_position(0) == Vector(0.0, 1.0, 0.0));
+    REQUIRE_VECTOR_APPROX(dsd->get_position(0), Vector(0.0, 1.0, 0.0), 0.0001);
 }
 
 TEST_CASE( " Test no infinite loop for static particle on plane"){
@@ -103,13 +103,14 @@ TEST_CASE( " Test no infinite loop for static particle on plane"){
     auto solver = create_advance_position_with_collisions(dsd, collision_handler);
     solver->solve(dt);
 
-    REQUIRE(dsd->get_position(0) == Vector(0.0, 0.0, 0.0));
+    //REQUIRE(dsd->get_position(0) == Vector(0.0, 0.0, 0.0));
+    REQUIRE_VECTOR_APPROX(dsd->get_position(0), Vector(0.0, 0.0, 0.0), 0.0001);
 }
 
 TEST_CASE(" Test no fall through for cr of 0"){
     auto dsd = create_dynamical_state_data();
     dsd->add(1);
-    dsd->set_position(0, Vector(0.0, 0.0, 0.0));
+    dsd->set_position(0, Vector(0.0, 0.5, 0.0));
     dsd->set_velocity(0, Vector(0.0, -1.0, 0.0));
     const double dt = 1.0;
 
@@ -124,7 +125,7 @@ TEST_CASE(" Test no fall through for cr of 0"){
     auto solver = create_advance_position_with_collisions(dsd, collision_handler);
     solver->solve(dt);
 
-    REQUIRE(dsd->get_position(0) == Vector(0.0, 0.0, 0.0));
+    REQUIRE(dsd->get_position(0) == Vector(0.0, MIN_END_DIST_FROM_COLLISION, 0.0));
     REQUIRE(dsd->get_velocity(0) == Vector(0.0, 0.0, 0.0));
 }
 
@@ -164,5 +165,18 @@ TEST_CASE("Test exact collision pushes the particle back slightly by epsilon"){
     // To handle edge cases in the collisions, we should push the particle slightly
     // above (the same side of the plane that the particle started on) the collision
     // surface when the particle ends exactly on the collision 
-    REQUIRE(false);
+    auto dsd = create_dynamical_state_data();
+    dsd->add(1);
+    dsd->set_position(0, Vector(0.0, 1.0, 0.0));
+    dsd->set_velocity(0, Vector(0.0, -1.0, 0.0));
+    const double dt = 1.0;
+    auto collision_plane = create_collision_plane(Vector(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0));
+    auto collision_surface = create_collision_surface();
+    collision_surface->add_collision_object(collision_plane);
+    auto collision_handler = create_collision_handler();
+    collision_handler->register_collision_surface(collision_surface);
+
+    auto solver = create_advance_position_with_collisions(dsd, collision_handler);
+    solver->solve(dt);
+    REQUIRE(dsd->get_position(0).Y() == MIN_END_DIST_FROM_COLLISION);
 }

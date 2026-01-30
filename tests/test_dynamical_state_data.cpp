@@ -21,7 +21,7 @@ TEST_CASE( "Benchmark iterators vs accessors"){
 	//auto vel_it = dsd->get_vel_cbegin_iter();
 	//auto pos_end = dsd->get_pos_end_iter();
 
-	constexpr float dt = 0.01f;
+	//constexpr double dt = 0.01;
 	
 	// Benchmark showed that the versions were basically identical, so just
 	// keeping and maintaining the accessor version.
@@ -109,4 +109,12 @@ TEST_CASE( " Test get attribute spans "){
 	}
 }
 
+TEST_CASE("Test Remove Particles"){
+	DynamicalStateData_sp dsd = create_dynamical_state_data();
+	const size_t n = 10;
+	dsd->add(n);
+	REQUIRE(dsd->n_particles() == n);
+	dsd->resize(1);
+	REQUIRE(dsd->n_particles() == 1);
+}
 

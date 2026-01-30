@@ -3,13 +3,15 @@
 
 #include <memory>
 #include <cassert>
+#include <iostream>
 
 #include "Vector.h"
 #include "shapes.h"
 
 namespace pba{
 
-inline constexpr double EPSILON = std::numeric_limits<double>::epsilon();
+inline constexpr double EPSILON = 10.0 * std::numeric_limits<double>::epsilon();
+inline constexpr double MIN_END_DIST_FROM_COLLISION = 10 * EPSILON; 
 
 inline constexpr double NO_COLLISION = std::numeric_limits<double>::infinity();
 
@@ -83,7 +85,8 @@ private:
 	Triangle _triangle;
 	Vector _edge1;
 	Vector _edge2;
-	Vector _not_normalized_normal;
+	Vector _normal;
+	double _one_over_area_scale;
 	double _det;
 
 	bool _is_in_triangle(const Vector& p) const noexcept;

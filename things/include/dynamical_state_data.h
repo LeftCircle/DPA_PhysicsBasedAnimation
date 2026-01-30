@@ -24,6 +24,8 @@ public:
 	size_t add();
 	size_t add(size_t n);
 
+	void resize(size_t n);
+
 	// accessors for attributes by name
 	const Vector& get_vector_attribute(const std::string& name, size_t i) const;
 	const float& get_float_attribute(const std::string& name, size_t i) const;

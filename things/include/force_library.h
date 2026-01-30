@@ -16,6 +16,9 @@ public:
 
 	void compute(DynamicalStateData_sp dsd, const double dt) const override;
 
+	const Vector& get_gravity() const noexcept { return _gravity; }
+	void set_gravity(const Vector& gravity) { _gravity = gravity; }
+
 private:
 	Vector _gravity;
 

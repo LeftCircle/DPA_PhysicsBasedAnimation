@@ -6,6 +6,7 @@
 #include <memory>
 #include <string>
 #include <span>
+#include <iostream>
 
 #include "collision_surface.h"
 #include "dynamical_state_data.h"
@@ -28,8 +29,8 @@ public:
     void handle_collisions(DynamicalStateData_sp dsd, const std::string& updated_pos_attr_name, const double dt);
 
 private:
-    void _resolve_collision_against_static_object(
-        Vector& position,
+    Vector _resolve_collision_against_static_object(
+        const Vector& collision_position,
         const Vector& hit_normal,
         Vector& velocity,
         const double restitution, 

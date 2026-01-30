@@ -37,6 +37,11 @@ size_t DynamicalStateData::add(size_t n){
 	return _n_particles;
 }
 
+void DynamicalStateData::resize(size_t n){
+	_n_particles = n;
+	_resize_all_attributes(_n_particles);
+}
+
 const Vector& DynamicalStateData::get_vector_attribute(const std::string& name, size_t i) const {
 	return _lookup_or_throw(_vec_attr, name, "vector").get(i);
 }
