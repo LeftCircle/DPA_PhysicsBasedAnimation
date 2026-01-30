@@ -13,8 +13,8 @@ BouncingBallThing::BouncingBallThing(const std::string& nam)
 	_particle_emitter_sp->set_min_speed(1.0);
 	_particle_emitter_sp->set_max_speed(5.0);
 	
-	_dsd = create_dynamical_state_data();
 	// Let's add a single bouncing ball particle
+	_dsd = create_dynamical_state_data();
 	_add_random_particle();
 
 	// And now our systems, forces and collision surfaces
@@ -27,7 +27,7 @@ BouncingBallThing::BouncingBallThing(const std::string& nam)
 	_gravity_force = std::make_shared<SimpleGravityForce>(Vector(0.0, -9.81, 0.0));
 	_force_system->add_force(_gravity_force);
 	
-	// Which then get fed into the solvers
+	// And now that the init is basically done. Let's build the solvers
 	SetSimulationTimestep(0.01667);
 	_set_to_leapfrog_solver();
 }
