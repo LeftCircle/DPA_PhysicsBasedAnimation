@@ -29,6 +29,7 @@ public:
     void handle_collisions(DynamicalStateData_sp dsd, const std::string& updated_pos_attr_name, const double dt);
 
 private:
+    void _handle_particle_collisions(Vector& start_pos, Vector& updated_pos, Vector& velocity, const double dt);
     Vector _resolve_collision_against_static_object(
         const Vector& collision_position,
         const Vector& hit_normal,
