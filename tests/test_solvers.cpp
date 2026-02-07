@@ -59,3 +59,27 @@ TEST_CASE(" Handle Collision With Static Plane") {
     REQUIRE(dsd->get_position(0) == expected_position);
     REQUIRE(dsd->get_velocity(0) == expected_velocity);
 }
+
+TEST_CASE(" partial solver with leapfrog "){
+    auto dsd = create_dynamical_state_data();
+    dsd->add(1);
+    dsd->set_position(0, Vector(0.0, 0.0, 0.0));
+    dsd->set_velocity(0, Vector(1.0, 0.0, 0.0));
+    dsd->set_acceleration(0, Vector(0.0, -9.8, 0.0));
+    
+    // A standard leapfrog solver does position -> vel -> position
+    auto pos_solv = std::make_shared<PartialSolverAdvancePosition>(dsd);
+    auto grav = std::make_shared<SimpleGravityForce>(Vector(0.0, -9.8, 0.0));
+    auto fs = std::make_shared<ForceSystem>();
+    fs->add_force(grav);
+    auto vel_solv = std::make_shared<AdvanceVelocityWithForces>(dsd, fs);
+    auto leapfrog_solver = std::make_shared<GISolverLeapfrog>(pos_solv, vel_solv);   
+    const double dt = 1.0;
+    
+    auto sixth_order_solver = std::make_shared<GISolverSixthOrder>(leapfrog_solver);
+    sixth_order_solver->init();
+    sixth_order_solver->solve(dt);
+
+    REQUIRE_VECTOR_APPROX(dsd->get_position(0), Vector(1.0, -4.9, 0.0), 1e-5);
+    REQUIRE_VECTOR_APPROX(dsd->get_velocity(0), Vector(1.0, -9.8, 0.0), 1e-5);
+}

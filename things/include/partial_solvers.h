@@ -52,6 +52,62 @@ private:
 	ForceSystem_sp _force_system;
 };
 
+class GISolverLeapfrog : public GISolverBase{
+public:
+	GISolverLeapfrog(GISolver_sp solver_a, GISolver_sp solver_b) : _solver_a(solver_a), _solver_b(solver_b) {}
+	~GISolverLeapfrog() = default;
+
+	void init() override {
+		_solver_a->init();
+		_solver_b->init();
+	}
+
+	void solve(const double dt) override {
+		const double half_dt = dt * 0.5;
+		_solver_a->solve(half_dt);
+		_solver_b->solve(dt);
+		_solver_a->solve(half_dt);
+	}
+
+private:
+	GISolver_sp _solver_a;
+	GISolver_sp _solver_b;
+};
+
+// From https://jtessen.people.clemson.edu/cpsc6190/html/_g_i_solver_8h_source.html
+class GISolverSixthOrder : public GISolverBase
+{
+public:
+	GISolverSixthOrder(GISolver_sp s ) : 
+		_solver (s) 
+	{
+		_a = 1.0/( 4.0 - std::pow(4.0, 1.0/3.0) );
+			_b = 1.0 - 4.0*_a;
+	}
+
+	~GISolverSixthOrder(){}
+
+	void init(){ _solver->init(); }
+
+	void solve( const double dt )
+	{
+		const double dta = _a * dt;
+		const double dtb = _b * dt;
+		_solver->solve(dta);
+		_solver->solve(dta);
+		_solver->solve(dtb);
+		_solver->solve(dta);
+		_solver->solve(dta);
+	}
+
+
+private:
+
+	GISolver_sp _solver;
+	double _a, _b;
+};
+
+
 
 } // end namespace pba
 

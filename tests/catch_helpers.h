@@ -4,6 +4,8 @@
 #include <iostream>
 
 #include "Vector.h"
+#include "partial_solvers.h"
+#include "force_library.h"
 
 
 #define REQUIRE_VECTOR_APPROX(actual, expected, eps) \
@@ -27,3 +29,10 @@ struct StringMaker<pba::Vector>{
 };
 
 } // end namespace Catch
+
+namespace pba {
+
+
+	
+
+} // end namespace pba
