@@ -28,7 +28,7 @@ void CollisionHandler::_handle_particle_collisions(Vector& start_pos, Vector& up
 	CollisionHitInfo temp_hit;
 	earliest_hit.hit_info.time_of_impact = NO_COLLISION;
 	ParticleUpdateInfo pui(start_pos, updated_pos, velocity, remaining_dt);
-	while (keep_checking && remaining_dt > EPSILON){
+	while (keep_checking && std::abs(remaining_dt) > EPSILON){
 		keep_checking = _check_for_collision_against_all_surfaces(earliest_hit, temp_hit, pui);
 		if( keep_checking ){
 			_on_collision_detected(earliest_hit, pui);
@@ -38,11 +38,14 @@ void CollisionHandler::_handle_particle_collisions(Vector& start_pos, Vector& up
 
 bool CollisionHandler::_check_for_collision_against_all_surfaces(CollisionHandleInfo& earliest_hit, CollisionHitInfo& temp_hit, ParticleUpdateInfo& pui) const{
 	bool keep_checking = false;
-	earliest_hit.hit_info.time_of_impact = NO_COLLISION;
-	temp_hit.time_of_impact = NO_COLLISION;
+	double no_coll_time = pui.remaining_dt > 0 ? NO_COLLISION : NO_COLLISION_NEG;
+	earliest_hit.hit_info.time_of_impact = no_coll_time;
+	temp_hit.time_of_impact = no_coll_time;
 	for( const auto& cs : collision_surfaces ){
 		cs->hit(pui.start_pos, pui.updated_pos, pui.velocity, pui.remaining_dt, temp_hit);
-		if( temp_hit.time_of_impact < earliest_hit.hit_info.time_of_impact ){
+		// now we have to account for negative dt so we get this mess
+		bool earlier_hit = pui.remaining_dt > 0 ? (temp_hit.time_of_impact < earliest_hit.hit_info.time_of_impact) : (temp_hit.time_of_impact > earliest_hit.hit_info.time_of_impact);
+		if( earlier_hit ){
 			earliest_hit.hit_info = temp_hit;
 			earliest_hit.collision_surface = cs;
 			keep_checking = true;
@@ -53,7 +56,7 @@ bool CollisionHandler::_check_for_collision_against_all_surfaces(CollisionHandle
 
 void CollisionHandler::_on_collision_detected(CollisionHandleInfo& earliest_hit, ParticleUpdateInfo& pui) const noexcept{
 	// Now we actually have to handle the collision
-	pui.remaining_dt -= earliest_hit.hit_info.time_of_impact;
+	pui.remaining_dt = pui.remaining_dt > 0 ? pui.remaining_dt - earliest_hit.hit_info.time_of_impact : pui.remaining_dt + earliest_hit.hit_info.time_of_impact;
 	pui.updated_pos = _resolve_collision_against_static_object(
 		earliest_hit.hit_info.position,
 		earliest_hit.hit_info.normal,

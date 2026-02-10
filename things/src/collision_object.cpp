@@ -25,7 +25,6 @@ bool _handle_start_collision_on_plane(
 	){
 	if (vel_dot > EPSILON) {
 		// No collision. The particle starts on the plane but is already moving away. 
-		hit_info.time_of_impact = NO_COLLISION;
 		return false;
 	} else {
 		// We have a collision. The particle starts on the plane but is moving towards it, so the
@@ -50,12 +49,10 @@ bool _handle_general_plane_collision_case(
 	// Now we have the general collision case
 	if (start_dot * end_dot > 0) {
 		// The particle is on the same side of the collision plane
-		hit_info.time_of_impact = NO_COLLISION;
 		return false;
 	} else{
 		hit_info.time_of_impact = plane_normal * ( point_on_plane - start_pos ) / ( plane_normal * velocity );
-		if( hit_info.time_of_impact < 0.0 || hit_info.time_of_impact > dt ){
-			hit_info.time_of_impact = NO_COLLISION;
+		if( (hit_info.time_of_impact * dt < 0.0) || std::abs(hit_info.time_of_impact) > std::abs(dt) ){
 			return false;
 		}
 		hit_info.position = start_pos + velocity * hit_info.time_of_impact;
@@ -141,7 +138,6 @@ bool CollisionTriangle::hit(
 		}
 		return true;
 	} else {
-		hit_info.time_of_impact = NO_COLLISION;
 		return false;
 	}
 }

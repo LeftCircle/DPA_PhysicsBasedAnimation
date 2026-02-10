@@ -14,6 +14,7 @@ inline constexpr double EPSILON = 10.0 * std::numeric_limits<double>::epsilon();
 inline constexpr double MIN_END_DIST_FROM_COLLISION = 10 * EPSILON; 
 
 inline constexpr double NO_COLLISION = std::numeric_limits<double>::infinity();
+inline constexpr double NO_COLLISION_NEG = -std::numeric_limits<double>::infinity();
 
 struct CollisionHitInfo {
 	double time_of_impact;

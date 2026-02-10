@@ -62,6 +62,7 @@ private:
 	void _set_to_leapfrog_solver();
 	void _set_to_forward_euler_solver();
 	void _set_to_backward_euler_solver();
+	void _set_to_sixth_order_solver();
 	void _adjust_gravity(const Vector& delta);
 	void _adjust_coefficient_of_restitution(const double delta);
 	void _emit_particles(const size_t n);

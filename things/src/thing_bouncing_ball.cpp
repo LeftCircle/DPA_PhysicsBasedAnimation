@@ -73,6 +73,16 @@ void BouncingBallThing::_set_to_leapfrog_solver(){
 	printf("Switched to Leapfrog solver.\n");
 }
 
+void BouncingBallThing::_set_to_sixth_order_solver(){
+	_solver_system = create_gi_solver_system();
+	auto advance_position_solver = create_advance_position_with_collisions(_dsd, _collision_handler);
+	auto advance_velocity_solver = std::make_shared<AdvanceVelocityWithForces>(_dsd, _force_system);
+	auto leapfrog_solver = std::make_shared<GISolverLeapfrog>(advance_position_solver, advance_velocity_solver);
+	auto sixth_order_solver = std::make_shared<GISolverSixthOrder>(leapfrog_solver);
+	_solver_system->add_solver(sixth_order_solver, dt);
+	printf("Switched to Sixth Order solver.\n");
+}
+
 void BouncingBallThing::solve(){
 	_solver_system->solve(dt);
 }
@@ -118,6 +128,10 @@ void BouncingBallThing::Keyboard( unsigned char key, int x, int y ){
 		}
 		case 'r':{
 			Reset();
+			break;
+		}
+		case 's':{
+			_set_to_sixth_order_solver();
 			break;
 		}
 		case 't':{
@@ -180,6 +194,7 @@ void BouncingBallThing::Usage(){
 	printf("  C: Increase coefficient of restitution by 0.05\n");
 	printf("  e: Emit 100 new particles\n");
 	printf("  r: Reset simulation\n");
+	printf("  s: Switch to Sixth Order Solver\n");
 	printf("  t: Decrease timestep by 10%%\n");
 	printf("  T: Increase timestep by 10%%\n");
 	printf("  u,U: Display this usage information\n");

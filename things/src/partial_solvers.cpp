@@ -31,7 +31,6 @@ void AdvancePositionWithCollisions::solve(const double dt){
 		new_positions[i] = pos + vel * dt;
 	}
 	_collision_handler->handle_collisions(_state_data, "new_positions", dt);
-	//_collision_handler->handle_collisions(*_state_data, "new_positions", dt);
 }
 
 void AdvanceVelocityWithForces::solve(const double dt){

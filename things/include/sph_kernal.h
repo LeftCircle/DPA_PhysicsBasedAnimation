@@ -5,8 +5,8 @@
 
 const double PId = 3.14159265358979;
 
+namespace pba {
 
-template<typename Vec>
 class CubicSplineKernal3 {
 public:
 	explicit CubicSplineKernal3(double radius) {
@@ -27,11 +27,11 @@ public:
 		}
 	};
 
-	Vec gradient(double distance, const Vec& direction) const noexcept {
+	Vector gradient(double distance, const Vector& direction) const noexcept {
 		double q = distance * _one_over_h;
-		Vec scaled_dir = _one_over_h * direction.unitvector();
+		Vector scaled_dir = _one_over_h * direction.unitvector();
 		if (q >= 2.0){
-			return Vec(0.0, 0.0, 0.0);
+			return Vector(0.0, 0.0, 0.0);
 		} else if (q >= 1.0){
 			return -_sigma_over_four * 3.0 * pow(2.0 - q, 2) * scaled_dir;
 		} else {
@@ -39,15 +39,14 @@ public:
 		}
 	};
 
-
-
-
 private:
 	double _one_over_pi_h3;
 	double _one_over_h2;
 	double _one_over_h;
 	double _sigma_over_four;
 };
+
+} // end namespace pba
 
 // This is the basic kernal implementation from Doyub Kim's fluid engine development book
 template<typename Vec>

@@ -3,6 +3,7 @@
 
 #include <map>
 #include <vector>
+#include <iostream>
 
 #include "dynamical_state_data.h"
 #include "Vector.h"
@@ -153,14 +154,6 @@ TEST_CASE("Triangle Collision Test"){
     REQUIRE_FALSE(triangle->hit(initial_pos_miss, updated_pos_miss, velocity_miss, dt, hit_info));
 }
 
-TEST_CASE("Particle resting on plane does not bounce due to gravity"){
-    // If a particle starts and is resting on a plane and the velocity is zero,
-    // If we run the force solver to apply gravity, then the collision handling, 
-    // the particle should not bounce. 
-
-    REQUIRE(false);
-}
-
 TEST_CASE("Test exact collision pushes the particle back slightly by epsilon"){
     // To handle edge cases in the collisions, we should push the particle slightly
     // above (the same side of the plane that the particle started on) the collision
@@ -179,4 +172,40 @@ TEST_CASE("Test exact collision pushes the particle back slightly by epsilon"){
     auto solver = create_advance_position_with_collisions(dsd, collision_handler);
     solver->solve(dt);
     REQUIRE(dsd->get_position(0).Y() == MIN_END_DIST_FROM_COLLISION);
+}
+
+TEST_CASE("Test collisions play nice with sixth order solver"){
+    auto dsd = create_dynamical_state_data();
+    dsd->add(1);
+    dsd->set_position(0, Vector(0.0, 1.0, 0.0));
+    // random velocity between 0 and -1
+    double rand_vel = -1.0 * (static_cast<double>(rand()) / RAND_MAX);
+    dsd->set_velocity(0, Vector(0.0, rand_vel, 0.0));
+    const double dt = 0.01;
+    auto collision_plane = std::make_shared<CollisionTriangle>(
+        Vector(0.0, 0.0, 0.0),
+        Vector(0.0, 0.0, 10.0),
+        Vector(10.0, 0.0, 0.0)
+    );
+    auto collision_surface = create_collision_surface();
+    collision_surface->add_collision_object(collision_plane);
+    auto collision_handler = create_collision_handler();
+    collision_handler->register_collision_surface(collision_surface);
+
+    auto advance_position_solver = create_advance_position_with_collisions(dsd, collision_handler);
+    auto advance_velocity_solver = std::make_shared<AdvanceVelocityWithForces>(dsd, std::make_shared<ForceSystem>());
+    auto leapfrog_solver = std::make_shared<GISolverLeapfrog>(advance_position_solver, advance_velocity_solver);
+    auto sixth_order_solver = std::make_shared<GISolverSixthOrder>(leapfrog_solver);
+    auto solver_system = create_gi_solver_system();
+    solver_system->add_solver(sixth_order_solver, dt);
+    solver_system->init();
+    for (int i = 0; i < 1000; i++){
+        solver_system->solve(dt);
+        if (i % 100 == 0){
+            std::cout << "Position at step " << i << ": " << dsd->get_position(0).Y() << std::endl;
+        }
+    }
+    REQUIRE(dsd->get_position(0).Y() > 0.0);
+
+
 }
