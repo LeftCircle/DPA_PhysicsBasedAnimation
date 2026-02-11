@@ -14,41 +14,44 @@
 
 namespace pba{
 
+template <typename T> int sgn(T val) {
+    return (T(0) < val) - (val < T(0));
+}
+
 struct CollisionHandleInfo {
-    CollisionSurface_sp collision_surface;
-    CollisionHitInfo hit_info;
+	CollisionSurface_sp collision_surface;
+	CollisionHitInfo hit_info;
 };
 
 struct ParticleUpdateInfo {
-    Vector& start_pos;
-    Vector& updated_pos;
-    Vector& velocity;
-    double remaining_dt;
+	Vector& start_pos;
+	Vector& updated_pos;
+	Vector& velocity;
+	double remaining_dt;
 };
 
 class CollisionHandler{
 
 public:
-    CollisionHandler() = default;
-    ~CollisionHandler() = default;
+	CollisionHandler() = default;
+	~CollisionHandler() = default;
 
-    void register_collision_surface(const CollisionSurface_sp cs) { collision_surfaces.push_back(cs); }
-    void handle_collisions(DynamicalStateData_sp dsd, const std::string& updated_pos_attr_name, const double dt);
+	void register_collision_surface(const CollisionSurface_sp cs) { collision_surfaces.push_back(cs); }
+	void handle_collisions(DynamicalStateData_sp dsd, const std::string& updated_pos_attr_name, const double dt);
 
 private:
-    void _handle_particle_collisions(Vector& start_pos, Vector& updated_pos, Vector& velocity, const double dt) const;
-    bool _check_for_collision_against_all_surfaces(CollisionHandleInfo& earliest_hit, CollisionHitInfo& temp_hit, ParticleUpdateInfo& pui) const;
-    void _on_collision_detected(CollisionHandleInfo& earliest_hit, ParticleUpdateInfo& pui) const noexcept;
-    Vector _resolve_collision_against_static_object(
-        const Vector& collision_position,
-        const Vector& hit_normal,
-        Vector& velocity,
-        const double restitution, 
-        const double sticky, 
-        const double dt
-    ) const noexcept;
+	void _handle_particle_collisions(Vector& start_pos, Vector& updated_pos, Vector& velocity, const double dt) const;
+	bool _check_for_collision_against_all_surfaces(CollisionHandleInfo& earliest_hit, CollisionHitInfo& temp_hit, ParticleUpdateInfo& pui) const;
+	void _on_collision_detected(CollisionHandleInfo& earliest_hit, ParticleUpdateInfo& pui) const noexcept;
+	Vector _resolve_collision_against_static_object(
+	ParticleUpdateInfo& pui,
+		const Vector& collision_position,
+		const Vector& hit_normal,
+		const double restitution, 
+		const double sticky
+	) const noexcept;
 
-    std::vector<CollisionSurface_sp> collision_surfaces;
+	std::vector<CollisionSurface_sp> collision_surfaces;
 
 };
 

@@ -23,6 +23,8 @@ public:
 		return Vector(_voxels.get_x_dim(), _voxels.get_y_dim(), _voxels.get_z_dim());
 	}
 
+	
+
 private:
 	Array3D<CellType> _voxels;
 

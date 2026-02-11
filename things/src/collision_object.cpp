@@ -54,10 +54,11 @@ bool _handle_general_plane_collision_case(
 		hit_info.time_of_impact = plane_normal * ( point_on_plane - start_pos ) / ( plane_normal * velocity );
 		if( (hit_info.time_of_impact * dt < 0.0) || std::abs(hit_info.time_of_impact) > std::abs(dt) ){
 			return false;
+		} else{
+			hit_info.position = start_pos + velocity * hit_info.time_of_impact;
+			hit_info.normal = plane_normal;
+			return true;
 		}
-		hit_info.position = start_pos + velocity * hit_info.time_of_impact;
-		hit_info.normal = plane_normal;
-		return true;
 	}
 }
 
