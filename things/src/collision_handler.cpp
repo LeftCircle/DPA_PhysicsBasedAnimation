@@ -26,25 +26,10 @@ void CollisionHandler::_handle_particle_collisions(Vector& start_pos, Vector& up
 	CollisionHandleInfo earliest_hit;
 	CollisionHitInfo temp_hit;
 	ParticleUpdateInfo pui(start_pos, updated_pos, velocity, dt);
-	int iter = 0;
 	while (keep_checking && std::abs(pui.remaining_dt) > EPSILON){
-		if (abs(pui.remaining_dt) > abs(dt)){
-			printf("Sign changed! original dt: %f, remaining dt: %f\n", dt, pui.remaining_dt);
-			break;
-		}
 		keep_checking = _check_for_collision_against_all_surfaces(earliest_hit, temp_hit, pui);
 		if( keep_checking ){
 			_on_collision_detected(earliest_hit, pui);
-		}
-		iter++;
-		if (iter > 100000) {
-			//std::cerr << "Warning: Collision handling iteration limit reached. This likely means a particle is stuck in a collision loop. Remaining dt: " << pui.remaining_dt << std::endl;
-			printf("Original dt = %f\n", dt);
-			printf("Remaining dt = %f\n", pui.remaining_dt);
-			int test = 0;
-			test += 1;
-			iter = 0;
-			break;
 		}
 	}
 }

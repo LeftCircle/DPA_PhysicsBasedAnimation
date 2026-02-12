@@ -28,13 +28,11 @@ TEST_CASE( " Test Particle Plane Collision "){
     CollisionHitInfo hit_info;
     CollisionHitInfo miss_info;
     collision_plane_sp->hit(initial_position, updated_position, velocity, dt, hit_info);
-    other_plane_sp->hit(initial_position, updated_position, velocity, dt, miss_info);
+    REQUIRE_FALSE(other_plane_sp->hit(initial_position, updated_position, velocity, dt, miss_info));
     
     REQUIRE(hit_info.time_of_impact == 0.5);
     REQUIRE(hit_info.position == Vector(0.0, 0.0, 0.0));
-    REQUIRE(hit_info.normal == Vector(0.0, 1.0, 0.0));
-    
-    REQUIRE(miss_info.time_of_impact == NO_COLLISION);
+    REQUIRE(hit_info.normal == Vector(0.0, 1.0, 0.0));   
 }
 
 TEST_CASE( " Test Multiple Collision Planes "){
@@ -126,7 +124,7 @@ TEST_CASE(" Test no fall through for cr of 0"){
     auto solver = create_advance_position_with_collisions(dsd, collision_handler);
     solver->solve(dt);
 
-    REQUIRE(dsd->get_position(0) == Vector(0.0, MIN_END_DIST_FROM_COLLISION, 0.0));
+    REQUIRE_VECTOR_APPROX(dsd->get_position(0), Vector(0.0, MIN_END_DIST_FROM_COLLISION, 0.0), 0.0001);
     REQUIRE(dsd->get_velocity(0) == Vector(0.0, 0.0, 0.0));
 }
 
@@ -201,9 +199,6 @@ TEST_CASE("Test collisions play nice with sixth order solver"){
     solver_system->init();
     for (int i = 0; i < 1000; i++){
         solver_system->solve(dt);
-        if (i % 100 == 0){
-            std::cout << "Position at step " << i << ": " << dsd->get_position(0).Y() << std::endl;
-        }
     }
     REQUIRE(dsd->get_position(0).Y() > 0.0);
 

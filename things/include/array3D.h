@@ -1,6 +1,8 @@
 #ifndef _ARRAY3D_H_
 #define _ARRAY3D_H_
 
+#include <algorithm>
+
 namespace pba {
 
 // This is just a basic wrapper for a std::vector 
@@ -28,6 +30,9 @@ public:
 	int get_y_dim() const noexcept { return _y_dim; }
 	int get_z_dim() const noexcept { return _z_dim; }
 
+	void clear() {
+		std::fill(_data.begin(), _data.end(), T());
+	}
 
 private:
 	int _x_dim;
