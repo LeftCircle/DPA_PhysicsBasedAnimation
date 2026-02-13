@@ -57,6 +57,7 @@ using DSAv = DSAttribute<Vector>;
 using DSAi = DSAttribute<int>;
 using DSAf = DSAttribute<float>;
 using DSAc = DSAttribute<Color>;
+using DSAd = DSAttribute<double>;
 
 }; // end namespace pba
 

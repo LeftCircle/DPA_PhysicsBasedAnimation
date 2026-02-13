@@ -25,7 +25,7 @@ TEST_OBJS = $(patsubst tests/%.cpp,$(OBJDIR)/test_%.o,$(filter %.cpp,$(TEST_SRC)
 
 ROOTDIR = .
 LIB = $(ROOTDIR)/lib/libpba.a
-GLLDFLAGS = -lglut -lGL -lm -lGLU
+GLLDFLAGS = -lglut -lGL -lm -lGLU -ltbb
 
 # Targets
 all: $(OBJDIR) base

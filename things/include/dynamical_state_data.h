@@ -29,6 +29,7 @@ public:
 	// accessors for attributes by name
 	const Vector& get_vector_attribute(const std::string& name, size_t i) const;
 	const float& get_float_attribute(const std::string& name, size_t i) const;
+	const double& get_double_attribute(const std::string& name, size_t i) const;
 	const int& get_int_attribute(const std::string& name, size_t i) const;
 	const Color& get_color_attribute(const std::string& name, size_t i) const;
 
@@ -42,17 +43,20 @@ public:
 	// Span for all attributes
 	std::span<const Vector> get_vector_attribute_span(const std::string& name) const;
 	std::span<const float> get_float_attribute_span(const std::string& name) const;
+	std::span<const double> get_double_attribute_span(const std::string& name) const;
 	std::span<const int> get_int_attribute_span(const std::string& name) const;
 	std::span<const Color> get_color_attribute_span(const std::string& name) const;
 
 	std::span<Vector> get_vector_attribute_span(const std::string& name);
 	std::span<float> get_float_attribute_span(const std::string& name);
+	std::span<double> get_double_attribute_span(const std::string& name);
 	std::span<int> get_int_attribute_span(const std::string& name);
 	std::span<Color> get_color_attribute_span(const std::string& name);
 
 	// setters for attributes by name
 	void set_vector_attribute(const std::string& name, size_t i, const Vector& v);
 	void set_float_attribute(const std::string& name, size_t i, const float& f);
+	void set_double_attribute(const std::string& name, size_t i, const double& d);
 	void set_int_attribute(const std::string& name, size_t i, const int& val);
 	void set_color_attribute(const std::string& name, size_t i, const Color& c);
 
@@ -78,6 +82,8 @@ public:
 			_vec_attr.insert_or_assign(name, std::move(attr));
 		} else if constexpr (std::is_same_v<T, Color>) {
 			_color_attr.insert_or_assign(name, std::move(attr));
+		} else if constexpr (std::is_same_v<T, double>) {
+			_double_attr.insert_or_assign(name, std::move(attr));
 		} else {
 			throw std::runtime_error("Unsupported attribute type added");
 		}
@@ -101,6 +107,9 @@ public:
 	bool has_color_attribute(const std::string& name) const {
 		return _color_attr.find(name) !=  _color_attr.end();
 	}
+	bool has_double_attribute(const std::string& name) const {
+		return _double_attr.find(name) !=  _double_attr.end();
+	}
 
 private:
 	size_t _n_particles = 0;
@@ -108,6 +117,7 @@ private:
 	std::map< std::string, DSAf > _float_attr;
 	std::map< std::string, DSAv > _vec_attr;
 	std::map< std::string, DSAc > _color_attr;
+	std::map< std::string, DSAd > _double_attr;
 
 	// caching these to avoid map lookup for commonly used lookups
 	std::map< std::string, DSAv >::iterator _pos_map_iter;

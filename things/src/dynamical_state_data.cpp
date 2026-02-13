@@ -50,6 +50,10 @@ const float& DynamicalStateData::get_float_attribute(const std::string& name, si
 	return _lookup_or_throw(_float_attr, name, "float").get(i);
 }
 
+const double& DynamicalStateData::get_double_attribute(const std::string& name, size_t i) const {
+	return _lookup_or_throw(_double_attr, name, "double").get(i);
+}
+
 const int& DynamicalStateData::get_int_attribute(const std::string& name, size_t i) const {
 	return _lookup_or_throw(_int_attr, name, "int").get(i);
 }
@@ -64,6 +68,10 @@ void DynamicalStateData::set_vector_attribute(const std::string& name, size_t i,
 
 void DynamicalStateData::set_float_attribute(const std::string& name, size_t i, const float& f) {
 	_lookup_or_throw(_float_attr, name, "float").set(i, f);
+}
+
+void DynamicalStateData::set_double_attribute(const std::string& name, size_t i, const double& d) {
+	_lookup_or_throw(_double_attr, name, "double").set(i, d);
 }
 
 void DynamicalStateData::set_int_attribute(const std::string& name, size_t i, const int& val) {
@@ -82,6 +90,10 @@ std::span<const float> DynamicalStateData::get_float_attribute_span(const std::s
 	return _lookup_or_throw(_float_attr, name, "float").get_span();
 }
 
+std::span<const double> DynamicalStateData::get_double_attribute_span(const std::string& name) const {
+	return _lookup_or_throw(_double_attr, name, "double").get_span();
+}
+
 std::span<const int> DynamicalStateData::get_int_attribute_span(const std::string& name) const {
 	return _lookup_or_throw(_int_attr, name, "int").get_span();
 }
@@ -96,6 +108,10 @@ std::span<Vector> DynamicalStateData::get_vector_attribute_span(const std::strin
 
 std::span<float> DynamicalStateData::get_float_attribute_span(const std::string& name) {
 	return _lookup_or_throw(_float_attr, name, "float").get_span();
+}
+
+std::span<double> DynamicalStateData::get_double_attribute_span(const std::string& name) {
+	return _lookup_or_throw(_double_attr, name, "double").get_span();
 }
 
 std::span<int> DynamicalStateData::get_int_attribute_span(const std::string& name) {
@@ -117,6 +133,9 @@ void DynamicalStateData::_resize_all_attributes(size_t n){
 		attr.expand_to(_n_particles);
 	}
 	for( auto& [name, attr] : _color_attr ){
+		attr.expand_to(_n_particles);
+	}
+	for( auto& [name, attr] : _double_attr ){
 		attr.expand_to(_n_particles);
 	}
 }
