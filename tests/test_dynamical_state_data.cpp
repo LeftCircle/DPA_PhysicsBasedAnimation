@@ -118,3 +118,19 @@ TEST_CASE("Test Remove Particles"){
 	REQUIRE(dsd->n_particles() == 1);
 }
 
+
+TEST_CASE("Test Uniforms"){
+	DynamicalStateData_sp dsd = create_dynamical_state_data();
+	dsd->set_uniform("test_int", 42);
+	dsd->set_uniform("test_float", 3.14f);
+	dsd->set_uniform("test_double", 2.71828);
+	dsd->set_uniform("test_vector", Vector(1.0, 2.0, 3.0));
+	dsd->set_uniform("test_color", Color(0.5, 0.5, 0.5, 1.0));
+
+	REQUIRE(dsd->get_uniform<int>("test_int") == 42);
+	REQUIRE(dsd->get_uniform<float>("test_float") == 3.14f);
+	REQUIRE(dsd->get_uniform<double>("test_double") == 2.71828);
+	REQUIRE(dsd->get_uniform<Vector>("test_vector") == Vector(1.0, 2.0, 3.0));
+	REQUIRE(dsd->get_uniform<Color>("test_color") == Color(0.5, 0.5, 0.5, 1.0));
+}
+

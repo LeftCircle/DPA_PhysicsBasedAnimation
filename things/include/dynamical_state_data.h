@@ -7,12 +7,15 @@
 #include <memory>
 #include <stdexcept>
 #include <span>
+#include <variant>
 
 #include "Vector.h"
 #include "Color.h"
 #include "dynamical_state_attribute.h"
 
 namespace pba{
+
+using UniformValue = std::variant<int, float, double, Vector, Color>;
 
 class DynamicalStateData {
 public:
@@ -59,6 +62,13 @@ public:
 	void set_double_attribute(const std::string& name, size_t i, const double& d);
 	void set_int_attribute(const std::string& name, size_t i, const int& val);
 	void set_color_attribute(const std::string& name, size_t i, const Color& c);
+
+	void set_uniform(const std::string& name, UniformValue val) { _uniforms[name] = val; }
+
+	template <typename T>
+	const T& get_uniform(const std::string& name) const {
+		return std::get<T>(_uniforms.at(name));
+	}
 
 	// setters for common attributes
 	void set_position(size_t i, const Vector& v) { _pos_map_iter->second.set(i, v); }
@@ -118,6 +128,8 @@ private:
 	std::map< std::string, DSAv > _vec_attr;
 	std::map< std::string, DSAc > _color_attr;
 	std::map< std::string, DSAd > _double_attr;
+	std::map<std::string, UniformValue> _uniforms;
+	
 
 	// caching these to avoid map lookup for commonly used lookups
 	std::map< std::string, DSAv >::iterator _pos_map_iter;
