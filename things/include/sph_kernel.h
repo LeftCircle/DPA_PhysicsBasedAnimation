@@ -38,7 +38,13 @@ public:
 
 	Vector gradient(double distance, const Vector& direction) const noexcept override {
 		double q = distance * _one_over_h;
-		Vector scaled_dir = _one_over_h * direction.unitvector();
+		double mag = direction.magnitude();
+		Vector scaled_dir;
+		if (mag == 0.0){
+			scaled_dir = direction;
+		} else{
+			scaled_dir = _one_over_h * direction / mag;
+		}
 		if (q >= 2.0){
 			return Vector(0.0, 0.0, 0.0);
 		} else if (q >= 1.0){

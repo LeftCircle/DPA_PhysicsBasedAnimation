@@ -3,6 +3,7 @@
 #include "ScreenCapturePPM.h"
 #include "MyThing.h"
 #include "thing_bouncing_ball.h"
+#include "thing_sph.h"
 
 
 int main(int argc, char** argv)
@@ -22,7 +23,7 @@ int main(int argc, char** argv)
    // Set up a simulation thing
    //pba::PbaThing mything = pba::CreateMyThing();
    //viewer->AddThing(mything);
-   pba::PbaThing mything = pba::create_bouncing_ball_thing("Bouncing Ball Sim");
+   pba::PbaThing mything = pba::create_sph_thingy_dingy("Bouncing Ball Sim");
    viewer->AddThing(mything);
    //Optional thing to capture the screen each window and write it to a file
    pba::PbaThing imager = pba::CreateScreenCapturePPM("./" + mything->Name());

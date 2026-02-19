@@ -17,8 +17,31 @@ public:
 	void set_max_particle_speed(double speed) { _max_particle_speed = speed; }
 	void set_max_particle_acceleration(double accel) { _max_particle_acceleration = accel; }
 
+	void set_h(double h) { _h = h; }
+	void set_rest_density(double rest_density) { _rest_density = rest_density; }
+	void set_rest_pressure(double rest_pressure) { _rest_pressure = rest_pressure; }
+	void set_gamma(double gamma) { _gamma = gamma; }
+	void set_viscosity_alpha(double alpha) { _viscosity_alpha = alpha; }
+	void set_viscosity_beta(double beta) { _viscosity_beta = beta; }
+	void set_viscosity_epsilon(double epsilon) { _viscosity_epsilon = epsilon; }
+	
+	const double h() const { return _h; }
+	const double rest_density() const { return _rest_density; }
+	const double rest_pressure() const { return _rest_pressure; }
+	const double gamma() const { return _gamma; }
+	const double viscosity_alpha() const { return _viscosity_alpha; }
+	const double viscosity_beta() const { return _viscosity_beta; }
+	const double viscosity_epsilon() const { return _viscosity_epsilon; }
+
 private:
-	double _max_particle_speed = 1000.0;
+	double _h = 0.05;
+	double _rest_density = 1.0;
+	double _gamma = 7.0;
+	double _viscosity_alpha = 1.0;
+	double _viscosity_beta = 1.0;
+	double _viscosity_epsilon = 0.01;
+	double _rest_pressure = 1.0;
+	double _max_particle_speed = 500.0;
 	double _max_particle_acceleration = 1000.0;
 };
 

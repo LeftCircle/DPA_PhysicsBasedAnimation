@@ -49,13 +49,10 @@ private:
 		size_t i,
 		const std::span<const size_t>& neighbor_indices,
 		const SPHData_sp sph_data,
-		const std::span<const double>& densities,
-		double p_bar,
-		double rest_density,
-		double gamma
+		const std::span<const double>& densities
 	) const;
 
-	double _get_pressure_at_density(double density, double p_bar, double rest_density, double gamma) const;
+	double _get_pressure_at_density(double density, double rest_pressure, double rest_density, double gamma) const;
 
 
 	SPHPressureForce() = delete;
@@ -63,27 +60,27 @@ private:
 	Kernel_sp _kernel;
 };
 
-class SPHViscocityForce : public ForceBase {
+class SPHViscosityForce : public ForceBase {
 public:
-	SPHViscocityForce(idx_volume_sp occupancy_volume, Kernel_sp kernel) : _occupancy_volume(occupancy_volume), _kernel(kernel) {}
-	~SPHViscocityForce() = default;
+	SPHViscosityForce(idx_volume_sp occupancy_volume, Kernel_sp kernel) : _occupancy_volume(occupancy_volume), _kernel(kernel) {}
+	~SPHViscosityForce() = default;
 
 	void compute(DynamicalStateData_sp dsd, const double dt) const override {
 		auto sph_data = std::dynamic_pointer_cast<SPHData>(dsd);
-		if (!sph_data) throw std::runtime_error("SPHViscocityForce requires SPHData");
+		if (!sph_data) throw std::runtime_error("SPHViscosityForce requires SPHData");
 		compute_sph(sph_data, dt);
 	};
 
 	void compute_sph(SPHData_sp sph_data, const double dt) const;
 
 private:
-	Vector _compute_viscocity_force_for_neighbors(size_t i, const std::span<const size_t>& neighbor_indices, const SPHData_sp sph_data) const;
+	Vector _compute_viscosity_force_for_neighbors(size_t i, const std::span<const size_t>& neighbor_indices, const SPHData_sp sph_data) const;
 
 	double _avg_speed_of_sound(double desnity, double one_over_rest_density, double rest_pressure, double gamma) const noexcept;
 	double _mu_ab(const Vector& vel_a, const Vector& vel_b, const Vector& pos_a, const Vector& pos_b, double h, double epsilon) const;
 	double _pi_ab(double c_ab, double mu_ab, double density_a, double density_b, double alpha, double beta) const;
 
-	SPHViscocityForce() = delete;
+	SPHViscosityForce() = delete;
 	idx_volume_sp _occupancy_volume;
 	Kernel_sp _kernel;
 };

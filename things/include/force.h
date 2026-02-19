@@ -22,7 +22,10 @@ public:
 	ForceSystem() = default;
 	~ForceSystem() = default;
 	void add_force(Force_sp force) { _forces.push_back(force); }
-
+	template<typename... Forces>
+	void add_forces(Forces... forces) {
+		(_forces.push_back(forces), ...);
+	}
 	void compute(DynamicalStateData_sp dsd, const double dt) const override;
 
 private:
