@@ -63,7 +63,6 @@ TEST_CASE("Test populate occupancy volume"){
 	for (int k = 0; k < 5; k++) {
 		for (int j = 0; j < 5; j++) {
 			for (int i = 0; i < 5; i++) {
-				int cell_idx = i + 5 * (j + 5 * k);
 				const auto& cell = vol.get_cell(i, j, k);
 				REQUIRE(cell.size() == 3);
 			}

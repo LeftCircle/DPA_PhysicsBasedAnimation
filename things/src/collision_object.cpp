@@ -73,7 +73,7 @@ bool _point_plane_collision(
 	){
 	double end_dot = (end_pos - point_on_plane) * plane_normal;
 	double start_dot = (start_pos - point_on_plane) * plane_normal;
-	double vel_dot = velocity * plane_normal;
+	//double vel_dot = velocity * plane_normal;
     if (std::abs(end_dot) < EPSILON) {
 		return _handle_end_collision_on_plane(end_pos, plane_normal, dt, hit_info);	
     } else if (std::abs(start_dot) < EPSILON) {
