@@ -7,7 +7,16 @@ const double PId = 3.14159265358979;
 
 namespace pba {
 
-class CubicSplineKernel3 {
+class Kernel {
+public:
+	virtual ~Kernel() = default;
+	virtual double operator()(double distance) const noexcept = 0;
+	virtual Vector gradient(double distance, const Vector& direction) const noexcept = 0;
+};
+
+using Kernel_sp = std::shared_ptr<Kernel>;
+
+class CubicSplineKernel3 : public Kernel {
 public:
 	explicit CubicSplineKernel3(double radius) {
 		_one_over_h = 1.0 / radius;
@@ -16,7 +25,7 @@ public:
 		_sigma_over_four = _one_over_pi_h3 / 4.0;
 	};
 
-	double operator()(double distance) const noexcept {
+	double operator()(double distance) const noexcept override {
 		double q = distance * _one_over_h;
 		if (q >= 2.0){
 			return 0.0;
@@ -27,7 +36,7 @@ public:
 		}
 	};
 
-	Vector gradient(double distance, const Vector& direction) const noexcept {
+	Vector gradient(double distance, const Vector& direction) const noexcept override {
 		double q = distance * _one_over_h;
 		Vector scaled_dir = _one_over_h * direction.unitvector();
 		if (q >= 2.0){
