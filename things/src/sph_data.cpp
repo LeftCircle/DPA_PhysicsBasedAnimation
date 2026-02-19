@@ -11,4 +11,5 @@ SPHData::SPHData() : DynamicalStateData() {
 	set_uniform("viscocity_alpha", (double)0.1);
 	set_uniform("viscocity_beta", (double)0.1);
 	set_uniform("viscocity_epsilon", (double)0.01);
+	add_attribute<double>("density", DSAd("density", 1.0));
 }

@@ -29,7 +29,7 @@ public:
 	void init() override {}
 	void solve(const double dt) override;
 
-private:
+protected:
 	DynamicalStateData_sp _state_data;
 	CollisionHandler_sp _collision_handler;
 };
@@ -45,9 +45,9 @@ public:
 	~AdvanceVelocityWithForces() = default;
 
 	void init() override {}
-	void solve(const double dt) override;
+	virtual void solve(const double dt) override;
 
-private:
+protected:
 	DynamicalStateData_sp _state_data;
 	ForceSystem_sp _force_system;
 };

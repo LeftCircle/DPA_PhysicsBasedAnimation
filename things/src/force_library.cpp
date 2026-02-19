@@ -83,12 +83,43 @@ void SPHViscocityForce::compute_sph(SPHData_sp sph_data, const double dt) const 
 			sph_data->get_position(i),
 			Vector(0.0, 0.0, 0.0),
 			[&sph_data, this](size_t idx, Vector acc, const std::vector<size_t>& neighbor_indices){
-				const std::span<const size_t> neighbor_indices_span(neighbor_indices);
-				return acc + ;
+				return acc + _compute_viscocity_force_for_neighbors(idx, neighbor_indices, sph_data);
 			}
 		);
 		sph_data->set_acceleration(i, sph_data->get_acceleration(i) + viscocity_force / sph_data->get_mass(i));
 	}
+}
+
+// This is a tad bit of a mess. The main issue is keeping all of the uniforms tucked into 
+// the SPHData uniforms, which leads to the parameters being pulled before the accumulate
+// to avoid doing the map lookup each time. 
+// A better appraoch would be to just have these uniforms be defined in the SPHDSD class as
+// members instead of in the uniform map. 
+Vector SPHViscocityForce::_compute_viscocity_force_for_neighbors(size_t i, const std::span<const size_t>& neighbor_indices, const SPHData_sp sph_data) const {
+	const auto densities = sph_data->get_double_attribute_span("density");
+	const auto one_over_rd = 1.0 / sph_data->get_uniform<double>("rest_density");
+	const auto p_bar = sph_data->get_uniform<double>("p_bar");
+	const auto gamma = sph_data->get_uniform<double>("gamma");
+	const auto rp = sph_data->get_uniform<double>("rest_pressure");
+	double h = sph_data->get_uniform<double>("smoothing_length");
+	double eps = sph_data->get_uniform<double>("viscocity_epsilon");
+	double alpha = sph_data->get_uniform<double>("viscocity_alpha");
+	double beta = sph_data->get_uniform<double>("viscocity_beta");
+	return std::accumulate(neighbor_indices.begin(), neighbor_indices.end(), Vector(0.0, 0.0, 0.0), 
+		[&sph_data, i, densities, one_over_rd, p_bar, gamma, rp, h, eps, alpha, beta, this](Vector acc, size_t j){
+			if (j == i) [[unlikely]] return acc;
+			const auto& b_pos = sph_data->get_position(j);
+			double c_a = _avg_speed_of_sound(densities[i], one_over_rd, rp, gamma);
+			double c_b = _avg_speed_of_sound(densities[j], one_over_rd, rp, gamma);
+			double c_ab = (c_a + c_b); // why not divide by 2??
+			double mu_ab = _mu_ab(sph_data->get_velocity(i), sph_data->get_velocity(j), sph_data->get_position(i), b_pos, h, eps);
+			double pi_ab = _pi_ab(c_ab, mu_ab, densities[i], densities[j], alpha, beta);
+			Vector ab = sph_data->get_position(i) - b_pos;
+			double distance = ab.magnitude();
+			ab.normalize();
+			return acc + sph_data->get_mass(j) * pi_ab * _kernel->gradient(distance, ab);
+		}
+	);
 }
 
 double SPHViscocityForce::_avg_speed_of_sound(double density, double one_over_rest_density, double rest_pressure, double gamma) const noexcept {

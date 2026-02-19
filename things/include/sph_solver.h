@@ -1,12 +1,17 @@
 #ifndef _SPH_SOLVER_H
 #define _SPH_SOLVER_H
 
+#include <memory>
+#include <vector>
 #include <numeric>
 #include <span>
 #include <execution>
 
 #include "partial_solvers.h"
 #include "sph_kernel.h"
+#include "sph_data.h"
+#include "dynamical_state_data.h"
+#include "occupancy_volume.h"
 
 namespace pba{
 
@@ -18,18 +23,52 @@ double get_density_with_uniform_h_parallel(
 	const DynamicalStateData_sp& dsd,
 	const Kernel& kernel
 );
+
 double get_density_with_uniform_h(
 	size_t i,
 	const std::span<const size_t>& neighbor_indices,
 	const DynamicalStateData_sp& dsd,
 	const Kernel& kernel
 );
+
 double get_density_with_uniform_h_silly_loop(
 	size_t i,
 	const std::span<const size_t>& neighbor_indices,
 	const DynamicalStateData_sp& dsd,
 	const Kernel& kernel
 );
+
+
+class SPHPositionSolver : public AdvancePositionWithCollisions {
+public:
+	explicit SPHPositionSolver(
+		SPHData_sp dsd,
+		CollisionHandler_sp collision_handler,
+		idx_volume_sp occupancy_volume,
+		Kernel_sp kernel
+	);
+	~SPHPositionSolver() = default;	
+
+	virtual void solve(const double dt) override;
+
+private:
+	SPHPositionSolver() = delete;
+	idx_volume_sp _occupancy_volume;
+	Kernel_sp _kernel;
+};
+
+class SPHAdvanceVelocityWithForces : public AdvanceVelocityWithForces {
+
+public:
+	explicit SPHAdvanceVelocityWithForces(SPHData_sp dsd, ForceSystem_sp force_system)
+	: AdvanceVelocityWithForces(dsd, force_system) {}
+	
+	virtual void solve(const double dt) override;
+
+private:
+	Vector _clamp_vector(const Vector& vec, double max_magnitude) const noexcept;
+	SPHAdvanceVelocityWithForces() = delete;
+};
 
 
 

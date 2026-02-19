@@ -60,6 +60,16 @@ public:
 		}
 	}
 
+	template <typename Inserter>
+		requires std::invocable<Inserter, CellType&, size_t>
+	void populate(std::span<const Vector> positions, Inserter inserter_fn) {
+		_voxels.clear();
+		for (size_t i = 0; i < positions.size(); i++) {
+			CellType& cell = _get_cell(positions[i]);
+			inserter_fn(cell, i);
+		}
+	}
+
 private:
 	indices _get_cell_indices(const Vector& position) const {
 		int x_idx = (int)((position.X() - _aabb.lower_left().X()) / _cell_size);
@@ -98,6 +108,8 @@ private:
 	Array3D<CellType> _voxels;
 
 };
+
+using idx_volume_sp = std::shared_ptr<OccupancyVolume<std::vector<size_t>>>;
 
 } // end namespace pba
 

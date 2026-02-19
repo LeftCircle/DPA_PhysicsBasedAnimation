@@ -4,6 +4,7 @@
 #include <vector>
 #include <memory>
 #include <span>
+#include <numeric>
 
 #include "force.h"
 #include "occupancy_volume.h"
@@ -30,9 +31,7 @@ private:
 
 class SPHPressureForce : public ForceBase {
 public:
-	using idx_volume = std::shared_ptr<OccupancyVolume<std::vector<size_t>>>;
-	
-	SPHPressureForce(idx_volume occupancy_volume, Kernel_sp kernel) : 
+	SPHPressureForce(idx_volume_sp occupancy_volume, Kernel_sp kernel) : 
 		_occupancy_volume(occupancy_volume), _kernel(kernel) {}
 	~SPHPressureForce() = default;
 
@@ -60,14 +59,13 @@ private:
 
 
 	SPHPressureForce() = delete;
-	idx_volume _occupancy_volume;
+	idx_volume_sp _occupancy_volume;
 	Kernel_sp _kernel;
 };
 
 class SPHViscocityForce : public ForceBase {
 public:
-	using idx_volume = std::shared_ptr<OccupancyVolume<std::vector<size_t>>>;
-	SPHViscocityForce(idx_volume occupancy_volume, Kernel_sp kernel) : _occupancy_volume(occupancy_volume), _kernel(kernel) {}
+	SPHViscocityForce(idx_volume_sp occupancy_volume, Kernel_sp kernel) : _occupancy_volume(occupancy_volume), _kernel(kernel) {}
 	~SPHViscocityForce() = default;
 
 	void compute(DynamicalStateData_sp dsd, const double dt) const override {
@@ -79,12 +77,14 @@ public:
 	void compute_sph(SPHData_sp sph_data, const double dt) const;
 
 private:
+	Vector _compute_viscocity_force_for_neighbors(size_t i, const std::span<const size_t>& neighbor_indices, const SPHData_sp sph_data) const;
+
 	double _avg_speed_of_sound(double desnity, double one_over_rest_density, double rest_pressure, double gamma) const noexcept;
 	double _mu_ab(const Vector& vel_a, const Vector& vel_b, const Vector& pos_a, const Vector& pos_b, double h, double epsilon) const;
 	double _pi_ab(double c_ab, double mu_ab, double density_a, double density_b, double alpha, double beta) const;
 
 	SPHViscocityForce() = delete;
-	idx_volume _occupancy_volume;
+	idx_volume_sp _occupancy_volume;
 	Kernel_sp _kernel;
 };
 
