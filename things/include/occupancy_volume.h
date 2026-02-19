@@ -44,8 +44,8 @@ public:
 		requires std::invocable<func, size_t, T, const CellType&>
 	T accumulate_neighbor_cells(size_t idx, const Vector& position, T init, func fn) const {
 		auto neighbor_cells = _get_neighbor_cell_indices(position);
-		for (const auto& idx : neighbor_cells) {
-			init = fn(idx, std::forward<T>(init), _voxels(idx.i, idx.j, idx.k));
+		for (const auto& neighbor_cell_id : neighbor_cells) {
+			init = fn(idx, std::forward<T>(init), _voxels(neighbor_cell_id.i, neighbor_cell_id.j, neighbor_cell_id.k));
 		}
 		return init;
 	}

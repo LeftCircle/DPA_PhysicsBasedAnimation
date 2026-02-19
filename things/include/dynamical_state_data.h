@@ -22,7 +22,7 @@ public:
     // Q: Can we still perform move operations since we are defining
     // a non default constructor??
     DynamicalStateData();
-    ~DynamicalStateData() = default;
+    virtual ~DynamicalStateData() = default;
 	
 	size_t add();
 	size_t add(size_t n);
