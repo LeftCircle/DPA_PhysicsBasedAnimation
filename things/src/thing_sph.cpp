@@ -16,11 +16,14 @@ SPHThingyDingy::SPHThingyDingy(const std::string& nam)
 	_dsd = std::make_shared<SPHData>();
 
     // let's set h to 0.25 for now
-    _dsd->set_h(0.25);
+    _dsd->set_h(0.05);
     _occupancy_volume = create_idx_occupancy_volume(bounds, _dsd->h() * 2.0);
     _kernel = std::make_shared<CubicSplineKernel3>(_dsd->h());
 	
-    _add_random_particle();
+	// add a thousand particles to start with
+	for (size_t i=0; i<1000; i++){
+		_add_random_particle();
+	}
 	// And now our systems, forces and collision surfaces
 	_force_system = std::make_shared<ForceSystem>();
 	_solver_system = create_gi_solver_system();
@@ -34,11 +37,9 @@ SPHThingyDingy::SPHThingyDingy(const std::string& nam)
 	_force_system->add_forces(_gravity_force, _viscosity_force, _pressure_force);
 	
     
-
 	// And now that the init is basically done. Let's build the solvers
 	SetSimulationTimestep(0.01667);
-	_set_to_leapfrog_solver();
-    printf("Made it through init\n");
+	_set_to_sixth_order_solver();
 }
 
 void SPHThingyDingy::_add_random_particle(){
@@ -54,8 +55,8 @@ void SPHThingyDingy::_set_to_backward_euler_solver(){
 	// Clear existing solvers
 	_solver_system = create_gi_solver_system();
 
-	auto advance_position_solver = create_advance_position_with_collisions(_dsd, _collision_handler);
-	auto advance_velocity_solver = std::make_shared<AdvanceVelocityWithForces>(_dsd, _force_system);
+	auto advance_position_solver = std::make_shared<SPHPositionSolver>(_dsd, _collision_handler, _occupancy_volume, _kernel);
+    auto advance_velocity_solver = std::make_shared<SPHAdvanceVelocityWithForces>(_dsd, _force_system);
 	_solver_system->add_solver(advance_velocity_solver, dt);
 	_solver_system->add_solver(advance_position_solver, dt);
 	printf("Switched to Backward Euler solver.\n");
@@ -65,8 +66,8 @@ void SPHThingyDingy::_set_to_forward_euler_solver(){
 	// Clear existing solvers
 	_solver_system = create_gi_solver_system();
 
-	auto advance_velocity_solver = std::make_shared<AdvanceVelocityWithForces>(_dsd, _force_system);
-	auto advance_position_solver = create_advance_position_with_collisions(_dsd, _collision_handler);
+	auto advance_position_solver = std::make_shared<SPHPositionSolver>(_dsd, _collision_handler, _occupancy_volume, _kernel);
+    auto advance_velocity_solver = std::make_shared<SPHAdvanceVelocityWithForces>(_dsd, _force_system);
 	_solver_system->add_solver(advance_position_solver, dt);
 	_solver_system->add_solver(advance_velocity_solver, dt);
 	printf("Switched to Forward Euler solver.\n");
@@ -84,8 +85,8 @@ void SPHThingyDingy::_set_to_leapfrog_solver(){
 
 void SPHThingyDingy::_set_to_sixth_order_solver(){
 	_solver_system = create_gi_solver_system();
-	auto advance_position_solver = create_advance_position_with_collisions(_dsd, _collision_handler);
-	auto advance_velocity_solver = std::make_shared<AdvanceVelocityWithForces>(_dsd, _force_system);
+	auto advance_position_solver = std::make_shared<SPHPositionSolver>(_dsd, _collision_handler, _occupancy_volume, _kernel);
+    auto advance_velocity_solver = std::make_shared<SPHAdvanceVelocityWithForces>(_dsd, _force_system);
 	auto leapfrog_solver = std::make_shared<GISolverLeapfrog>(advance_position_solver, advance_velocity_solver);
 	auto sixth_order_solver = std::make_shared<GISolverSixthOrder>(leapfrog_solver);
 	_solver_system->add_solver(sixth_order_solver, dt);
@@ -94,6 +95,14 @@ void SPHThingyDingy::_set_to_sixth_order_solver(){
 
 void SPHThingyDingy::solve(){
 	_solver_system->solve(dt);
+	// get the average velocity of the particles and print it out for debugging purposes
+	// Vector avg(0.0, 0.0, 0.0);
+	// size_t n = _dsd->n_particles();
+	// for (size_t i = 0; i < n; i++) {
+	// 	avg += _dsd->get_velocity(i);
+	// }
+	// avg /= static_cast<double>(n);
+	// printf("Average particle speed is %f m/s\n", avg.magnitude());
 }
 
 void SPHThingyDingy::Display(){
@@ -103,12 +112,20 @@ void SPHThingyDingy::Display(){
 
 void SPHThingyDingy::Keyboard( unsigned char key, int x, int y ){
 	switch( key ){
+		case 'a':{
+			_adjust_acceleration_max_val(0.9);
+			break;
+		}
+		case 'A':{
+			_adjust_acceleration_max_val(1.1);
+			break;
+		}
 		case 'b':{
-			_set_to_backward_euler_solver();
+			_adjust_pressure_power(0.9);
 			break;
 		}
 		case 'B':{
-			_set_to_forward_euler_solver();
+			_adjust_pressure_power(1.1);
 			break;
 		}
 		case 'c':{
@@ -117,6 +134,14 @@ void SPHThingyDingy::Keyboard( unsigned char key, int x, int y ){
 		}
 		case 'C':{
 			_adjust_coefficient_of_restitution(0.05);
+			break;
+		}
+		case 'd':{
+			_adjust_base_density(0.9);
+			break;
+		}
+		case 'D':{
+			_adjust_base_density(1.1);
 			break;
 		}
 		case 'e':{
@@ -135,12 +160,28 @@ void SPHThingyDingy::Keyboard( unsigned char key, int x, int y ){
 			_set_to_leapfrog_solver();
 			break;
 		}
+		case 'L':{
+			_set_to_sixth_order_solver();
+			break;
+		}
+		case 'p':{
+			_adjust_pressure_strength(0.9);			
+			break;
+		}
+		case 'P':{
+			_adjust_pressure_strength(1.1);
+			break;
+		}
 		case 'r':{
 			Reset();
 			break;
 		}
 		case 's':{
-			_set_to_sixth_order_solver();
+			_adjust_velocity_max_val(0.9);
+			break;
+		}
+		case 'S':{
+			_adjust_velocity_max_val(1.1);
 			break;
 		}
 		case 't':{
@@ -155,6 +196,14 @@ void SPHThingyDingy::Keyboard( unsigned char key, int x, int y ){
 		case 'U':
 			Usage();
 			break;
+		case 'v': {
+			_adjust_viscosity(0.9);
+			break;
+		}
+		case 'V': {
+			_adjust_viscosity(1.1);
+			break;
+		}
 		default:
 			break;
 	}
@@ -189,24 +238,56 @@ void SPHThingyDingy::Reset(){
 
 void SPHThingyDingy::_adjust_timestep(const double factor){
 	dt *= factor;
-	printf("New timestep is %f seconds\n", dt);
+	SetSimulationTimestep(dt);
+	printf("New timestep is %f seconds. RESET SOLVER TO APPLY CHANGES\n", dt);
+}
+
+void SPHThingyDingy::_adjust_viscosity(const double factor){
+	_dsd->set_viscosity_beta(_dsd->viscosity_beta() * factor);
+	printf("New viscosity beta is %f\n", _dsd->viscosity_beta());
+}
+
+void SPHThingyDingy::_adjust_pressure_strength(const double factor){
+	_dsd->set_rest_pressure(_dsd->rest_pressure() * factor);
+	printf("New rest pressure is %f\n", _dsd->rest_pressure());
+}
+
+void SPHThingyDingy::_adjust_base_density(const double factor){
+	_dsd->set_rest_density(_dsd->rest_density() * factor);
+	printf("New rest density is %f\n", _dsd->rest_density());
+}
+
+void SPHThingyDingy::_adjust_pressure_power(const double factor){
+	_dsd->set_gamma(_dsd->gamma() * factor);
+	printf("New pressure power (gamma) is %f\n", _dsd->gamma());
+}
+
+void SPHThingyDingy::_adjust_velocity_max_val(const double factor){
+	_dsd->set_max_particle_speed(_dsd->get_max_particle_speed() * factor);
+	printf("New max particle speed is %f m/s\n", _dsd->get_max_particle_speed());
+}
+
+void SPHThingyDingy::_adjust_acceleration_max_val(const double factor){
+	_dsd->set_max_particle_acceleration(_dsd->get_max_particle_acceleration() * factor);
+	printf("New max particle acceleration is %f m/s^2\n", _dsd->get_max_particle_acceleration());
 }
 
 void SPHThingyDingy::Usage(){
-	printf("Bouncing Ball Thing Controls:\n");
-	printf("  b: Switch to Backward Euler Solver\n");
-	printf("  B: Switch to Forward Euler Solver\n");
-	printf("  l: Switch to Leapfrog Solver\n");
-	printf("  g: Decrease gravity by 0.1 m/s^2\n");
-	printf("  G: Increase gravity by 0.1 m/s^2\n");
-	printf("  c: Decrease coefficient of restitution by 0.05\n");
-	printf("  C: Increase coefficient of restitution by 0.05\n");
+	printf("SPH Controls:\n");
+	printf("  a/A: Decrease/Increase max particle acceleration\n");
+	printf("  b/B: Decrease/Increase pressure power (gamma)\n");
+	printf("  c/C: Decrease/Increase coefficient of restitution for box collisions\n");
+	printf("  d/D: Decrease/Increase base density of the fluid\n");
 	printf("  e: Emit 100 new particles\n");
-	printf("  r: Reset simulation\n");
-	printf("  s: Switch to Sixth Order Solver\n");
-	printf("  t: Decrease timestep by 10%%\n");
-	printf("  T: Increase timestep by 10%%\n");
-	printf("  u,U: Display this usage information\n");
+	printf("  g/G: Increase/Decrease gravity strength\n");
+	printf("  l: Switch to Leapfrog solver\n");
+	printf("  L: Switch to Sixth Order solver\n");
+	printf("  p/P: Decrease/Increase pressure strength\n");
+	printf("  r: Reset the simulation\n");
+	printf("  s/S: Decrease/Increase max particle speed\n");
+	printf("  t/T: Decrease/Increase simulation timestep\n");
+	printf("  u/U: Print this usage information\n");
+	printf("  v/V: Decrease/Increase viscosity\n");
 }
 
 

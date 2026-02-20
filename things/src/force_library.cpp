@@ -82,7 +82,7 @@ void SPHViscosityForce::compute_sph(SPHData_sp sph_data, const double dt) const 
 Vector SPHViscosityForce::_compute_viscosity_force_for_neighbors(size_t i, const std::span<const size_t>& neighbor_indices, const SPHData_sp sph_data) const {
 	const auto densities = sph_data->get_double_attribute_span("density");
 	const auto one_over_rd = 1.0 / sph_data->rest_density();
-	return std::accumulate(neighbor_indices.begin(), neighbor_indices.end(), Vector(0.0, 0.0, 0.0), 
+	return -std::accumulate(neighbor_indices.begin(), neighbor_indices.end(), Vector(0.0, 0.0, 0.0), 
 		[&sph_data, i, &densities, one_over_rd, this](Vector acc, size_t j){
 			const auto& b_pos = sph_data->get_position(j);
 			double c_a = _avg_speed_of_sound(densities[i], one_over_rd, sph_data->rest_pressure(), sph_data->gamma());

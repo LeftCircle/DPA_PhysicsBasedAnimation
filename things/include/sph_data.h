@@ -36,13 +36,13 @@ public:
 private:
 	double _h = 0.05;
 	double _rest_density = 1.0;
-	double _gamma = 7.0;
+	double _gamma = 1.0;
 	double _viscosity_alpha = 1.0;
 	double _viscosity_beta = 1.0;
 	double _viscosity_epsilon = 0.01;
 	double _rest_pressure = 1.0;
-	double _max_particle_speed = 500.0;
-	double _max_particle_acceleration = 1000.0;
+	double _max_particle_speed = 100.0;
+	double _max_particle_acceleration = 400.0;
 };
 
 using SPHData_sp = std::shared_ptr<SPHData>;

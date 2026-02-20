@@ -75,6 +75,13 @@ private:
 	void _emit_particles(const size_t n);
 	void _add_random_particle();
 	void _adjust_timestep(const double factor);
+	void _adjust_viscosity(const double factor);
+	void _adjust_pressure_strength(const double factor);
+	void _adjust_pressure_power(const double factor);
+	void _adjust_pressure_base(const double factor);
+	void _adjust_velocity_max_val(const double factor);
+	void _adjust_acceleration_max_val(const double factor);
+	void _adjust_base_density(const double factor);
 
 	SPHThingyDingy() = delete;
 };
