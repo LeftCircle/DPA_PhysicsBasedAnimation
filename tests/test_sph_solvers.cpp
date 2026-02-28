@@ -61,12 +61,12 @@ TEST_CASE("profile std::accumulate vs for loop "){
 	}
 	auto kernel = CubicSplineKernel3(2.0);
 
-	BENCHMARK("std::accumulate") {
-		return get_density_with_uniform_h(center_idx, std::span<const size_t>(neighbor_indices), dsd, kernel);
-	};
-	BENCHMARK("for loop") {
-		return get_density_with_uniform_h_silly_loop(center_idx, std::span<const size_t>(neighbor_indices), dsd, kernel);
-	};
+	// BENCHMARK("std::accumulate") {
+	// 	return get_density_with_uniform_h(center_idx, std::span<const size_t>(neighbor_indices), dsd, kernel);
+	// };
+	// BENCHMARK("for loop") {
+	// 	return get_density_with_uniform_h_silly_loop(center_idx, std::span<const size_t>(neighbor_indices), dsd, kernel);
+	// };
 }
 
 
