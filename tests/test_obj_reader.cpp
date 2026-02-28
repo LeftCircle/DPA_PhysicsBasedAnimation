@@ -11,8 +11,8 @@ TEST_CASE("test get verts from obj file"){
     std::filesystem::path test_dir = std::filesystem::path(__FILE__).parent_path();
     std::filesystem::path obj_file_path = test_dir / "../models/bunny_superlo_scaled.obj";
 
+    ObjReader<Vector> r(obj_file_path);
 
-    std::vector<Vector> verts = ObjReader<Vector>::get_verts(obj_file_path);
-
-    REQUIRE(verts.size() == 322);
+    REQUIRE(r.get_verts().size() == 322);
+    REQUIRE(r.get_faces().size() == 640);
 }

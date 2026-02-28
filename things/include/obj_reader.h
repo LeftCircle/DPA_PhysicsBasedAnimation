@@ -19,51 +19,30 @@ public:
 		std::vector<std::string> lines;
 		std::string line;
 		while (std::getline(in, line)){
-			lines.push_back(line);
+			if (line.substr(0, 2) == "v "){
+				_verts.push_back(_line_to_vec<double, Vec3>(line));
+			} else if (line.substr(0, 2) == "f "){
+				_faces.push_back(_line_to_vec<int, cato::Vec3i>(line));
+			}
 		}
-	
-		auto verts = lines 
-			| std::views::filter([](const std::string& l) { return l.substr(0, 2) == "v "})
-			| std::views::transform(line_to_vec);
-		
-		auto faces = lines 
-			| std::views::filter([](const std::string& l) { return l.substr(0, 2) == "f "})
-			| std::views::transform([](const std::string& l){
-				std::istringstream ss(l.substr(2));
-				int x y z;
-				ss >> x >> y >> z;
-				return cato::Vec3i(x, y, z);
-			})
 	}
 
+	std::span<const Vec3> get_verts() { return std::span<const Vec3>(_verts); }
+	std::span<const cato::Vec3i> get_faces() { return std::span<const cato::Vec3i>(_faces); }
 
-	static std::vector<Vec3> get_verts(const std::string& filename){
-		std::ifstream in(filename);
-		
-		std::vector<std::string> lines;
-		std::string line;
-		while (std::getline(in, line)){
-			lines.push_back(line);
-		}
-
-		auto result = lines
-			| std::views::filter([](const std::string& l) -> bool { return l.substr(0, 2) == "v "; })
-			| std::views::transform(line_to_vec);
-		
-		return std::vector<Vec3>(result.begin(), result.end());
-	}
 private:
 	ObjReader() = delete;
 
-	static Vec3 line_to_vec(const std::string& l) {
+	template <typename T, typename VecType>
+	VecType _line_to_vec(const std::string& l) const {
 		std::istringstream ss(l.substr(2));
-		double x, y, z;
+		T x, y, z;
 		ss >> x >> y >> z;
-		return Vec3(x, y, z);
+		return VecType(x, y, z);
 	}
 
-	std::vector<Vec3> verts;
-	std::vector<cato::Vec3i> faces; 
+	std::vector<Vec3> _verts;
+	std::vector<cato::Vec3i> _faces; 
 };
 
 
