@@ -24,8 +24,8 @@ public:
     DynamicalStateData();
     virtual ~DynamicalStateData() = default;
 	
-	size_t add();
-	size_t add(size_t n);
+	virtual size_t add();
+	virtual size_t add(size_t n);
 
 	void resize(size_t n);
 
@@ -121,7 +121,7 @@ public:
 		return _double_attr.find(name) !=  _double_attr.end();
 	}
 
-private:
+protected:
 	size_t _n_particles = 0;
 	std::map< std::string, DSAi > _int_attr;
 	std::map< std::string, DSAf > _float_attr;
