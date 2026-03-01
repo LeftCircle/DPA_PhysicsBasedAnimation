@@ -15,7 +15,7 @@ namespace pba{
 
 
 class SoftBody : public DynamicalStateData {
-
+public:
 	void connect_all_particles_together() noexcept;
 	constexpr void clear_connections() noexcept {_edges.clear(); }
 

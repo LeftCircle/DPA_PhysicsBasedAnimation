@@ -10,6 +10,7 @@
 #include "occupancy_volume.h"
 #include "sph_kernel.h"
 #include "sph_data.h"
+#include "soft_body_data.h"
 
 namespace pba{
 
@@ -83,6 +84,24 @@ private:
 	SPHViscosityForce() = delete;
 	idx_volume_sp _occupancy_volume;
 	Kernel_sp _kernel;
+};
+
+class UniformStrutForce : public ForceBase{
+public:
+	UniformStrutForce(const double spring, const double friction) : _spring_force(spring), _friction(friction) {}
+
+	void compute(DynamicalStateData_sp dsd, const double dt){
+		auto soft_body_sp = std::dynamic_pointer_cast<SoftBody>(dsd);
+		if (!soft_body_sp) throw std::runtime_error("Strut forces require a soft body");
+		_compute(soft_body_sp, dt); 
+	}
+
+private:
+	void _compute(std::shared_ptr<SoftBody> sb, const double dt) const;
+	UniformStrutForce() = delete;
+
+	double _spring_force;
+	double _friction;
 };
 
 } // end namespace pba

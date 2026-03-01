@@ -16,7 +16,7 @@ T factorial(T val) {
     return val;
 };
 
-int sum_of_integers(int val){
+static int sum_of_integers(int val){
 	return val * (val + 1) / 2;
 };
 

@@ -115,3 +115,14 @@ double SPHViscosityForce::_mu_ab(const Vector& vel_a, const Vector& vel_b, const
 double SPHViscosityForce::_pi_ab(double c_ab, double mu_ab, double density_a, double density_b, double alpha, double beta) const {
 	return (-alpha * c_ab * mu_ab + beta * mu_ab * mu_ab) / (density_a + density_b);
 }
+
+void UniformStrutForce::_compute(std::shared_ptr<SoftBody> sb, const double dt) const {
+	// For each edge, determine spring force and friction based on position, rest length, and velocity
+
+	// Inputs: soft edges (i_a, i_b, rest length)
+	// We could collect velocity and position differences per pair and store that as an array
+	// But at that point just do it all in a loop anyway...
+
+	// Output: either a new force vector or just write directly to the forces
+	// Would be tough to parallelize. 
+}
