@@ -118,11 +118,16 @@ double SPHViscosityForce::_pi_ab(double c_ab, double mu_ab, double density_a, do
 
 void UniformStrutForce::_compute(std::shared_ptr<SoftBody> sb, const double dt) const {
 	// For each edge, determine spring force and friction based on position, rest length, and velocity
-
-	// Inputs: soft edges (i_a, i_b, rest length)
-	// We could collect velocity and position differences per pair and store that as an array
-	// But at that point just do it all in a loop anyway...
-
-	// Output: either a new force vector or just write directly to the forces
-	// Would be tough to parallelize. 
+	std::span<const Vector> positions = sb->get_vector_attribute_span("positions");
+	std::span<const Vector> vels = sb->get_vector_attribute_span("velocities");
+	#pragma omp parallel for
+	for (auto& edge : sb->edges){
+		edge.compute(positions, vels, _spring_force, _friction);
+	}
+	// Now we have to write the forces in. Can't be parallel b/c edges point to multiple points
+	for (auto& edge : sb->edges){
+		std::pair<size_t, size_t> idxs = edge.get_indices();
+		sb->set_acceleration(idxs.first, sb->get_acceleration(idxs.first) + edge.get_force_on_a() / sb->get_mass(idxs.first));
+		sb->set_acceleration(idxs.second, sb->get_acceleration(idxs.second) - edge.get_force_on_a() / sb->get_mass(idxs.second));
+	}
 }

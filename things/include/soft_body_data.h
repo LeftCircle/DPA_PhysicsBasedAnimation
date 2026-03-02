@@ -17,12 +17,12 @@ namespace pba{
 class SoftBody : public DynamicalStateData {
 public:
 	void connect_all_particles_together() noexcept;
-	constexpr void clear_connections() noexcept {_edges.clear(); }
+	constexpr void clear_connections() noexcept {edges.clear(); }
 
-	constexpr size_t get_n_soft_edges() const noexcept { return _edges.size(); }
+	constexpr size_t get_n_soft_edges() const noexcept { return edges.size(); }
 
-private:
-	std::vector<SoftEdge> _edges;
+	std::vector<SoftEdge> edges;
+
 };
 
 

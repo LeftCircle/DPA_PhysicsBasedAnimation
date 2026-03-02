@@ -1,0 +1,22 @@
+#include "soft_edge.h"
+
+
+using namespace pba;
+
+void SoftEdge::compute(std::span<const Vector> positions, std::span<const Vector> vels, const double spring_force, const double friction){
+    const Vector& pos_a = positions[_index_a];
+    const Vector& pos_b = positions[_index_b];
+    const Vector& vel_a = vels[_index_a];
+    const Vector& vel_b = vels[_index_b];
+
+    // Force due to spring is just -kx
+    Vector a_to_b = pos_a - pos_b;
+    double mag_a_to_b = a_to_b.magnitude();
+    Vector dir_a_to_b = a_to_b / mag_a_to_b;
+    _force_on_a = -(mag_a_to_b - _rest_length) * dir_a_to_b * spring_force;
+    // Now vel forces
+    // Only care about the forces along a_to_b
+    double vel_diff = (vel_a - vel_b) * dir_a_to_b;
+    _force_on_a -= vel_diff * friction * dir_a_to_b;
+}
+
