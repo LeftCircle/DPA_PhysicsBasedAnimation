@@ -90,7 +90,7 @@ class UniformStrutForce : public ForceBase{
 public:
 	UniformStrutForce(const double spring, const double friction) : _spring_force(spring), _friction(friction) {}
 
-	void compute(DynamicalStateData_sp dsd, const double dt){
+	void compute(DynamicalStateData_sp dsd, const double dt) const override{
 		auto soft_body_sp = std::dynamic_pointer_cast<SoftBody>(dsd);
 		if (!soft_body_sp) throw std::runtime_error("Strut forces require a soft body");
 		_compute(soft_body_sp, dt); 

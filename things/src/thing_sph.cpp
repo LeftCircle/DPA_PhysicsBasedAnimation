@@ -248,7 +248,7 @@ void SPHThingyDingy::_adjust_viscosity(const double factor){
 }
 
 void SPHThingyDingy::_adjust_pressure_strength(const double factor){
-	_dsd->set_rest_pressure(_dsd->rest_pressure() * factor);
+	_dsd->set_rest_pressure(_dsd->rest_pressure() - factor);
 	printf("New rest pressure is %f\n", _dsd->rest_pressure());
 }
 

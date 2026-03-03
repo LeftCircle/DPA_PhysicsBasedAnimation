@@ -12,10 +12,10 @@ SoftBunnyThingyDingy::SoftBunnyThingyDingy(const std::string& nam)
 	
     // Let's add a single bouncing ball particle
 	_dsd = std::make_shared<SoftBody>();
-
 	
 	// add a thousand particles to start with
-	
+	_create_uniform_soft_body_from_obj("");
+
     // And now our systems, forces and collision surfaces
 	_force_system = std::make_shared<ForceSystem>();
 	_solver_system = create_gi_solver_system();
@@ -24,12 +24,13 @@ SoftBunnyThingyDingy::SoftBunnyThingyDingy(const std::string& nam)
 	_collision_handler->register_collision_surface(_box);
 	_initialize_box_collision_surface(bounds);
 	_gravity_force = std::make_shared<SimpleGravityForce>(Vector(0.0, -9.81, 0.0));
-	_uniform_strut_force = std::make_shared<UniformStrutForce>(1.0, 1.0);
+	_uniform_strut_force = std::make_shared<UniformStrutForce>(20.0, 0.3);
     _force_system->add_forces(_gravity_force, _uniform_strut_force);
 	
     
 	// And now that the init is basically done. Let's build the solvers
-	SetSimulationTimestep(0.01667);
+    _box->set_restitution( 0.99 );
+	SetSimulationTimestep(0.001667);
 	_set_to_sixth_order_solver();
 }
 
@@ -207,10 +208,11 @@ void SoftBunnyThingyDingy::_adjust_timestep(const double factor){
 void SoftBunnyThingyDingy::_create_uniform_soft_body_from_obj(const std::string& file_name){
     printf("Hard coding file for now \n");
     std::filesystem::path current_dir = std::filesystem::path(__FILE__).parent_path();
-    std::filesystem::path obj_file_path = current_dir / "../models/bunny_superlo_scaled.obj";
+    std::filesystem::path obj_file_path = current_dir / "../../models/bunny_superlo_scaled.obj";
 
     // we are just going to read it every time for now
     ObjReader<Vector> r(obj_file_path);
+    printf("Reading obj from file %s\n", obj_file_path.string().c_str());
     auto verts = r.get_verts();
     auto faces = r.get_faces();
     const size_t n_starting_particles = _dsd->n_particles();

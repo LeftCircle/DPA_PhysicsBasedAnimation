@@ -10,13 +10,13 @@ void SoftEdge::compute(std::span<const Vector> positions, std::span<const Vector
     const Vector& vel_b = vels[_index_b];
 
     // Force due to spring is just -kx
-    Vector a_to_b = pos_a - pos_b;
+    Vector a_to_b = pos_b - pos_a;
     double mag_a_to_b = a_to_b.magnitude();
     Vector dir_a_to_b = a_to_b / mag_a_to_b;
-    _force_on_a = -(mag_a_to_b - _rest_length) * dir_a_to_b * spring_force;
+    _force_on_a = (mag_a_to_b - _rest_length) * dir_a_to_b * spring_force;
     // Now vel forces
     // Only care about the forces along a_to_b
-    double vel_diff = (vel_a - vel_b) * dir_a_to_b;
-    _force_on_a -= vel_diff * friction * dir_a_to_b;
+    double vel_diff = (vel_b - vel_a) * dir_a_to_b;
+    _force_on_a += vel_diff * friction * dir_a_to_b;
 }
 
