@@ -78,7 +78,7 @@ public:
 	void set_color(size_t i, const Color& c) { _color_map_iter->second.set(i, c); }
 
 
-	size_t n_particles() const { return _n_particles; }
+	size_t n_particles() const noexcept { return _n_particles; }
 
 	
 	template<typename T>

@@ -18,16 +18,18 @@ public:
 	void set_min_speed(const double min_speed) noexcept { _min_speed = min_speed; }
 	void set_max_speed(const double max_speed) noexcept { _max_speed = max_speed; }
 
+	static Vector generate_random_bounded_vector(double min_mag, double max_mag);
+	static std::mt19937& get_rng() {
+		static std::mt19937 rng{std::random_device{}()};
+		return rng;
+	}
+
 private:
 	void _generate_random_bounded_position(Vector& pos) const noexcept;
 	void _generate_random_bounded_velocity(Vector& vel) const noexcept;
 	AABB _bounds;
 	double _min_speed = 0.0;
 	double _max_speed = 1.0;
-	static std::mt19937& get_rng() {
-		static std::mt19937 rng{std::random_device{}()};
-		return rng;
-	}
 	mutable std::uniform_real_distribution<double> dist{0.0, 1.0};
 };
 
