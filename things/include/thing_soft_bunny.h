@@ -72,6 +72,8 @@ private:
 	void _adjust_coefficient_of_restitution(const double delta);
 	void _emit_particles(const size_t n);
 	void _adjust_timestep(const double factor);
+    void _adjust_strut_force(const double delta);
+    void _adjust_strut_friction(const double delta);
 
     void _create_uniform_soft_body_from_obj(const std::string& file_name);
 

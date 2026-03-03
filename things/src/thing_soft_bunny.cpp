@@ -145,9 +145,11 @@ void SoftBunnyThingyDingy::Keyboard( unsigned char key, int x, int y ){
 			break;
 		}
 		case 's':{
+            _adjust_strut_force(0.9);
 			break;
 		}
 		case 'S':{
+            _adjust_strut_force(1.1);
 			break;
 		}
 		case 't':{
@@ -163,9 +165,11 @@ void SoftBunnyThingyDingy::Keyboard( unsigned char key, int x, int y ){
 			Usage();
 			break;
 		case 'v': {
+            _adjust_strut_friction(0.9);
 			break;
 		}
 		case 'V': {
+            _adjust_strut_friction(1.1);
 			break;
 		}
 		default:
@@ -216,13 +220,24 @@ void SoftBunnyThingyDingy::_create_uniform_soft_body_from_obj(const std::string&
     auto verts = r.get_verts();
     auto faces = r.get_faces();
     const size_t n_starting_particles = _dsd->n_particles();
+    const Vector vel = ParticleEmitter::generate_random_bounded_vector(0.5, 10);
     for (size_t i = 0; i < r.get_verts().size(); i++){
         _dsd->add();
         _dsd->set_position(i + n_starting_particles, verts[i]);
-        _dsd->set_velocity(i + n_starting_particles, ParticleEmitter::generate_random_bounded_vector(0.5, 10.0));
+        _dsd->set_velocity(i + n_starting_particles, vel);
     }
     // And now the connections:
     _dsd->connect_all_particles_in_range(n_starting_particles, _dsd->n_particles());
+}
+
+void SoftBunnyThingyDingy::_adjust_strut_force(const double delta){
+    _uniform_strut_force->set_spring_force(_uniform_strut_force->get_spring_force() * delta);
+    printf("Strut force is now %d\n", _uniform_strut_force->get_spring_force());
+}
+
+void SoftBunnyThingyDingy::_adjust_strut_friction(const double delta){
+    _uniform_strut_force->set_friction(_uniform_strut_force->get_friction() * delta);
+    printf("Strut friction force is now %d\n", _uniform_strut_force->get_friction());
 }
 
 void SoftBunnyThingyDingy::Usage(){
@@ -233,7 +248,9 @@ void SoftBunnyThingyDingy::Usage(){
 	printf("  l: Switch to Leapfrog solver\n");
 	printf("  L: Switch to Sixth Order solver\n");
 	printf("  r: Reset the simulation\n");
+    printf("  s/S increase/decrease strut force\n");
 	printf("  u/U: Print this usage information\n");
+    printf("  v/V: incrase/decrease strut friction\n");
 }
 
 

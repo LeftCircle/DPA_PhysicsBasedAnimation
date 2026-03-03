@@ -96,6 +96,12 @@ public:
 		_compute(soft_body_sp, dt); 
 	}
 
+	void set_spring_force(double new_force) noexcept {_spring_force = new_force; }
+	void set_friction(double new_friction) noexcept {_friction = new_friction; }
+	
+	double get_spring_force() const noexcept { return _spring_force; }
+	double get_friction() const noexcept { return _friction; }
+
 private:
 	void _compute(std::shared_ptr<SoftBody> sb, const double dt) const;
 	UniformStrutForce() = delete;
