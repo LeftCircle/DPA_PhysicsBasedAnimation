@@ -9,6 +9,10 @@ public:
 	Vector3() : _x(static_cast<T>(0)), _y(static_cast<T>(0)), _z(static_cast<T>(0)) {};
 	Vector3(T x, T y, T z) : _x(static_cast<T>(x)), _y(static_cast<T>(y)), _z(static_cast<T>(z)) {};
 
+	T x() const { return _x; }
+	T y() const { return _y; }
+	T z() const {return _z; }
+
 private:
 	T _x;
 	T _y;

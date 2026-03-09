@@ -8,6 +8,7 @@
 #include <iostream>
 #include <string>
 #include <filesystem>
+#include <execution>
 
 #include "dynamical_state_data.h"
 #include "GISolver.h"
@@ -43,11 +44,11 @@ public:
 
 private:
 	std::shared_ptr<SoftBody> _dsd;
+	CollisionSurface_sp _main_collision_surface;
 	ForceSystem_sp _force_system;
 	std::shared_ptr<SimpleGravityForce> _gravity_force;
 	std::shared_ptr<GISolverSystem> _solver_system;
 	CollisionHandler_sp _collision_handler;
-	CollisionSurface_sp _box;
     std::shared_ptr<UniformStrutForce> _uniform_strut_force;
 
 	std::vector<Triangle> _tris_to_draw;
@@ -61,8 +62,7 @@ private:
 		Color(0.9, 0.4, 0.7, 1.0),
 	};
 
-	void _initialize_box_collision_surface(const AABB& bounds);
-	void _draw_box();
+	void _draw_tris();
 	void _draw_particles();
 	void _set_to_leapfrog_solver();
 	void _set_to_forward_euler_solver();
@@ -75,7 +75,8 @@ private:
     void _adjust_strut_force(const double delta);
     void _adjust_strut_friction(const double delta);
 
-    void _create_uniform_soft_body_from_obj(const std::string& file_name);
+    void _create_uniform_soft_body_from_obj(const std::string& file_name, const Vector& center = Vector(0, 0, 0));
+	CollisionSurface_sp _create_collision_geo_from(const std::string& file_name);
 
 	SoftBunnyThingyDingy() = delete;
 };

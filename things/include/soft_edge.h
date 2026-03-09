@@ -25,6 +25,10 @@ private:
 	Vector _force_on_a = Vector(0.0, 0.0, 0.0); 
 };
 
+class SoftTriangle{
+
+};
+
 
 }// end namepspace pba
 
