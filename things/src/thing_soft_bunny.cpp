@@ -6,23 +6,16 @@ using namespace pba;
 
 SoftBunnyThingyDingy::SoftBunnyThingyDingy(const std::string& nam)
 : PbaThingyDingy(nam) {
-
-	// Start with some default bounds
-	AABB bounds(Vector(-3.0, -3.0, -3.0), Vector(3.0, 3.0, 3.0));
-	AABB emission_bounds(Vector(-2.9, -2.9, -2.9), Vector(2.9,  2.9, 2.9));
-	
-    // Let's add a single bouncing ball particle
 	_dsd = std::make_shared<SoftBody>();
 	
-	// add a thousand particles to start with
-	_create_uniform_soft_body_from_obj("", Vector(0, 30, 0));
+	_create_uniform_soft_body_from_obj(DEFAULT_SOFT_BODY_PATH, Vector(0, 10, 0));
 
     // And now our systems, forces and collision surfaces
 	_force_system = std::make_shared<ForceSystem>();
 	_solver_system = create_gi_solver_system();
 	
 	_collision_handler = create_collision_handler();
-	_main_collision_surface = _create_collision_geo_from("");
+	_main_collision_surface = _create_collision_geo_from(DEFAULT_COLL_PATH);
 	_collision_handler->register_collision_surface(_main_collision_surface);
 
 	_gravity_force = std::make_shared<SimpleGravityForce>(Vector(0.0, -9.81, 0.0));
@@ -31,8 +24,13 @@ SoftBunnyThingyDingy::SoftBunnyThingyDingy(const std::string& nam)
 	
     
 	// And now that the init is basically done. Let's build the solvers
-	SetSimulationTimestep(0.001667);
+	SetSimulationTimestep(0.01667);
 	_set_to_sixth_order_solver();
+}
+
+void SoftBunnyThingyDingy::Init( const std::vector<std::string>& args ) {
+	//void SetCameraEyeViewUp( float eyex, float eyey, float eyez, float viewx, float viewy, float viewz, float upx, float upy, float upz ); 
+	viewer->SetCameraEyeViewUp(0, 0, -130, 0, 0, 1, 0, 1, 0);
 }
 
 
@@ -179,7 +177,7 @@ void SoftBunnyThingyDingy::Keyboard( unsigned char key, int x, int y ){
 }
 
 void SoftBunnyThingyDingy::_emit_particles(const size_t n){
-    _create_uniform_soft_body_from_obj("", Vector(0, 30, 0));
+    _create_uniform_soft_body_from_obj(DEFAULT_SOFT_BODY_PATH, Vector(0, 10, 0));
 	printf("Emitted %zu new particles. Total particle count is now %zu.\n", n, _dsd->n_particles());
 }
 
@@ -199,6 +197,7 @@ void SoftBunnyThingyDingy::_adjust_coefficient_of_restitution(const double delta
 
 void SoftBunnyThingyDingy::Reset(){
 	_dsd->resize(0);
+	_dsd->clear_connections();
 	_emit_particles(1);
 	printf("Simulation reset.\n");
 }
@@ -213,7 +212,7 @@ void SoftBunnyThingyDingy::_adjust_timestep(const double factor){
 void SoftBunnyThingyDingy::_create_uniform_soft_body_from_obj(const std::string& file_name, const Vector& center){
     printf("Hard coding file for now \n");
     std::filesystem::path current_dir = std::filesystem::path(__FILE__).parent_path();
-    std::filesystem::path obj_file_path = current_dir / "../../models/bunny_superlo_scaled.obj";
+    std::filesystem::path obj_file_path = current_dir / file_name;
 
     // we are just going to read it every time for now
     ObjReader<Vector> r(obj_file_path);
@@ -234,7 +233,7 @@ void SoftBunnyThingyDingy::_create_uniform_soft_body_from_obj(const std::string&
 CollisionSurface_sp SoftBunnyThingyDingy::_create_collision_geo_from(const std::string& file_name){
 	printf("Hard coding collision geo for now");
 	std::filesystem::path current_dir = std::filesystem::path(__FILE__).parent_path();
-    std::filesystem::path obj_file_path = current_dir / "../../models/bigsphere.obj";
+    std::filesystem::path obj_file_path = current_dir / file_name;
 	 ObjReader<Vector> r(obj_file_path);
     printf("Reading obj from file %s\n", obj_file_path.string().c_str());
     auto verts = r.get_verts();
@@ -262,12 +261,12 @@ CollisionSurface_sp SoftBunnyThingyDingy::_create_collision_geo_from(const std::
 
 void SoftBunnyThingyDingy::_adjust_strut_force(const double delta){
     _uniform_strut_force->set_spring_force(_uniform_strut_force->get_spring_force() * delta);
-    printf("Strut force is now %d\n", _uniform_strut_force->get_spring_force());
+    printf("Strut force is now %f\n", _uniform_strut_force->get_spring_force());
 }
 
 void SoftBunnyThingyDingy::_adjust_strut_friction(const double delta){
     _uniform_strut_force->set_friction(_uniform_strut_force->get_friction() * delta);
-    printf("Strut friction force is now %d\n", _uniform_strut_force->get_friction());
+    printf("Strut friction force is now %f\n", _uniform_strut_force->get_friction());
 }
 
 void SoftBunnyThingyDingy::Usage(){
@@ -279,6 +278,7 @@ void SoftBunnyThingyDingy::Usage(){
 	printf("  L: Switch to Sixth Order solver\n");
 	printf("  r: Reset the simulation\n");
     printf("  s/S increase/decrease strut force\n");
+	printf("  t/T: lower/raise timestep. BE SURE TO RESET INTEGRATION METHOD TO APPLY");
 	printf("  u/U: Print this usage information\n");
     printf("  v/V: incrase/decrease strut friction\n");
 }

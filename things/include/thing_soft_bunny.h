@@ -23,6 +23,7 @@
 #include "partial_solvers.h"
 #include "obj_reader.h"
 #include "vector.h"
+#include "PbaViewer.h"
 
 namespace pba{
 
@@ -31,6 +32,8 @@ public:
 
 	SoftBunnyThingyDingy(const std::string& nam = "Soft Bunny Thingy Dingy");
 	~SoftBunnyThingyDingy() = default;
+
+	void Init( const std::vector<std::string>& args ) override;
 
 	void Display() override;
 
@@ -79,6 +82,8 @@ private:
 	CollisionSurface_sp _create_collision_geo_from(const std::string& file_name);
 
 	SoftBunnyThingyDingy() = delete;
+	const std::string DEFAULT_COLL_PATH = "../../models/bigsphere.obj";
+	const std::string DEFAULT_SOFT_BODY_PATH = "../../models/bunny_superlo_scaled.obj";
 };
 
 
