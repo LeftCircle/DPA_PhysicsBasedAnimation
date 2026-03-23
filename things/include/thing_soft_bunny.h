@@ -22,7 +22,7 @@
 #include "AABB.h"
 #include "partial_solvers.h"
 #include "obj_reader.h"
-#include "vector.h"
+#include "cato_vector.h"
 #include "PbaViewer.h"
 
 namespace pba{

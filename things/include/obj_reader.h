@@ -8,7 +8,7 @@
 #include <vector>
 #include <ranges>
 
-#include "vector.h"
+#include "cato_vector.h"
 
 template <typename Vec3>
 class ObjReader{

@@ -77,8 +77,9 @@ bool _point_plane_collision(
     if (std::abs(end_dot) < EPSILON) {
 		return _handle_end_collision_on_plane(end_pos, plane_normal, dt, hit_info);	
     } else if (std::abs(start_dot) < EPSILON) {
-		throw(std::runtime_error("CollisionObject::_point_plane_collision: Particle starts too close to the plane. This may cause instability in the collision handling."));
-		return false;
+		//throw(std::runtime_error("CollisionObject::_point_plane_collision: Particle starts too close to the plane. This may cause instability in the collision handling."));
+		printf("Particle starts within epsilon of collision surface. This should never happen");
+		return _handle_general_plane_collision_case(start_pos, velocity, dt, start_dot, end_dot, plane_normal, point_on_plane, hit_info);
 	} else {
 		return _handle_general_plane_collision_case(start_pos, velocity, dt, start_dot, end_dot, plane_normal, point_on_plane, hit_info);
 	}

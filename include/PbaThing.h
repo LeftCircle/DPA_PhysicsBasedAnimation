@@ -86,7 +86,7 @@ class PbaThingyDingy
 
     PbaViewer* viewer;
 
-  protected:
+  protected:  
 
     bool visible;
     double dt;
