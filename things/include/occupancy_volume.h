@@ -25,13 +25,13 @@ template <typename CellType>
 class OccupancyVolume {
 public:
 	OccupancyVolume(const AABB& aabb, double cell_size) :
-	_aabb(aabb),
-	_cell_size(cell_size),
-	_voxels(
-        (int)(std::ceil((aabb.upper_right() - aabb.lower_left()).X() / cell_size)),
-        (int)(std::ceil((aabb.upper_right() - aabb.lower_left()).Y() / cell_size)),
-        (int)(std::ceil((aabb.upper_right() - aabb.lower_left()).Z() / cell_size))
-	 ) {}
+		_aabb(aabb),
+		_cell_size(cell_size),
+		_voxels(
+			(int)(std::ceil((aabb.upper_right() - aabb.lower_left()).X() / cell_size)),
+			(int)(std::ceil((aabb.upper_right() - aabb.lower_left()).Y() / cell_size)),
+			(int)(std::ceil((aabb.upper_right() - aabb.lower_left()).Z() / cell_size))
+	) {}
 
 	Vector get_dimensions() const noexcept {
 		return Vector(_voxels.get_x_dim(), _voxels.get_y_dim(), _voxels.get_z_dim());
@@ -71,15 +71,19 @@ public:
 		}
 	}
 
+	void clear() { _voxels.clear(); }
+
 private:
 	indices _get_cell_indices(const Vector& position) const {
 		int x_idx = (int)((position.X() - _aabb.lower_left().X()) / _cell_size);
 		int y_idx = (int)((position.Y() - _aabb.lower_left().Y()) / _cell_size);
 		int z_idx = (int)((position.Z() - _aabb.lower_left().Z()) / _cell_size);
-		// x_idx = std::clamp(x_idx, 0, _voxels.get_x_dim() - 1);
-		// y_idx = std::clamp(y_idx, 0, _voxels.get_y_dim() - 1);
-		// z_idx = std::clamp(z_idx, 0, _voxels.get_z_dim() - 1);
-		assert(x_idx >= 0 && y_idx >= 0 && z_idx >= 0 && x_idx < _voxels.get_x_dim() && y_idx < _voxels.get_y_dim() && z_idx < _voxels.get_z_dim() && "Position is out of bounds of the occupancy volume");
+		if (!(x_idx >= 0 && y_idx >= 0 && z_idx >= 0 && x_idx < _voxels.get_x_dim() && y_idx < _voxels.get_y_dim() && z_idx < _voxels.get_z_dim())) [[unlikely]]{
+			printf("Position is out of bounds of the occupancy volume. This should never happen \n");
+		}
+		x_idx = std::clamp(x_idx, 0, _voxels.get_x_dim() - 1);
+		y_idx = std::clamp(y_idx, 0, _voxels.get_y_dim() - 1);
+		z_idx = std::clamp(z_idx, 0, _voxels.get_z_dim() - 1);
 		return indices{(size_t)x_idx, (size_t)y_idx, (size_t)z_idx};
 	}
 

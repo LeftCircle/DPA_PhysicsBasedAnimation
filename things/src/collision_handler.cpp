@@ -55,6 +55,7 @@ bool CollisionHandler::_check_for_collision_against_all_surfaces(CollisionHandle
 void CollisionHandler::_on_collision_detected(CollisionHandleInfo& earliest_hit, ParticleUpdateInfo& pui) const noexcept{
 	// Now we actually have to handle the collision
 	pui.remaining_dt = pui.remaining_dt > 0 ? std::max(pui.remaining_dt - earliest_hit.hit_info.time_of_impact, 0.0) : std::min(pui.remaining_dt - earliest_hit.hit_info.time_of_impact, 0.0);
+	// TODO -> always using normal of the triangle here. Need to check based off of starting position. 
 	pui.updated_pos = _resolve_collision_against_static_object(
 		pui,
 		earliest_hit.hit_info.position,
@@ -64,6 +65,7 @@ void CollisionHandler::_on_collision_detected(CollisionHandleInfo& earliest_hit,
 	);
 	// Now set the start position to the collision position for the next iteration
 	// plus a very small epsilon to prevent rehitting the same or similar surfaces
+	// TODO -> check logic for very probable bug here
 	pui.start_pos = earliest_hit.hit_info.position + earliest_hit.hit_info.normal * MIN_END_DIST_FROM_COLLISION;
 }
 

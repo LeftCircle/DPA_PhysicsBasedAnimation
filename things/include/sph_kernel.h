@@ -61,7 +61,7 @@ private:
 	double _sigma_over_four;
 };
 
-} // end namespace pba
+
 
 // This is the basic kernel implementation from Doyub Kim's fluid engine development book
 template<typename Vec>
@@ -93,16 +93,16 @@ struct SphStdKernel2 {
 	Vec gradient(double distance, const Vec& direction) const noexcept;
 };
 
-template<typename Vec>
-struct SphSpikyKernel3 {
+class SphSpikyKernel3 : public Kernel {
+public:
 	double h1, h2, h3, h4, h5;
 
 	SphSpikyKernel3() : h1(0), h2(0), h3(0), h4(0), h5(0) {};
 	explicit SphSpikyKernel3(double radius) : h1(radius), h2 (h1 * h1), h3(h1 * h2), h4(h2 * h2), h5(h3 * h2) {};
-	double operator()(double distance) const noexcept;
+	double operator()(double distance) const noexcept override;
 	double first_derivative(double distance) const noexcept;
 	double second_derivative(double distance) const noexcept;
-	Vec gradient(double distance, const Vec& direction) const noexcept;
+	Vector gradient(double distance, const Vector& direction) const noexcept override;
 };
 
 template<typename Vec>
@@ -192,8 +192,7 @@ inline Vec SphStdKernel2<Vec>::gradient(double distance, const Vec& direction) c
 	return -first_derivative(distance) * direction;
 }
 
-template<typename Vec>
-inline double SphSpikyKernel3<Vec>::operator()(double distance) const noexcept {
+inline double SphSpikyKernel3::operator()(double distance) const noexcept {
 	if (distance >= h1){
 		return 0.0;
 	} else {
@@ -202,8 +201,7 @@ inline double SphSpikyKernel3<Vec>::operator()(double distance) const noexcept {
 	}
 }
 
-template<typename Vec>
-inline double SphSpikyKernel3<Vec>::first_derivative(double distance) const noexcept {
+inline double SphSpikyKernel3::first_derivative(double distance) const noexcept {
 	if (distance >= h1){
 		return 0.0;
 	} else {
@@ -212,8 +210,7 @@ inline double SphSpikyKernel3<Vec>::first_derivative(double distance) const noex
 	}
 }
 
-template<typename Vec>
-inline double SphSpikyKernel3<Vec>::second_derivative(double distance) const noexcept {
+inline double SphSpikyKernel3::second_derivative(double distance) const noexcept {
 	if (distance >= h1){
 		return 0.0;
 	} else {
@@ -222,8 +219,7 @@ inline double SphSpikyKernel3<Vec>::second_derivative(double distance) const noe
 	}
 }
 
-template<typename Vec>
-inline Vec SphSpikyKernel3<Vec>::gradient(double distance, const Vec& direction) const noexcept {
+inline Vector SphSpikyKernel3::gradient(double distance, const Vector& direction) const noexcept {
 	// Direction is assumed to be normalized
 	return -first_derivative(distance) * direction;
 }
@@ -264,6 +260,6 @@ inline Vec SphSpikyKernel2<Vec>::gradient(double distance, const Vec& direction)
 	return -first_derivative(distance) * direction; 
 }
 
-
+} // end namespace pba
 
 #endif

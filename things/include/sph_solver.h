@@ -6,6 +6,7 @@
 #include <numeric>
 #include <span>
 #include <execution>
+#include <cmath>
 
 #include "partial_solvers.h"
 #include "sph_kernel.h"

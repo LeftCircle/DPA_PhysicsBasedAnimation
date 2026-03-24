@@ -7,7 +7,7 @@
 #include "Vector.h"
 #include "Color.h"
 
-// from https://jtessen.people.clemson.edu/cpsc6190/html/_dynamical_state_8h_source.html
+// modified from https://jtessen.people.clemson.edu/cpsc6190/html/_dynamical_state_8h_source.html
 
 namespace pba{
 template<typename T>
@@ -30,7 +30,7 @@ public:
 
 	void expand_to( size_t n )
 	{
-        if( data.size() >= n ){ return; }
+        if( data.size() >= n ){ resize_to_defaults(n); return; }
         size_t old_size = data.size();
         data.resize(n);
         for( size_t i=old_size;i<data.size();i++ )
@@ -38,6 +38,11 @@ public:
             data[i] = defVal;
         }
 	}
+
+	void resize_to_defaults(size_t n) {
+		data.resize(n, defVal);
+	}
+
 	void clear() { data.clear(); }
 	const std::string& attr_name() const { return name; }
 	const T& default_value() const { return defVal; }

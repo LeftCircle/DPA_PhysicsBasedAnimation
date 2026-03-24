@@ -68,6 +68,7 @@ SPHPositionSolver::SPHPositionSolver(
 void SPHPositionSolver::solve(const double dt) {
 	AdvancePositionWithCollisions::solve(dt);
 	// Now update densities and the occupancy grid
+	const auto positions = _state_data->get_vector_attribute_span("positions");
 	_occupancy_volume->populate(
 		_state_data->get_vector_attribute_span("positions"),
 		[](std::vector<size_t>& cell, size_t idx){
@@ -109,6 +110,10 @@ void SPHAdvanceVelocityWithForces::solve(const double dt) {
 
 Vector SPHAdvanceVelocityWithForces::_clamp_vector(const Vector& vec, double max_magnitude) const noexcept {
 	double mag = vec.magnitude();
+	if (std::isnan(mag)) [[unlikely]] {
+		printf("NAAN vector");
+		throw std::runtime_error("naan mag");
+	}
 	if (mag > max_magnitude) {
 		Vector clamped_vec = vec;
 		clamped_vec.normalize();
