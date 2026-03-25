@@ -8,7 +8,7 @@
 #include <stdexcept>
 #include <variant>
 
-#include <constants.h>
+#include "the_wheel.h"
 #include "Vector.h"
 #include "Color.h"
 #include "dynamical_state_attribute.h"
@@ -60,11 +60,6 @@ public:
 	void set_int_attribute(const std::string& name, size_t i, const int& val);
 	void set_color_attribute(const std::string& name, size_t i, const Color& c);
 
-	template <typename T>
-	const T& get_uniform(const std::string& name) const {
-		return std::get<T>(_uniforms.at(name));
-	}
-
 	// setters for common attributes
 	void set_position(size_t i, const Vector& v) { _pos_map_iter->second.set(i, v); }
 	void set_velocity(size_t i, const Vector& v) { _vel_map_iter->second.set(i, v); }
@@ -79,15 +74,15 @@ public:
 	template<typename T>
 	void add_attribute(const std::string& name, DSAttribute<T>&& attr){
 		attr.expand_to(_n_particles);
-		if constexpr (std::is_same_v<T, int>) {
+		if constexpr (std::is_same<T, int>) {
 			_int_attr.insert_or_assign(name, std::move(attr));
-		} else if constexpr (std::is_same_v<T, float>) {
+		} else if constexpr (std::is_same<T, float>) {
 			_float_attr.insert_or_assign(name, std::move(attr));
-		} else if constexpr (std::is_same_v<T, Vector>) {
+		} else if constexpr (std::is_same<T, Vector>) {
 			_vec_attr.insert_or_assign(name, std::move(attr));
-		} else if constexpr (std::is_same_v<T, Color>) {
+		} else if constexpr (std::is_same<T, Color>) {
 			_color_attr.insert_or_assign(name, std::move(attr));
-		} else if constexpr (std::is_same_v<T, double>) {
+		} else if constexpr (std::is_same<T, double>) {
 			_double_attr.insert_or_assign(name, std::move(attr));
 		} else {
 			throw std::runtime_error("Unsupported attribute type added");

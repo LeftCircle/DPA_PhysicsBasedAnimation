@@ -6,11 +6,13 @@
 #include <algorithm>
 #include <iostream>
 
+#include "the_wheel.h"
+
 #include "collision_object.h"
 
 namespace pba{
 
-#define CLAMP(val, min, max) (std::max(std::min(val, min), max))
+
 
 
 class CollisionSurface
@@ -21,8 +23,8 @@ public:
 
 	void add_collision_object(CollisionObject_sp obj){ _collision_objects.push_back( obj ); }
 	
-	void set_restitution(const double r){ restitution = std::clamp(r, 0.0, 1.0); }
-	void set_sticky(const double s){ sticky = std::clamp(s, 0.0, 1.0); }
+	void set_restitution(const double r){ restitution = clamp(r, 0.0, 1.0); }
+	void set_sticky(const double s){ sticky = clamp(s, 0.0, 1.0); }
 
 	const double get_restitution() const { return restitution; }
 	const double get_sticky() const { return sticky; }

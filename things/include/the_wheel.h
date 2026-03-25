@@ -22,12 +22,12 @@ public:
 
 	// for span<const T>
 	template <typename U,
-		std::enable_if_t<std::is_same<T, const U>, bool> = true>
+		std::enable_if_t<std::is_same<T, const U>::value, bool> = true>
 	span(const std::vector<U>& vec) : _data(vec.data()), _size(vec.size()) {}; 
 
 	// Conversion from span<t> to span<const T>
 	template <typename U,
-		std::enable_if_t<std::is_same<T, const U>, bool> = true>
+		std::enable_if_t<std::is_same<T, const U>::value, bool> = true>
 	span(const span<U>& other) : _data(other.data()), _size(other.size()){};
 
 
@@ -44,7 +44,7 @@ private:
 
 template <typename T>
 inline const T& clamp(const T& val, const T& low, const T& high){
-	return (val < low) ? low : (val > high) ? hi : val;
+	return (val < low) ? low : (val > high) ? high : val;
 }
 
 
@@ -54,8 +54,7 @@ inline const T& clamp(const T& val, const T& low, const T& high){
 template <typename T>
 using span = cato::span<T>;
 
-template <typename T>
-using clamp = cato::clamp<T>;
+using cato::clamp;
 
 #else
 #include <span>
