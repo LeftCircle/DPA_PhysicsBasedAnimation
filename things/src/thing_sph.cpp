@@ -15,16 +15,15 @@ SPHThingyDingy::SPHThingyDingy(const std::string& nam)
 	// Let's add a single bouncing ball particle
 	_dsd = std::make_shared<SPHData>();
 
-    // let's set h to 0.25 for now
-    _dsd->set_h(0.05);
+    _dsd->set_h(0.1);
     _occupancy_volume = create_idx_occupancy_volume(bounds, _dsd->h() * 2.0);
     _kernel = std::make_shared<CubicSplineKernel3>(_dsd->h());
 	//_kernel = std::make_shared<SphSpikyKernel3>(_dsd->h());
 
 	// add a thousand particles to start with
-	//for (size_t i=0; i<1000; i++){
-	//	_add_random_particle();
-	//}
+	for (size_t i=0; i<1000; i++){
+		_add_random_particle();
+	}
 	// And now our systems, forces and collision surfaces
 	_add_random_particle();
 	_force_system = std::make_shared<ForceSystem>();
@@ -225,7 +224,7 @@ void SPHThingyDingy::_adjust_coefficient_of_restitution(const double delta){
 }
 
 void SPHThingyDingy::Reset(){
-	_dsd->clear(0);
+	_dsd->resize(0);
 	_occupancy_volume->clear();
 	printf("size of dsd positions = %zu /n", _dsd->get_vector_attribute_span("positions").size());
 	_emit_particles(1);

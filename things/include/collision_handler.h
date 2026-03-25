@@ -19,11 +19,16 @@ template <typename T> int sgn(T val) {
 }
 
 struct CollisionHandleInfo {
+	CollisionHandleInfo() {}
+	CollisionHandleInfo(CollisionSurface_sp cs, CollisionHitInfo hi) : 
+		collision_surface(cs), hit_info(hi) {}
 	CollisionSurface_sp collision_surface;
 	CollisionHitInfo hit_info;
 };
 
 struct ParticleUpdateInfo {
+	ParticleUpdateInfo(Vector& sp, Vector& up, Vector& v, double r_dt) :
+		start_pos(sp), updated_pos(up), velocity(v), remaining_dt(r_dt) {}
 	Vector& start_pos;
 	Vector& updated_pos;
 	Vector& velocity;

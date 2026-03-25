@@ -74,15 +74,15 @@ public:
 	template<typename T>
 	void add_attribute(const std::string& name, DSAttribute<T>&& attr){
 		attr.expand_to(_n_particles);
-		if constexpr (std::is_same<T, int>) {
+		if constexpr (std::is_same_v<T, int>) {
 			_int_attr.insert_or_assign(name, std::move(attr));
-		} else if constexpr (std::is_same<T, float>) {
+		} else if constexpr (std::is_same_v<T, float>) {
 			_float_attr.insert_or_assign(name, std::move(attr));
-		} else if constexpr (std::is_same<T, Vector>) {
+		} else if constexpr (std::is_same_v<T, Vector>) {
 			_vec_attr.insert_or_assign(name, std::move(attr));
-		} else if constexpr (std::is_same<T, Color>) {
+		} else if constexpr (std::is_same_v<T, Color>) {
 			_color_attr.insert_or_assign(name, std::move(attr));
-		} else if constexpr (std::is_same<T, double>) {
+		} else if constexpr (std::is_same_v<T, double>) {
 			_double_attr.insert_or_assign(name, std::move(attr));
 		} else {
 			throw std::runtime_error("Unsupported attribute type added");

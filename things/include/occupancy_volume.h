@@ -78,12 +78,12 @@ private:
 		int x_idx = (int)((position.X() - _aabb.lower_left().X()) / _cell_size);
 		int y_idx = (int)((position.Y() - _aabb.lower_left().Y()) / _cell_size);
 		int z_idx = (int)((position.Z() - _aabb.lower_left().Z()) / _cell_size);
-		if (!(x_idx >= 0 && y_idx >= 0 && z_idx >= 0 && x_idx < _voxels.get_x_dim() && y_idx < _voxels.get_y_dim() && z_idx < _voxels.get_z_dim())) [[unlikely]]{
-			printf("Position is out of bounds of the occupancy volume. This should never happen \n");
-		}
-		x_idx = clamp(x_idx, 0, _voxels.get_x_dim() - 1);
-		y_idx = clamp(y_idx, 0, _voxels.get_y_dim() - 1);
-		z_idx = clamp(z_idx, 0, _voxels.get_z_dim() - 1);
+		// if (!(x_idx >= 0 && y_idx >= 0 && z_idx >= 0 && x_idx < _voxels.get_x_dim() && y_idx < _voxels.get_y_dim() && z_idx < _voxels.get_z_dim())) [[unlikely]]{
+		// 	printf("Position is out of bounds of the occupancy volume. This should never happen \n");
+		// }
+		x_idx = std::clamp(x_idx, 0, _voxels.get_x_dim() - 1);
+		y_idx = std::clamp(y_idx, 0, _voxels.get_y_dim() - 1);
+		z_idx = std::clamp(z_idx, 0, _voxels.get_z_dim() - 1);
 		return indices{(size_t)x_idx, (size_t)y_idx, (size_t)z_idx};
 	}
 

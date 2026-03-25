@@ -7,6 +7,11 @@
 #ifdef REINVENTING_THE_WHEEL
 // for some reason my IDE doesn't like checking the cpp version based on the makefile, hence ^^
 //#if __cplusplus < 202002L 
+
+#include <stddef.h> // for size_t
+#include <type_traits> // for std::enable_if
+#include <vector>
+
 namespace cato{
 
 template <typename T>
@@ -34,6 +39,9 @@ public:
 	T& operator[](size_t i) const { return _data[i]; }
 	size_t size() const { return _size; }
 
+	T* begin() const { return _data; }
+	T* end() const { return _data + _size; }
+	T* data() const { return _data; }
 
 private:
 	// We want a raw pointer here because a span is a lightweight
@@ -42,10 +50,11 @@ private:
 	size_t _size;
 };
 
-template <typename T>
-inline const T& clamp(const T& val, const T& low, const T& high){
-	return (val < low) ? low : (val > high) ? high : val;
-}
+// template <typename T>
+// inline T clamp(T val, T low, T high){
+// 	return (val < low) ? low : (val > high) ? high : val;
+// }
+
 
 
 }// end namespace cato
@@ -54,7 +63,7 @@ inline const T& clamp(const T& val, const T& low, const T& high){
 template <typename T>
 using span = cato::span<T>;
 
-using cato::clamp;
+//using cato::clamp;
 
 #else
 #include <span>

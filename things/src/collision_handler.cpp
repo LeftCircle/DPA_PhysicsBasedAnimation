@@ -21,7 +21,12 @@ void CollisionHandler::handle_collisions(DynamicalStateData_sp dsd, const std::s
 	}
 }
 
-void CollisionHandler::_handle_particle_collisions(Vector& start_pos, Vector& updated_pos, Vector& velocity, const double dt) const{
+void CollisionHandler::_handle_particle_collisions(
+													Vector& start_pos,
+													Vector& updated_pos,
+													Vector& velocity,
+													const double dt
+	) const {
 	bool keep_checking = true;
 	CollisionHandleInfo earliest_hit;
 	CollisionHitInfo temp_hit;
