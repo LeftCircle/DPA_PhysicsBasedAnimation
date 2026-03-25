@@ -4,6 +4,7 @@
 #include <memory>
 #include <cassert>
 #include <iostream>
+#include <limits>
 
 #include "Vector.h"
 #include "shapes.h"

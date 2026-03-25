@@ -225,7 +225,7 @@ void SPHThingyDingy::_adjust_coefficient_of_restitution(const double delta){
 }
 
 void SPHThingyDingy::Reset(){
-	_dsd->resize(0);
+	_dsd->clear(0);
 	_occupancy_volume->clear();
 	printf("size of dsd positions = %zu /n", _dsd->get_vector_attribute_span("positions").size());
 	_emit_particles(1);

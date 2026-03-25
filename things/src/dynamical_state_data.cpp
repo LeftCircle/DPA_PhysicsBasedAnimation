@@ -82,43 +82,43 @@ void DynamicalStateData::set_color_attribute(const std::string& name, size_t i, 
 	_lookup_or_throw(_color_attr, name, "color").set(i, c);
 }
 
-std::span<const Vector> DynamicalStateData::get_vector_attribute_span(const std::string& name) const {
+span<const Vector> DynamicalStateData::get_vector_attribute_span(const std::string& name) const {
 	return _lookup_or_throw(_vec_attr, name, "vector").get_span();
 }
 
-std::span<const float> DynamicalStateData::get_float_attribute_span(const std::string& name) const {
+span<const float> DynamicalStateData::get_float_attribute_span(const std::string& name) const {
 	return _lookup_or_throw(_float_attr, name, "float").get_span();
 }
 
-std::span<const double> DynamicalStateData::get_double_attribute_span(const std::string& name) const {
+span<const double> DynamicalStateData::get_double_attribute_span(const std::string& name) const {
 	return _lookup_or_throw(_double_attr, name, "double").get_span();
 }
 
-std::span<const int> DynamicalStateData::get_int_attribute_span(const std::string& name) const {
+span<const int> DynamicalStateData::get_int_attribute_span(const std::string& name) const {
 	return _lookup_or_throw(_int_attr, name, "int").get_span();
 }
 
-std::span<const Color> DynamicalStateData::get_color_attribute_span(const std::string& name) const {
+span<const Color> DynamicalStateData::get_color_attribute_span(const std::string& name) const {
 	return _lookup_or_throw(_color_attr, name, "color").get_span();
 }
 
-std::span<Vector> DynamicalStateData::get_vector_attribute_span(const std::string& name) {
+span<Vector> DynamicalStateData::get_vector_attribute_span(const std::string& name) {
 	return _lookup_or_throw(_vec_attr, name, "vector").get_span();
 }
 
-std::span<float> DynamicalStateData::get_float_attribute_span(const std::string& name) {
+span<float> DynamicalStateData::get_float_attribute_span(const std::string& name) {
 	return _lookup_or_throw(_float_attr, name, "float").get_span();
 }
 
-std::span<double> DynamicalStateData::get_double_attribute_span(const std::string& name) {
+span<double> DynamicalStateData::get_double_attribute_span(const std::string& name) {
 	return _lookup_or_throw(_double_attr, name, "double").get_span();
 }
 
-std::span<int> DynamicalStateData::get_int_attribute_span(const std::string& name) {
+span<int> DynamicalStateData::get_int_attribute_span(const std::string& name) {
 	return _lookup_or_throw(_int_attr, name, "int").get_span();
 }
 
-std::span<Color> DynamicalStateData::get_color_attribute_span(const std::string& name) {
+span<Color> DynamicalStateData::get_color_attribute_span(const std::string& name) {
 	return _lookup_or_throw(_color_attr, name, "color").get_span();
 }
 

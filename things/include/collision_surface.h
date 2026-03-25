@@ -10,6 +10,9 @@
 
 namespace pba{
 
+#define CLAMP(val, min, max) (std::max(std::min(val, min), max))
+
+
 class CollisionSurface
 {
 public:

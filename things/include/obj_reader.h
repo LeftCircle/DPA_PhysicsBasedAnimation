@@ -27,8 +27,8 @@ public:
 		}
 	}
 
-	std::span<const Vec3> get_verts() { return std::span<const Vec3>(_verts); }
-	std::span<const cato::Vec3i> get_faces() { return std::span<const cato::Vec3i>(_faces); }
+	auto get_verts() { return span<Vec3>(_verts); }
+	auto get_faces() { return span<const cato::Vec3i>(_faces); }
 
 private:
 	ObjReader() = delete;

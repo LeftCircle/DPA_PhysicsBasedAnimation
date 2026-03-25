@@ -3,11 +3,11 @@
 #define _OCCUPANCY_VOLUME_H
 
 #include <vector>
-#include <span>
 #include <type_traits>
 #include <concepts>
 #include <cassert>
 
+#include "the_wheel.h"
 #include "array3D.h"
 #include "Vector.h"
 
@@ -42,7 +42,7 @@ public:
 	}
 
 	template <typename T, typename func>
-		requires std::invocable<func, size_t, T, const CellType&>
+	//	requires std::invocable<func, size_t, T, const CellType&>
 	T accumulate_neighbor_cells(size_t idx, const Vector& position, T init, func fn) const {
 		auto neighbor_cells = _get_neighbor_cell_indices(position);
 		for (const auto& neighbor_cell_id : neighbor_cells) {
@@ -52,7 +52,7 @@ public:
 	}
 
 	template <typename Inserter> 
-		requires std::invocable<Inserter, CellType&, size_t>
+	//	requires std::invocable<Inserter, CellType&, size_t>
 	void populate(const std::vector<Vector>& positions, Inserter inserter_fn) {
 		_voxels.clear();
 		for (size_t i = 0; i < positions.size(); i++) {
@@ -62,8 +62,8 @@ public:
 	}
 
 	template <typename Inserter>
-		requires std::invocable<Inserter, CellType&, size_t>
-	void populate(std::span<const Vector> positions, Inserter inserter_fn) {
+	//	requires std::invocable<Inserter, CellType&, size_t>
+	void populate(span<const Vector> positions, Inserter inserter_fn) {
 		_voxels.clear();
 		for (size_t i = 0; i < positions.size(); i++) {
 			CellType& cell = _get_cell(positions[i]);

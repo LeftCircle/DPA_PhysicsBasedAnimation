@@ -2,8 +2,8 @@
 #define _DYNAMICAL_STATE_ATTRIBUTE
 
 #include <vector>
-#include <span>
 
+#include "the_wheel.h"
 #include "Vector.h"
 #include "Color.h"
 
@@ -14,7 +14,6 @@ template<typename T>
 class DSAttribute
 {
 public:
-
 	DSAttribute() : name("unknown") {}
 	DSAttribute( const std::string& nam, const T& def ) : name(nam), defVal(def) {}
 	~DSAttribute(){}
@@ -25,8 +24,8 @@ public:
 	const T& get(size_t i ) const { return data[i]; }
 	T& get(size_t i ) { return data[i]; }
 
-	std::span<T> get_span() { return std::span<T>(data); }
-	std::span<const T> get_span() const { return std::span<const T>(data); }
+	auto get_span() { return span<T>(data); }
+	auto get_span() const { return span<const T>(data); }
 
 	void expand_to( size_t n )
 	{

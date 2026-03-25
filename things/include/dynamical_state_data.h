@@ -6,21 +6,18 @@
 #include <string>
 #include <memory>
 #include <stdexcept>
-#include <span>
 #include <variant>
 
+#include <constants.h>
 #include "Vector.h"
 #include "Color.h"
 #include "dynamical_state_attribute.h"
 
 namespace pba{
 
-using UniformValue = std::variant<int, float, double, Vector, Color>;
-
 class DynamicalStateData {
 public:
-    // Q: Can we still perform move operations since we are defining
-    // a non default constructor??
+
     DynamicalStateData();
     virtual ~DynamicalStateData() = default;
 	
@@ -44,17 +41,17 @@ public:
 	const Color& get_color(size_t i) const { return _color_map_iter->second.get(i); }
 
 	// Span for all attributes
-	std::span<const Vector> get_vector_attribute_span(const std::string& name) const;
-	std::span<const float> get_float_attribute_span(const std::string& name) const;
-	std::span<const double> get_double_attribute_span(const std::string& name) const;
-	std::span<const int> get_int_attribute_span(const std::string& name) const;
-	std::span<const Color> get_color_attribute_span(const std::string& name) const;
+	span<const Vector> get_vector_attribute_span(const std::string& name) const;
+	span<const float> get_float_attribute_span(const std::string& name) const;
+	span<const double> get_double_attribute_span(const std::string& name) const;
+	span<const int> get_int_attribute_span(const std::string& name) const;
+	span<const Color> get_color_attribute_span(const std::string& name) const;
 
-	std::span<Vector> get_vector_attribute_span(const std::string& name);
-	std::span<float> get_float_attribute_span(const std::string& name);
-	std::span<double> get_double_attribute_span(const std::string& name);
-	std::span<int> get_int_attribute_span(const std::string& name);
-	std::span<Color> get_color_attribute_span(const std::string& name);
+	span<Vector> get_vector_attribute_span(const std::string& name);
+	span<float> get_float_attribute_span(const std::string& name);
+	span<double> get_double_attribute_span(const std::string& name);
+	span<int> get_int_attribute_span(const std::string& name);
+	span<Color> get_color_attribute_span(const std::string& name);
 
 	// setters for attributes by name
 	void set_vector_attribute(const std::string& name, size_t i, const Vector& v);
@@ -62,8 +59,6 @@ public:
 	void set_double_attribute(const std::string& name, size_t i, const double& d);
 	void set_int_attribute(const std::string& name, size_t i, const int& val);
 	void set_color_attribute(const std::string& name, size_t i, const Color& c);
-
-	void set_uniform(const std::string& name, UniformValue val) { _uniforms[name] = val; }
 
 	template <typename T>
 	const T& get_uniform(const std::string& name) const {
@@ -128,8 +123,6 @@ protected:
 	std::map< std::string, DSAv > _vec_attr;
 	std::map< std::string, DSAc > _color_attr;
 	std::map< std::string, DSAd > _double_attr;
-	std::map<std::string, UniformValue> _uniforms;
-	
 
 	// caching these to avoid map lookup for commonly used lookups
 	std::map< std::string, DSAv >::iterator _pos_map_iter;

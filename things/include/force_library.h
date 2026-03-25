@@ -3,9 +3,10 @@
 
 #include <vector>
 #include <memory>
-#include <span>
 #include <numeric>
+#include <stdexcept>
 
+#include "the_wheel.h"
 #include "force.h"
 #include "occupancy_volume.h"
 #include "sph_kernel.h"
@@ -48,12 +49,17 @@ public:
 private:
 	Vector _get_pressure_with_uniform_h(
 		size_t i,
-		const std::span<const size_t>& neighbor_indices,
+		const span<const size_t>& neighbor_indices,
 		const SPHData_sp sph_data,
-		const std::span<const double>& densities
+		const span<const double>& densities
 	) const;
 
-	double _get_pressure_at_density(double density, double rest_pressure, double rest_density, double gamma) const;
+	double _get_pressure_at_density(
+		double density,
+		double rest_pressure,
+		double rest_density,
+		double gamma
+	) const;
 
 
 	SPHPressureForce() = delete;
@@ -63,7 +69,11 @@ private:
 
 class SPHViscosityForce : public ForceBase {
 public:
-	SPHViscosityForce(idx_volume_sp occupancy_volume, Kernel_sp kernel) : _occupancy_volume(occupancy_volume), _kernel(kernel) {}
+	SPHViscosityForce(
+		idx_volume_sp occupancy_volume,
+		Kernel_sp kernel
+	) : _occupancy_volume(occupancy_volume), _kernel(kernel) {}
+	
 	~SPHViscosityForce() = default;
 
 	void compute(DynamicalStateData_sp dsd, const double dt) const override {
@@ -75,11 +85,33 @@ public:
 	void compute_sph(SPHData_sp sph_data, const double dt) const;
 
 private:
-	Vector _compute_viscosity_force_for_neighbors(size_t i, const std::span<const size_t>& neighbor_indices, const SPHData_sp sph_data) const;
+	Vector _compute_viscosity_force_for_neighbors(
+		size_t i,
+		const span<const size_t>& neighbor_indices,
+		const SPHData_sp sph_data
+	) const;
 
-	double _avg_speed_of_sound(double desnity, double one_over_rest_density, double rest_pressure, double gamma) const noexcept;
-	double _mu_ab(const Vector& vel_a, const Vector& vel_b, const Vector& pos_a, const Vector& pos_b, double h, double epsilon) const;
-	double _pi_ab(double c_ab, double mu_ab, double density_a, double density_b, double alpha, double beta) const;
+	double _avg_speed_of_sound(double desnity,
+								double one_over_rest_density,
+								double rest_pressure,
+								double gamma
+	) const noexcept;
+	
+	double _mu_ab(const Vector& vel_a,
+				  const Vector& vel_b,
+				  const Vector& pos_a,
+				  const Vector& pos_b,
+				  double h,
+				  double epsilon
+	) const;
+	
+	double _pi_ab(double c_ab,
+		          double mu_ab,
+		          double density_a,
+		          double density_b,
+		          double alpha,
+		          double beta
+	) const;
 
 	SPHViscosityForce() = delete;
 	idx_volume_sp _occupancy_volume;
@@ -88,7 +120,8 @@ private:
 
 class UniformStrutForce : public ForceBase{
 public:
-	UniformStrutForce(const double spring, const double friction) : _spring_force(spring), _friction(friction) {}
+	UniformStrutForce(const double spring, const double friction)
+	 : _spring_force(spring), _friction(friction) {}
 
 	void compute(DynamicalStateData_sp dsd, const double dt) const override{
 		auto soft_body_sp = std::dynamic_pointer_cast<SoftBody>(dsd);

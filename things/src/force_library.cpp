@@ -22,7 +22,7 @@ void SPHPressureForce::compute_sph(SPHData_sp sph_data, const double dt) const {
 			sph_data->get_position(i),
 			Vector(0.0, 0.0, 0.0),
 			[&sph_data, &densities, this](size_t idx, Vector acc, const std::vector<size_t>& neighbor_indices){
-				const std::span<const size_t> neighbor_indices_span(neighbor_indices);
+				const auto neighbor_indices_span(neighbor_indices);
 				return acc + _get_pressure_with_uniform_h(
 					idx,
 					neighbor_indices_span,
@@ -37,9 +37,9 @@ void SPHPressureForce::compute_sph(SPHData_sp sph_data, const double dt) const {
 
 Vector SPHPressureForce::_get_pressure_with_uniform_h(
 		size_t i,
-		const std::span<const size_t>& neighbor_indices,
+		const span<const size_t>& neighbor_indices,
 		const SPHData_sp sph_data,
-		const std::span<const double>& densities
+		const span<const double>& densities
 	) const
 {
 	const Vector& pos_i = sph_data->get_position(i);
@@ -79,7 +79,7 @@ void SPHViscosityForce::compute_sph(SPHData_sp sph_data, const double dt) const 
 	}
 }
 
-Vector SPHViscosityForce::_compute_viscosity_force_for_neighbors(size_t i, const std::span<const size_t>& neighbor_indices, const SPHData_sp sph_data) const {
+Vector SPHViscosityForce::_compute_viscosity_force_for_neighbors(size_t i, const span<const size_t>& neighbor_indices, const SPHData_sp sph_data) const {
 	const auto densities = sph_data->get_double_attribute_span("density");
 	const auto one_over_rd = 1.0 / sph_data->rest_density();
 	return -std::accumulate(neighbor_indices.begin(), neighbor_indices.end(), Vector(0.0, 0.0, 0.0), 
@@ -118,8 +118,8 @@ double SPHViscosityForce::_pi_ab(double c_ab, double mu_ab, double density_a, do
 
 void UniformStrutForce::_compute(std::shared_ptr<SoftBody> sb, const double dt) const {
 	// For each edge, determine spring force and friction based on position, rest length, and velocity
-	std::span<const Vector> positions = sb->get_vector_attribute_span("positions");
-	std::span<const Vector> vels = sb->get_vector_attribute_span("velocities");
+	span<const Vector> positions = sb->get_vector_attribute_span("positions");
+	span<const Vector> vels = sb->get_vector_attribute_span("velocities");
 	const size_t n_edges = sb->edges.size();
 	#pragma omp parallel for
 	for (size_t i = 0; i < n_edges; i++){

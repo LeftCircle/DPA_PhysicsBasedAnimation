@@ -3,7 +3,12 @@
 
 using namespace pba;
 
-void SoftEdge::compute(std::span<const Vector> positions, std::span<const Vector> vels, const double spring_force, const double friction){
+void SoftEdge::compute(
+    span<const Vector> positions,
+    span<const Vector> vels,
+    const double spring_force,
+    const double friction
+){
     const Vector& pos_a = positions[_index_a];
     const Vector& pos_b = positions[_index_b];
     const Vector& vel_a = vels[_index_a];

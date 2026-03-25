@@ -5,7 +5,9 @@
 #include <vector>
 #include <memory>
 #include <algorithm>
+#include <stdexcept>
 
+#include "the_wheel.h"
 #include "dynamical_state_data.h"
 #include "soft_edge.h"
 #include "math.h"

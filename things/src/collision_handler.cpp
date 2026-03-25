@@ -7,9 +7,9 @@ using namespace pba;
 
 void CollisionHandler::handle_collisions(DynamicalStateData_sp dsd, const std::string& updated_pos_attr_name, const double dt){
 	const size_t n = dsd->n_particles();
-	std::span<Vector> updated_positions = dsd->get_vector_attribute_span(updated_pos_attr_name);
-	std::span<Vector> start_positions = dsd->get_vector_attribute_span("positions");
-	std::span<Vector> velocities = dsd->get_vector_attribute_span("velocities");
+	auto updated_positions = dsd->get_vector_attribute_span(updated_pos_attr_name);
+	auto start_positions = dsd->get_vector_attribute_span("positions");
+	auto velocities = dsd->get_vector_attribute_span("velocities");
 	#pragma omp parallel for
 	for( size_t i=0; i<n; i++ ){
 		Vector& start_pos = start_positions[i];
