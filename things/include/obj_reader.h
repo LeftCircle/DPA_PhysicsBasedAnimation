@@ -6,7 +6,6 @@
 #include <fstream>
 #include <string>
 #include <vector>
-#include <ranges>
 
 #include "cato_vector.h"
 

@@ -20,9 +20,9 @@ class SoftBody : public DynamicalStateData {
 public:
 	void connect_all_particles_together() noexcept;
 	void connect_all_particles_in_range(size_t start_idx, size_t end_idx);
-	constexpr void clear_connections() noexcept {edges.clear(); }
+	void clear_connections() noexcept {edges.clear(); }
 
-	constexpr size_t get_n_soft_edges() const noexcept { return edges.size(); }
+	size_t get_n_soft_edges() const noexcept { return edges.size(); }
 
 	std::vector<SoftEdge> edges;
 };

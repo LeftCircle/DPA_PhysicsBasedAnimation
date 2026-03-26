@@ -4,7 +4,6 @@
 
 #include <vector>
 #include <type_traits>
-#include <concepts>
 #include <cassert>
 
 #include "the_wheel.h"

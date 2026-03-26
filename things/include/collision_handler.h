@@ -5,7 +5,6 @@
 #include <vector>
 #include <memory>
 #include <string>
-#include <span>
 #include <iostream>
 
 #include "collision_surface.h"
