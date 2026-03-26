@@ -17,24 +17,24 @@ bool _handle_end_collision_on_plane(
 	return true;
 }
 
-bool _handle_start_collision_on_plane(
-	const Vector& start_pos,
-	const Vector& plane_normal,
-	const double vel_dot,
-	CollisionHitInfo& hit_info
-	){
-	if (vel_dot > EPSILON) {
-		// No collision. The particle starts on the plane but is already moving away. 
-		return false;
-	} else {
-		// We have a collision. The particle starts on the plane but is moving towards it, so the
-		// time of impact is 0.
-		hit_info.time_of_impact = 0.0;
-		hit_info.position = start_pos;
-		hit_info.normal = plane_normal;
-		return true;
-	}
-}
+// bool _handle_start_collision_on_plane(
+// 	const Vector& start_pos,
+// 	const Vector& plane_normal,
+// 	const double vel_dot,
+// 	CollisionHitInfo& hit_info
+// 	){
+// 	if (vel_dot > 0) {
+// 		// No collision. The particle starts on the plane but is already moving away. 
+// 		return false;
+// 	} else {
+// 		// We have a collision. The particle starts on the plane but is moving towards it, so the
+// 		// time of impact is 0.
+// 		hit_info.time_of_impact = 0.0;
+// 		hit_info.position = start_pos;
+// 		hit_info.normal = plane_normal;
+// 		return true;
+// 	}
+// }
 
 bool _handle_general_plane_collision_case(
 	const Vector& start_pos,
@@ -52,7 +52,7 @@ bool _handle_general_plane_collision_case(
 		return false;
 	} else{
 		hit_info.time_of_impact = plane_normal * ( point_on_plane - start_pos ) / ( plane_normal * velocity );
-		if( (hit_info.time_of_impact * dt < 0.0) || std::abs(hit_info.time_of_impact) > std::abs(dt) ){
+		if( (hit_info.time_of_impact * dt < 0.0) || std::abs(hit_info.time_of_impact) > std::abs(dt) ) [[unlikely]] {
 			return false;
 		} else{
 			hit_info.position = start_pos + velocity * hit_info.time_of_impact;
@@ -78,7 +78,7 @@ bool _point_plane_collision(
 		return _handle_end_collision_on_plane(end_pos, plane_normal, dt, hit_info);	
     } else if (std::abs(start_dot) < EPSILON) {
 		//throw(std::runtime_error("CollisionObject::_point_plane_collision: Particle starts too close to the plane. This may cause instability in the collision handling."));
-		//printf("Particle starts within epsilon of collision surface. This should never happen \n");
+		printf("Particle starts within epsilon of collision surface. This should never happen \n");
 		return _handle_general_plane_collision_case(start_pos, velocity, dt, start_dot, end_dot, plane_normal, point_on_plane, hit_info);
 	} else {
 		// TODO -> handle general first before checking special
@@ -99,7 +99,8 @@ bool CollisionPlane::hit(
 
 
 CollisionTriangle::CollisionTriangle(const Triangle& tri)
-	: _triangle(tri) {
+	: _triangle(tri) 
+{
 	_edge1 = _triangle.v1 - _triangle.v0;
 	_edge2 = _triangle.v2 - _triangle.v0;
 	_normal = (_edge1 ^ _edge2);
@@ -125,7 +126,8 @@ bool CollisionTriangle::hit(
 	const Vector& end_pos,
 	const Vector& velocity,
 	const double dt,
-	CollisionHitInfo& hit_info) const {
+	CollisionHitInfo& hit_info) const 
+{
 	// First check for intersection with the plane of the triangle
 	bool plane_hit = _point_plane_collision(_triangle.v0, _normal, start_pos, end_pos, velocity, dt, hit_info);
 	if (!plane_hit) {

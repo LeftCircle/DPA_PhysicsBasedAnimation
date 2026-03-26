@@ -14,8 +14,8 @@ namespace pba{
 inline constexpr double EPSILON = 10.0 * std::numeric_limits<double>::epsilon();
 inline constexpr double MIN_END_DIST_FROM_COLLISION = 10 * EPSILON; 
 
-inline constexpr double NO_COLLISION = std::numeric_limits<double>::infinity();
-inline constexpr double NO_COLLISION_NEG = -std::numeric_limits<double>::infinity();
+//inline constexpr double NO_COLLISION = std::numeric_limits<double>::infinity();
+//inline constexpr double NO_COLLISION_NEG = -std::numeric_limits<double>::infinity();
 
 struct CollisionHitInfo {
 	double time_of_impact;
@@ -30,7 +30,7 @@ public:
 	CollisionObject() = default;
 	virtual ~CollisionObject() = default;
 
-	// Packs the data into hit_info. If there is no collision, time_of_impact is set to NO_COLLISION
+	// Packs the data into hit_info. If there is no collision, time_of_impact
 	virtual bool hit(
 		const Vector& start_pos,
 		const Vector& end_pos,

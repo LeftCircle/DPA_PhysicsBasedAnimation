@@ -10,7 +10,7 @@ void CollisionHandler::handle_collisions(DynamicalStateData_sp dsd, const std::s
 	auto updated_positions = dsd->get_vector_attribute_span(updated_pos_attr_name);
 	auto start_positions = dsd->get_vector_attribute_span("positions");
 	auto velocities = dsd->get_vector_attribute_span("velocities");
-	#pragma omp parallel for
+	//#pragma omp parallel for
 	for( size_t i=0; i<n; i++ ){
 		Vector& start_pos = start_positions[i];
 		Vector& updated_pos = updated_positions[i];
@@ -26,7 +26,8 @@ void CollisionHandler::_handle_particle_collisions(
 													Vector& updated_pos,
 													Vector& velocity,
 													const double dt
-	) const {
+	) const 
+{
 	bool keep_checking = true;
 	CollisionHandleInfo earliest_hit;
 	CollisionHitInfo temp_hit;
@@ -39,16 +40,19 @@ void CollisionHandler::_handle_particle_collisions(
 	}
 }
 
-bool CollisionHandler::_check_for_collision_against_all_surfaces(CollisionHandleInfo& earliest_hit, CollisionHitInfo& temp_hit, ParticleUpdateInfo& pui) const{
+bool CollisionHandler::_check_for_collision_against_all_surfaces(
+	CollisionHandleInfo& earliest_hit,
+	CollisionHitInfo& temp_hit,
+	ParticleUpdateInfo& pui) const
+{
 	bool keep_checking = false;
-	double no_coll_time = pui.remaining_dt > 0 ? NO_COLLISION : NO_COLLISION_NEG;
-	earliest_hit.hit_info.time_of_impact = no_coll_time;
-	temp_hit.time_of_impact = no_coll_time;
+	earliest_hit.hit_info.time_of_impact = 2.0 * pui.remaining_dt;
+	temp_hit.time_of_impact = 2.0 * pui.remaining_dt;
 	for( const auto& cs : collision_surfaces ){
-		cs->hit(pui.start_pos, pui.updated_pos, pui.velocity, pui.remaining_dt, temp_hit);
-		// now we have to account for negative dt so we get this mess
+		// if there is no hit, cs -> packs 2.0 * pui.remaining_dt into temp_hit
+		bool hit = cs->hit(pui.start_pos, pui.updated_pos, pui.velocity, pui.remaining_dt, temp_hit);
 		bool earlier_hit = std::abs(temp_hit.time_of_impact) < std::abs(earliest_hit.hit_info.time_of_impact);
-		if( earlier_hit ){
+		if( hit && earlier_hit){
 			earliest_hit.hit_info = temp_hit;
 			earliest_hit.collision_surface = cs;
 			keep_checking = true;
@@ -59,7 +63,10 @@ bool CollisionHandler::_check_for_collision_against_all_surfaces(CollisionHandle
 
 void CollisionHandler::_on_collision_detected(CollisionHandleInfo& earliest_hit, ParticleUpdateInfo& pui) const noexcept{
 	// Now we actually have to handle the collision
-	pui.remaining_dt = pui.remaining_dt > 0 ? std::max(pui.remaining_dt - earliest_hit.hit_info.time_of_impact, 0.0) : std::min(pui.remaining_dt - earliest_hit.hit_info.time_of_impact, 0.0);
+	//pui.remaining_dt = pui.remaining_dt > 0 ? std::max(pui.remaining_dt - earliest_hit.hit_info.time_of_impact, 0.0) :
+	//	 			   std::min(pui.remaining_dt - earliest_hit.hit_info.time_of_impact, 0.0);
+	
+	pui.remaining_dt = pui.remaining_dt - earliest_hit.hit_info.time_of_impact;
 	// TODO -> always using normal of the triangle here. Need to check based off of starting position. 
 	pui.updated_pos = _resolve_collision_against_static_object(
 		pui,
@@ -70,7 +77,6 @@ void CollisionHandler::_on_collision_detected(CollisionHandleInfo& earliest_hit,
 	);
 	// Now set the start position to the collision position for the next iteration
 	// plus a very small epsilon to prevent rehitting the same or similar surfaces
-	// TODO -> check logic for very probable bug here
 	pui.start_pos = earliest_hit.hit_info.position + earliest_hit.hit_info.normal * MIN_END_DIST_FROM_COLLISION;
 }
 
@@ -81,10 +87,10 @@ Vector CollisionHandler::_resolve_collision_against_static_object(
 	const double restitution, 
 	const double sticky
 ) const noexcept {
-	
 	// Determine the new velocity after collision
 	pui.velocity = sticky * pui.velocity  - (sticky + restitution) * (pui.velocity * hit_normal) * hit_normal;
 	Vector new_position = collision_position + pui.velocity * pui.remaining_dt;
+	
 	// We have to ensure that the end position is far enough away from the collision plane
 	// This prevents multi collisions and also keeps the particle on the correct side of the collision object
 	// as long as the particle ends on the same side that it started!
@@ -92,13 +98,14 @@ Vector CollisionHandler::_resolve_collision_against_static_object(
 	if (dist_to_plane < MIN_END_DIST_FROM_COLLISION) {
 		// figure out dir from end pos to start pos
 		//Vector end_to_start_dir = (pui.start_pos - new_position).unitvector();
-		double dir_plane_to_start_dot = (pui.start_pos - collision_position) * hit_normal;
-		if (dir_plane_to_start_dot > 0) {
-			// The start position is on the same side of the plane as the end position,
-			new_position += hit_normal * (MIN_END_DIST_FROM_COLLISION + EPSILON);
-		} else {
-			new_position -= hit_normal * (MIN_END_DIST_FROM_COLLISION + EPSILON);
-		}
+		// double dir_plane_to_start_dot = (pui.start_pos - collision_position) * hit_normal;
+		// if (dir_plane_to_start_dot > 0) {
+		// 	// The start position is on the same side of the plane as the end position,
+		// 	new_position += hit_normal * (MIN_END_DIST_FROM_COLLISION + EPSILON);
+		// } else {
+		// 	new_position -= hit_normal * (MIN_END_DIST_FROM_COLLISION + EPSILON);
+		// }
+		new_position += hit_normal * (MIN_END_DIST_FROM_COLLISION);
 	}
 	return new_position;
 

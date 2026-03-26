@@ -12,13 +12,14 @@ bool CollisionSurface::hit(
     CollisionHitInfo& hit_info
 ){
     CollisionHitInfo temp_hit;
-    auto no_coll_time = dt > 0 ? NO_COLLISION : NO_COLLISION_NEG;
-    temp_hit.time_of_impact = no_coll_time;
+    temp_hit.time_of_impact = 2.0 * dt;
+    bool surface_hit = false;
     for( const auto& obj : _collision_objects ){
         bool hit = obj->hit(start_pos, end_pos, velocity, dt, temp_hit);
-        if (hit && std::abs(temp_hit.time_of_impact) < std::abs(hit_info.time_of_impact)) {
+        if (hit && (std::abs(temp_hit.time_of_impact) < std::abs(hit_info.time_of_impact))) {
             hit_info = temp_hit;
+            surface_hit = true;
         }
     }
-    return hit_info.time_of_impact != no_coll_time;
+    return surface_hit;
 }

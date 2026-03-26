@@ -15,10 +15,10 @@ SPHThingyDingy::SPHThingyDingy(const std::string& nam)
 	// Let's add a single bouncing ball particle
 	_dsd = std::make_shared<SPHData>();
 
-    _dsd->set_h(0.1);
+    _dsd->set_h(1.25);
     _occupancy_volume = create_idx_occupancy_volume(bounds, _dsd->h() * 2.0);
-    _kernel = std::make_shared<CubicSplineKernel3>(_dsd->h());
-	//_kernel = std::make_shared<SphSpikyKernel3>(_dsd->h());
+    //_kernel = std::make_shared<CubicSplineKernel3>(_dsd->h());
+	_kernel = std::make_shared<SphSpikyKernel3>(_dsd->h());
 
 	// add a thousand particles to start with
 	for (size_t i=0; i<1000; i++){
