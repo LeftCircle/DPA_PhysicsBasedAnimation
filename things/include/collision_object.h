@@ -30,7 +30,7 @@ public:
 	CollisionObject() = default;
 	virtual ~CollisionObject() = default;
 
-	// Packs the data into hit_info. If there is no collision, time_of_impact
+	// Packs the data into hit_info.
 	virtual bool hit(
 		const Vector& start_pos,
 		const Vector& end_pos,

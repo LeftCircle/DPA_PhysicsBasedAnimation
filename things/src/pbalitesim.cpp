@@ -24,8 +24,9 @@ int main(int argc, char** argv)
    // Set up a simulation thing
    //pba::PbaThing mything = pba::CreateMyThing();
    //viewer->AddThing(mything);
-   //pba::PbaThing mything = pba::create_soft_bunny_thing("Soft Bunny Sim");
-   pba::PbaThing mything = pba::create_sph_thingy_dingy("Sph thing");
+   //pba::PbaThing mything = pba::create_bouncing_ball_thing("Bouncing ball thing");
+   //pba::PbaThing mything = pba::create_sph_thingy_dingy("Sph thing");
+   pba::PbaThing mything = pba::create_soft_bunny_thing("Soft Bunny Sim");
    viewer->AddThing(mything);
    //Optional thing to capture the screen each window and write it to a file
    pba::PbaThing imager = pba::CreateScreenCapturePPM("./" + mything->Name());
