@@ -2,10 +2,6 @@
 
 using namespace pba;
 
-DynamicalStateDataBase::DynamicalStateDataBase() {
-	_initialize_default_attributes();
-}
-
 
 size_t DynamicalStateDataBase::add(){
 	_n_particles += 1;

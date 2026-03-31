@@ -9,40 +9,46 @@ struct MassMoment{
 
 
 RigidBodyStateData::RigidBodyStateData(){
+	_initialize_default_attributes();
+}
+
+void RigidBodyStateData::_initialize_default_attributes() {
 	add_attribute<Vector>("lever_arms", DSAv());
+	add_attribute<float>("mass", DSAf());
+	add_attribute<Vector>("initial_positions", DSAv());
+}
+
+void RigidBodyStateData::set_initial_position(size_t p, const Vector& pos) {
+	set_vector_attribute("initial_positions", p, pos);
+	// TO DO -> optimize
+	init_rbd();
 }
 
 size_t RigidBodyStateData::add() {
-	auto size = DynamicalStateData::add();
+	auto size = DynamicalStateDataBase::add();
 	// TO DO -> optimize instead of recalculating everything
 	init_rbd();
 	return size;
 }
 
 size_t RigidBodyStateData::add(size_t n){
-	auto size = DynamicalStateData::add(n);
+	auto size = DynamicalStateDataBase::add(n);
 	init_rbd();
 	return size;
 }
 
 void RigidBodyStateData::resize(size_t n){
-	DynamicalStateData::resize(n);
+	DynamicalStateDataBase::resize(n);
 	init_rbd();
 }
 
-void RigidBodyStateData::set_position(size_t i, const Vector& v) {
-	DynamicalStateData::set_position(i, v);
-	// TO DO -> optimize
-	init_rbd();
-}
-
-Vector RigidBodyStateData::get_vert_pos(size_t p) {
-	
+Vector RigidBodyStateData::get_vert_pos(size_t p) const {
+	return angular_rotation * get_lever_arm(p) + center_of_mass;
 }
 
 void RigidBodyStateData::compute_com() {
 	auto masses = get_float_attribute_span("mass");
-	auto positions = get_vector_attribute_span("positions");
+	auto positions = get_vector_attribute_span("initial_positions");
 	// TODO -> implement a solution with std::ranges that zips positions and masses.
 	MassMoment result = std::accumulate(masses.begin(), masses.end(), MassMoment(),
 		[&positions, i = 0](MassMoment acc, float mass) mutable {
@@ -74,6 +80,39 @@ void RigidBodyStateData::compute_lever_arms() {
 		[&com](const Vector& pos){
 			return pos - com;
 		});
+}
+
+void RigidBodyStateData::compute_moi(){
+	for (int i = 0; i <= 2; i++){
+		for (int j = 0; j <= 2; j++){
+			_compute_moi(i, j);
+		}
+	}
+}
+
+void RigidBodyStateData::_compute_moi(int i, int j) noexcept {
+	span lever_arms = get_vector_attribute_span("lever_arms");
+	span masses = get_float_attribute_span("mass");
+
+	// TODO -> implement a solution with std::ranges that zips positions and masses.
+	
+	// A bit of a hack to get indices to loop over
+	std::vector<size_t> idx(_n_particles);
+	std::iota(idx.begin(), idx.end(), 0);
+
+	double res = std::transform_reduce(
+		std::execution::par,
+		idx.begin(), idx.end(),
+		0.0,
+		std::plus<double>(), 
+		[&masses, &lever_arms, i, j](size_t k) {
+			const Vector& larm = lever_arms[k];
+			double delta = i == j ? 1.0 : 0.0;
+			double mag = larm.magnitude();
+			return (double)masses[k] * (delta * mag * mag - larm[i] * larm[j]);
+		}
+	);
+	_moment_of_inertia.Set(i, j, res);
 }
 
 void RigidBodyStateData::compute_com_for_loop() {

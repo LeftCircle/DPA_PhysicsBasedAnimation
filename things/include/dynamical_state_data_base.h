@@ -18,7 +18,7 @@ namespace pba{
 class DynamicalStateDataBase {
 public:
 
-    DynamicalStateDataBase();
+    DynamicalStateDataBase() = default;
     virtual ~DynamicalStateDataBase() = default;
 	
 	virtual size_t add();
@@ -117,7 +117,7 @@ protected:
 
 using DynamicalStateDataBase_sp = std::shared_ptr<DynamicalStateDataBase>;
 
-inline DynamicalStateDataBase_sp create_dynamical_state_data() { return std::make_shared<DynamicalStateDataBase>(); };
+inline DynamicalStateDataBase_sp create_dynamical_state_data_base() { return std::make_shared<DynamicalStateDataBase>(); };
 
 }; // end namespace pba
 

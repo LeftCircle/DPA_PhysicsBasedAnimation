@@ -12,10 +12,17 @@ double pba::get_density_with_uniform_h_parallel(
     const Vector& pos_i = dsd->get_position(i);
 	const auto positions = dsd->get_vector_attribute_span("positions");
 	const auto masses = dsd->get_float_attribute_span("mass");
-	return std::transform_reduce(std::execution::par_unseq, neighbor_indices.begin(), neighbor_indices.end(), 0.0, std::plus<>(), [&pos_i, &positions, &masses, &kernel](size_t j){
-		double distance = (pos_i - positions[j]).magnitude();
-		return masses[j] * kernel(distance);
-	});
+	return std::transform_reduce(
+		std::execution::par_unseq,
+		neighbor_indices.begin(),
+		neighbor_indices.end(),
+		0.0,
+		std::plus<>(),
+		[&pos_i, &positions, &masses, &kernel](size_t j){
+			double distance = (pos_i - positions[j]).magnitude();
+			return masses[j] * kernel(distance);
+		}
+	);
 }
 
 double pba::get_density_with_uniform_h(
