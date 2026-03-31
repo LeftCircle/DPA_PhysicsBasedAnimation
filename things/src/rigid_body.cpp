@@ -8,6 +8,38 @@ struct MassMoment{
 };
 
 
+RigidBodyStateData::RigidBodyStateData(){
+	add_attribute<Vector>("lever_arms", DSAv());
+}
+
+size_t RigidBodyStateData::add() {
+	auto size = DynamicalStateData::add();
+	// TO DO -> optimize instead of recalculating everything
+	init_rbd();
+	return size;
+}
+
+size_t RigidBodyStateData::add(size_t n){
+	auto size = DynamicalStateData::add(n);
+	init_rbd();
+	return size;
+}
+
+void RigidBodyStateData::resize(size_t n){
+	DynamicalStateData::resize(n);
+	init_rbd();
+}
+
+void RigidBodyStateData::set_position(size_t i, const Vector& v) {
+	DynamicalStateData::set_position(i, v);
+	// TO DO -> optimize
+	init_rbd();
+}
+
+Vector RigidBodyStateData::get_vert_pos(size_t p) {
+	
+}
+
 void RigidBodyStateData::compute_com() {
 	auto masses = get_float_attribute_span("mass");
 	auto positions = get_vector_attribute_span("positions");
@@ -28,7 +60,20 @@ void RigidBodyStateData::compute_com() {
 	else
 	{
 		center_of_mass = Vector(0,0,0);
+		printf("Center of mass is zero!!");
 	}
+	_total_mass = result.mass;
+}
+
+void RigidBodyStateData::compute_lever_arms() {
+	auto larm_span = get_vector_attribute_span("lever_arms");
+	auto positions = get_vector_attribute_span("positions");
+	const Vector& com = center_of_mass;
+	// just a basic transform
+	std::transform(std::execution::par, positions.begin(), positions.end(), larm_span.begin(), 
+		[&com](const Vector& pos){
+			return pos - com;
+		});
 }
 
 void RigidBodyStateData::compute_com_for_loop() {

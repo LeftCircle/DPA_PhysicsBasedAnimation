@@ -12,13 +12,14 @@
 #include "Vector.h"
 #include "Color.h"
 #include "dynamical_state_attribute.h"
+#include "dynamical_state_data_base.h"
 
 namespace pba{
 
-class DynamicalStateData {
+class DynamicalStateData : DynamicalStateDataBase {
 public:
 
-    DynamicalStateData();
+    DynamicalStateData() : DynamicalStateDataBase() {};
     virtual ~DynamicalStateData() = default;
 	
 	virtual size_t add();
@@ -61,7 +62,7 @@ public:
 	void set_color_attribute(const std::string& name, size_t i, const Color& c);
 
 	// setters for common attributes
-	void set_position(size_t i, const Vector& v) { _pos_map_iter->second.set(i, v); }
+	virtual void set_position(size_t i, const Vector& v) { _pos_map_iter->second.set(i, v); }
 	void set_velocity(size_t i, const Vector& v) { _vel_map_iter->second.set(i, v); }
 	void set_acceleration(size_t i, const Vector& v) { _acc_map_iter->second.set(i, v); }
 	void set_mass(size_t i, const float& m) { _mass_map_iter->second.set(i, m); }

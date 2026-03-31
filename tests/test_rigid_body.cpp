@@ -19,6 +19,7 @@ TEST_CASE("test compute COM on add/resize"){
 	REQUIRE(rb.center_of_mass == Vector(5, 0, 0));
 	rb.add(50);
 	REQUIRE(rb.center_of_mass.X() < 5.0);
+	REQUIRE(rb.center_of_mass.X() > 0.0);
 }
 
 
