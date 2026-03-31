@@ -6,6 +6,7 @@
 #include "Vector.h"
 #include "partial_solvers.h"
 #include "force_library.h"
+#include "the_wheel.h"
 
 
 #define REQUIRE_VECTOR_APPROX(actual, expected, eps) \

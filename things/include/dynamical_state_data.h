@@ -24,7 +24,7 @@ public:
 	virtual size_t add();
 	virtual size_t add(size_t n);
 
-	void resize(size_t n);
+	virtual void resize(size_t n);
 
 	// accessors for attributes by name
 	const Vector& get_vector_attribute(const std::string& name, size_t i) const;
@@ -125,7 +125,7 @@ protected:
 	std::map < std::string, DSAv >::iterator _acc_map_iter;
 	std::map < std::string, DSAf >::iterator _mass_map_iter;
 	std::map < std::string, DSAc >::iterator _color_map_iter;
-	std::string _name;
+	//std::string _name;
 
 	void _initialize_default_attributes();
 	

@@ -21,7 +21,7 @@ TEST_CASE("check number of soft edges in fully connected soft body"){
     auto soft_body = std::make_unique<SoftBody>();
     soft_body->add(10);
     soft_body->connect_all_particles_together();
-    REQUIRE(soft_body->get_n_soft_edges() == sum_of_integers(9));
+    REQUIRE(soft_body->get_n_soft_edges() == 9 * 10 / 2);
 
 
 }

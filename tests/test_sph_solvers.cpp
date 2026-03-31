@@ -44,7 +44,7 @@ TEST_CASE("Test density is nonzero for particles"){
 	}
 	auto kernel = CubicSplineKernel3(2.0);
 
-	double density = get_density_with_uniform_h(center_idx, std::span<const size_t>(neighbor_indices), dsd, kernel);
+	double density = get_density_with_uniform_h(center_idx, span<const size_t>(neighbor_indices), dsd, kernel);
 	REQUIRE(density > 0.0);
 }
 
@@ -62,10 +62,10 @@ TEST_CASE("profile std::accumulate vs for loop "){
 	auto kernel = CubicSplineKernel3(2.0);
 
 	// BENCHMARK("std::accumulate") {
-	// 	return get_density_with_uniform_h(center_idx, std::span<const size_t>(neighbor_indices), dsd, kernel);
+	// 	return get_density_with_uniform_h(center_idx, span<const size_t>(neighbor_indices), dsd, kernel);
 	// };
 	// BENCHMARK("for loop") {
-	// 	return get_density_with_uniform_h_silly_loop(center_idx, std::span<const size_t>(neighbor_indices), dsd, kernel);
+	// 	return get_density_with_uniform_h_silly_loop(center_idx, span<const size_t>(neighbor_indices), dsd, kernel);
 	// };
 }
 
