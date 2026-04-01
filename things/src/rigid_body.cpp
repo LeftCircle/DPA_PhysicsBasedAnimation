@@ -13,9 +13,17 @@ RigidBodyStateData::RigidBodyStateData(){
 }
 
 void RigidBodyStateData::_initialize_default_attributes() {
-	add_attribute<Vector>("lever_arms", DSAv());
-	add_attribute<float>("mass", DSAf());
 	add_attribute<Vector>("initial_positions", DSAv());
+	
+	add_attribute<Vector>("lever_arms", DSAv());
+	_lever_arms_iter = _vec_attr.find("lever_arms");
+	
+	add_attribute<float>("mass", DSAf());
+	_mass_map_iter = _float_attr.find("mass");
+	
+	add_attribute<Vector>("acceleration", DSAv());
+	_acc_map_iter = _vec_attr.find("accelleration");
+
 }
 
 void RigidBodyStateData::set_initial_position(size_t p, const Vector& pos) {
@@ -44,6 +52,11 @@ void RigidBodyStateData::resize(size_t n){
 
 Vector RigidBodyStateData::get_vert_pos(size_t p) const {
 	return angular_rotation * get_lever_arm(p) + center_of_mass;
+}
+
+
+Vector RigidBodyStateData::get_rotated_lever_arm(const size_t p) const{
+	return angular_rotation * get_lever_arm(p);
 }
 
 void RigidBodyStateData::compute_com() {
@@ -88,28 +101,30 @@ void RigidBodyStateData::compute_moi(){
 			_compute_moi(i, j);
 		}
 	}
+	_inverse_moi = inverse(_moment_of_inertia);
 }
 
 void RigidBodyStateData::_compute_moi(int i, int j) noexcept {
-	span lever_arms = get_vector_attribute_span("lever_arms");
-	span masses = get_float_attribute_span("mass");
+	auto masses = get_float_attribute_span("mass");
 
 	// TODO -> implement a solution with std::ranges that zips positions and masses.
 	
-	// A bit of a hack to get indices to loop over
-	std::vector<size_t> idx(_n_particles);
-	std::iota(idx.begin(), idx.end(), 0);
+	// A bit of a hack to get indices to loop over. 
+	// Requires a TON of dynamic allocation
+	//std::vector<size_t> idx(_n_particles);
+	//std::iota(idx.begin(), idx.end(), 0);
 
 	double res = std::transform_reduce(
 		std::execution::par,
-		idx.begin(), idx.end(),
+		masses.begin(), masses.end(),
 		0.0,
 		std::plus<double>(), 
-		[&masses, &lever_arms, i, j](size_t k) {
-			const Vector& larm = lever_arms[k];
+		[this, i, j, base = masses.data()](float mi) {
+			size_t i = (size_t)(&mi - base);
+			auto larm = get_rotated_lever_arm(i);
 			double delta = i == j ? 1.0 : 0.0;
 			double mag = larm.magnitude();
-			return (double)masses[k] * (delta * mag * mag - larm[i] * larm[j]);
+			return (double)mi * (delta * mag * mag - larm[i] * larm[j]);
 		}
 	);
 	_moment_of_inertia.Set(i, j, res);

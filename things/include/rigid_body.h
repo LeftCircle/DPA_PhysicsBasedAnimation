@@ -8,7 +8,7 @@
 #include <algorithm> // std::transform
 #include <numeric> // std::reduce
 
-
+#include "the_wheel.h"
 #include "dynamical_state_data.h"
 #include "LinearAlgebra.h"
 
@@ -31,30 +31,42 @@ public:
 	
 	void init_rbd() { compute_com(); compute_lever_arms(); }
 
-	const Vector& get_lever_arm(const size_t p) const { return _lever_arms_iter->second.get(p); }
-	
+	const Vector& get_lever_arm(const size_t p) const noexcept { return _lever_arms_iter->second.get(p); }
+	Vector get_rotated_lever_arm(const size_t p) const;
+	const Vector& get_acceleration(size_t i) const noexcept { return _acc_map_iter->second.get(i); }
+	const float& get_mass(size_t i) const noexcept { return _mass_map_iter->second.get(i); }
+
+	void set_acceleration(size_t i, const Vector& v) { _acc_map_iter->second.set(i, v); }
+	void set_mass(size_t i, const float& m) { _mass_map_iter->second.set(i, m); }
+
 	Vector get_vert_pos(const size_t p) const;
+	const float get_total_mass() const noexcept {return _total_mass; }
+	const Matrix& get_inverse_moi() const noexcept { return _inverse_moi; }
 
 	void compute_moi();
 
 	void compute_com();
 	void compute_lever_arms();
 	void compute_com_for_loop();
+	void compute_torque();
 
 	Vector center_of_mass = Vector(0, 0, 0);
 	Matrix angular_rotation;
-	Vector linear_velocity;
-	Vector angular_velocity;
-	Vector com_accel;
-	Vector angular_accel;
-	Vector angular_momentum;
+	Vector linear_velocity = Vector(0, 0, 0);
+	Vector angular_velocity = Vector(0, 0, 0);
+	Vector com_accel = Vector(0, 0, 0);
+	Vector angular_accel = Vector(0, 0, 0);
+	Vector angular_momentum = Vector(0, 0, 0);
 
 private:
 	void _compute_moi(int i, int j) noexcept;
 
 	std::map< std::string, DSAv >::iterator _lever_arms_iter;
+	std::map < std::string, DSAv >::iterator _acc_map_iter;
+	std::map < std::string, DSAf >::iterator _mass_map_iter;
 	
 	Matrix _moment_of_inertia;
+	Matrix _inverse_moi;
 	float _total_mass;
 	void _initialize_default_attributes() override;
 };

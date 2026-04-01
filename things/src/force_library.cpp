@@ -4,12 +4,12 @@
 using namespace pba;
 
 
-void SimpleGravityForce::compute(DynamicalStateData_sp dsd, const double dt) const {
+void SimpleGravityForce::compute(DynamicalStateDataBase_sp dsd, const double dt) const {
 	const size_t n = dsd->n_particles();
-	#pragma omp parallel for
-	for( size_t i=0; i<n; i++ ){
-		dsd->set_acceleration(i, dsd->get_acceleration(i) + _gravity);
-	}
+	auto acc = dsd->get_vector_attribute_span("acceleration");
+	std::for_each(std::execution::par, acc.begin(), acc.end(),
+		[g=_gravity](Vector& a){ a += g; }
+	);
 }
 
 void SPHPressureForce::compute_sph(SPHData_sp sph_data, const double dt) const {
@@ -31,7 +31,6 @@ void SPHPressureForce::compute_sph(SPHData_sp sph_data, const double dt) const {
 			}
 		);
 		sph_data->set_acceleration(i, sph_data->get_acceleration(i) + pressure_force / sph_data->get_mass(i));
-
 	}
 }
 

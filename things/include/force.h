@@ -2,6 +2,8 @@
 #define _FORCE_H
 
 #include <memory>
+#include <algorithm>
+#include <execution>
 
 #include "dynamical_state_data.h"
 
@@ -12,7 +14,7 @@ class ForceBase{
 public:
 	ForceBase() = default;
 	virtual ~ForceBase() = default;
-	virtual void compute(DynamicalStateData_sp dsd, const double dt) const = 0;
+	virtual void compute(DynamicalStateDataBase_sp dsd, const double dt) const = 0;
 };
 using Force_sp = std::shared_ptr<ForceBase>;
 
@@ -26,10 +28,10 @@ public:
 	void add_forces(Forces... forces) {
 		(_forces.push_back(forces), ...);
 	}
-	void compute(DynamicalStateData_sp dsd, const double dt) const override;
+	void compute(DynamicalStateDataBase_sp dsd, const double dt) const override;
 
 private:
-	void _reset_accelerations(DynamicalStateData_sp dsd) const noexcept;
+	void _reset_accelerations(DynamicalStateDataBase_sp dsd) const noexcept;
 	std::vector<Force_sp> _forces;
 };
 

@@ -4,17 +4,15 @@
 using namespace pba;
 
 
-void ForceSystem::compute(DynamicalStateData_sp dsd, const double dt) const {
+void ForceSystem::compute(DynamicalStateDataBase_sp dsd, const double dt) const {
 	_reset_accelerations(dsd);
 	for( const auto& force : _forces ){
 		force->compute(dsd, dt);
 	}
 }
 
-void ForceSystem::_reset_accelerations(DynamicalStateData_sp dsd) const noexcept{
+void ForceSystem::_reset_accelerations(DynamicalStateDataBase_sp dsd) const noexcept{
 	const size_t n = dsd->n_particles();
-	#pragma omp parallel for
-	for( size_t i=0; i<n; i++ ){
-		dsd->set_acceleration(i, Vector(0.0, 0.0, 0.0));
-	}
+	auto acc = dsd->get_vector_attribute_span("acceleration");
+	std::fill(std::execution::par, acc.begin(), acc.end(), Vector(0, 0, 0));
 }

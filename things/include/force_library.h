@@ -5,6 +5,8 @@
 #include <memory>
 #include <numeric>
 #include <stdexcept>
+#include <execution>
+#include <algorithm>
 
 #include "the_wheel.h"
 #include "force.h"
@@ -21,7 +23,7 @@ public:
 	SimpleGravityForce(const Vector& gravity) : _gravity(gravity) {}
 	~SimpleGravityForce() = default;
 
-	void compute(DynamicalStateData_sp dsd, const double dt) const override;
+	void compute(DynamicalStateDataBase_sp dsd, const double dt) const override;
 
 	const Vector& get_gravity() const noexcept { return _gravity; }
 	void set_gravity(const Vector& gravity) { _gravity = gravity; }
@@ -38,7 +40,7 @@ public:
 	~SPHPressureForce() = default;
 
 	// This is a bit of a hack to let us use the same force interface for SPH and standard forces
-	void compute(DynamicalStateData_sp dsd, const double dt) const override {
+	void compute(DynamicalStateDataBase_sp dsd, const double dt) const override {
 		auto sph_data = std::dynamic_pointer_cast<SPHData>(dsd);
 		if (!sph_data) throw std::runtime_error("SPHPressureForce requires SPHData");
 		compute_sph(sph_data, dt);
@@ -76,7 +78,7 @@ public:
 	
 	~SPHViscosityForce() = default;
 
-	void compute(DynamicalStateData_sp dsd, const double dt) const override {
+	void compute(DynamicalStateDataBase_sp dsd, const double dt) const override {
 		auto sph_data = std::dynamic_pointer_cast<SPHData>(dsd);
 		if (!sph_data) throw std::runtime_error("SPHViscosityForce requires SPHData");
 		compute_sph(sph_data, dt);
@@ -123,7 +125,7 @@ public:
 	UniformStrutForce(const double spring, const double friction)
 	 : _spring_force(spring), _friction(friction) {}
 
-	void compute(DynamicalStateData_sp dsd, const double dt) const override{
+	void compute(DynamicalStateDataBase_sp dsd, const double dt) const override{
 		auto soft_body_sp = std::dynamic_pointer_cast<SoftBody>(dsd);
 		if (!soft_body_sp) throw std::runtime_error("Strut forces require a soft body");
 		_compute(soft_body_sp, dt); 
