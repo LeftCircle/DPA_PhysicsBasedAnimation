@@ -6,13 +6,16 @@
 #include <memory>
 #include <string>
 #include <iostream>
-#include <map>
+#include <unordered_map>
 
 #include "collision_surface.h"
 #include "dynamical_state_data.h"
 #include "rigid_body.h"
 
 namespace pba{
+
+inline constexpr double RBD_COLL_TOLERANCE = 0.001;
+inline constexpr int RBD_COLL_MAX_ITERS = 100;
 
 template <typename T> int sgn(T val) {
     return (T(0) < val) - (val < T(0));
@@ -56,7 +59,7 @@ protected:
 		const double sticky
 	) const noexcept;
 
-	std::vector<const CollisionSurface_sp> collision_surfaces;
+	std::vector<CollisionSurface_sp> collision_surfaces;
 };
 
 using CollisionHandler_sp =  std::shared_ptr<CollisionHandler> ;
@@ -64,14 +67,19 @@ using CollisionHandler_sp =  std::shared_ptr<CollisionHandler> ;
 inline CollisionHandler_sp create_collision_handler() { return std::make_shared<CollisionHandler>(); };
 
 struct RBD_CollisionSurfaceInfo {
-	std::vector<int> plane_implicit_start;
-	std::vector<int> plane_implicit_end;
+	std::vector<double> plane_implicit_start;
+	std::vector<double> plane_implicit_end;
 	std::vector<double> collision_time;
 	std::vector<size_t> colliding_particle;
+	std::vector<Vector> hit_pos;
+	std::vector<Vector> hit_normal;
 };
 
 class RBDCollisionHandler : public CollisionHandler {
 public:
+	RBDCollisionHandler() = default;
+	~RBDCollisionHandler() = default;
+
 	void handle_collisions(
 		DynamicalStateDataBase_sp dsd,
 		const std::string& updated_pos_attr_name,
@@ -81,9 +89,9 @@ public:
 	void register_collision_surface(const CollisionSurface_sp cs) override;
 
 private:
-	void _handle_rbd_collisions(RB_sp rbd);
+	void _handle_rbd_collisions(RB_sp rbd, const double dt);
 
-	std::unordered_map<const CollisionSurface_sp, RBD_CollisionSurfaceInfo> _collision_handle_data;
+	std::unordered_map<CollisionSurface_sp, RBD_CollisionSurfaceInfo> _collision_handle_data;
 	
 };
 

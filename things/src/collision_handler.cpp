@@ -1,5 +1,5 @@
 #include "collision_handler.h"
-
+#include "rbd_solvers.h"
 
 using namespace pba;
 
@@ -107,7 +107,7 @@ void RBDCollisionHandler::handle_collisions(
 	// TODO -> We could have general solver/update classes and then just have the different dynamical state data
 	// feed everything into uniforms... then we would only ever need the dsd and could use any collision/force. 
 	if (!rbd_sp) throw std::runtime_error("RBDCollision handler requires rbd");
-	_handle_rbd_collisions(rbd_sp);
+	_handle_rbd_collisions(rbd_sp, dt);
 }
 
  void RBDCollisionHandler::register_collision_surface(const CollisionSurface_sp cs){
@@ -120,29 +120,135 @@ void RBDCollisionHandler::handle_collisions(
 		csinfo.second.plane_implicit_end.resize(n_objects);
 		csinfo.second.plane_implicit_start.resize(n_objects);
 		csinfo.second.colliding_particle.resize(n_objects);
+		csinfo.second.hit_pos.resize(n_objects);
+		csinfo.second.hit_normal.resize(n_objects);
 	}
  }
 
-void RBDCollisionHandler::_handle_rbd_collisions(RB_sp rbd) {
+void RBDCollisionHandler::_handle_rbd_collisions(RB_sp rbd, const double dt) {
 	const size_t n = rbd->n_particles();
 	auto updated_positions = rbd->get_vector_attribute_span("updated_positions");
 	auto start_positions = rbd->get_vector_attribute_span("positions");
+	auto m = rbd->get_float_attribute_span("mass");
+
+	AdvanceRotationAndCOMWithCollisions rb_solver(rbd);
+
+	// have to reset the collision times
+	for (auto& cs : collision_surfaces){
+		auto& pi_time = _collision_handle_data[cs].collision_time;
+		std::fill(pi_time.begin(), pi_time.end(), 2 * dt);
+	}
+	bool checking_for_hit = true;
+
 	
-	// We need to evaluate the plane implicit function for each collision object
-	// kind of silly but I want vectors for the implicit results for all of the
-	// collision planes
 	for (size_t i = 0; i < rbd->n_particles(); i++){
 		for (auto& cs : collision_surfaces){
+			auto& pi_time = _collision_handle_data[cs].collision_time;
+			auto& pi_hp = _collision_handle_data[cs].hit_pos;
+			auto& pi_i = _collision_handle_data[cs].colliding_particle;
+			auto& pi_norm = _collision_handle_data[cs].hit_normal;
+
 			auto& pi_start = _collision_handle_data[cs].plane_implicit_start;
+			auto& pi_end = _collision_handle_data[cs].plane_implicit_end;
 			const std::vector<CollisionObject_sp>& cobjs = cs->get_collision_objects();
-			std::transform(std::execution::par_unseq, cobjs.begin(), cobjs.end(),
-				pi_start.begin(),
-				[](const Vector& pos){
-					return 0;
-				} 
-			);
+			for(size_t j = 0; j < cobjs.size(); j++){
+				pi_start[j] = (cobjs[j]->get_normal() * start_positions[i]);
+				pi_end[j] = (cobjs[j]->get_normal() * updated_positions[i]);
+				double f1 = pi_start[j];
+				double f2 = pi_end[j];
+				if (pi_start[j] * pi_end[j] < 0){
+					// Now find the collision
+					bool checking = true;
+					int n_steps = 0;
+					double t0 = 0;
+					double t1 = pi_time[j];
+					double th, fmid;
+					Vector x_mid;
+					while (checking){
+						th = (t0 + t1) / 2.0;
+						Vector rotor = rbd->angular_velocity * th;
+    					Matrix ang_rot = rotation(rotor.unitvector(), -rotor.magnitude()) * rbd->angular_rotation;
+
+						x_mid = rbd->center_of_mass + rbd->linear_velocity * th + ang_rot * rbd->get_lever_arm(i);
+						fmid = cobjs[j]->get_normal() * x_mid;
+						if (std::abs(fmid) < RBD_COLL_TOLERANCE || n_steps > RBD_COLL_MAX_ITERS){
+							if (std::abs(th) < std::abs(pi_time[j])){
+								// earlier particle collision found for this collision object!
+								// TODO -> actually check if a hit occurs at this position 
+								// based on collision object type (like for triangles)
+								pi_time[j] = th;
+								pi_i[j] = i;
+								pi_hp[j] = x_mid;
+								checking = false;
+								// set the normal to be in the direction of the center of mass
+								Vector norm = cobjs[j]->get_normal();
+								Vector hit_to_com = rbd->center_of_mass - x_mid;
+								norm = hit_to_com * norm > 0 ? norm : -norm;
+								pi_norm[j] = norm;
+							}
+						} else {
+							if (f1 * fmid > 0){
+								f1 = fmid;
+								t0 = th;
+							} else {
+								f2 = fmid;
+								t1 = th;
+							}
+							n_steps++;
+						}
+					} // end while loop
+				} // end collision found for cobj[j]
+			} // end looping through collision objects
+		}  // end looping through collision surfaces
+	} // end looping through particles
+	
+	// Now we have to find the earliest hit from all the collision objects. kinda sucks with the current data structure
+	double earliest_t = 2 * dt;
+	Vector earliest_h;
+	size_t earliest_p = -1;
+	Vector n_eh; // normal earliest hit
+	for (auto& cs : collision_surfaces){
+		auto& pi_time = _collision_handle_data[cs].collision_time;
+		auto& pi_hp = _collision_handle_data[cs].hit_pos;
+		auto& hit_p = _collision_handle_data[cs].colliding_particle;
+		auto& hit_n = _collision_handle_data[cs].hit_normal;
+		for (int i = 0; i < pi_time.size(); i++){
+			if (pi_time[i] < earliest_t){
+				earliest_t = pi_time[i];
+				earliest_h = pi_hp[i];
+				earliest_p = hit_p[i];
+				n_eh = hit_n[i].unitvector();
+			}
 		}
 	}
-	// For each 
-	
+
+	// now we have the earliest time and hit position
+	if (earliest_p = -1){
+		// There is no hit!
+		checking_for_hit = false;
+	} else {	
+		// now let's update the com position and rotation to the hit point
+		rb_solver.solve_no_collisions_and_populate_pos_and_updated_pos(earliest_t);
+
+		// Now we have to make the rbd bounce
+		// conserve kinetic energy
+		// TODO -> are we supposed to use rotated lever arm here???
+		Vector nxr = n_eh ^ rbd->get_rotated_lever_arm(earliest_p);
+		double A_numerator = 2.0 * rbd->linear_velocity * n_eh + (m[earliest_p] / rbd->get_total_mass()) * (
+			rbd->angular_velocity * (nxr));
+		double A_denom = 1 + m[earliest_p] * m[earliest_p] / rbd->get_total_mass() * (
+			nxr * rbd->get_inverse_moi() * nxr);
+		
+		double A = - A_numerator / A_denom;
+
+		// Now update pos and rotation with the bounce
+		rbd->linear_velocity += A * n_eh;
+		rbd->angular_velocity += A * m[earliest_p] * rbd->get_inverse_moi() * nxr;
+		
+		// Now we have to update position/rotation
+		double time_left = dt - earliest_t;
+		rb_solver.solve_no_collisions_and_populate_pos_and_updated_pos(time_left);
+		// yay recursive function call!
+		_handle_rbd_collisions(rbd, time_left);
+	}
 }

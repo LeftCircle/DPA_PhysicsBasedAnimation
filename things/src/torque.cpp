@@ -27,7 +27,7 @@ void Torque::compute(RB_sp& rbd, const double dt){
         [](const Vector&a, const Vector& b) { return a + b; },
         [&, base = acc.data()](const Vector& ai) {
             const size_t i = (size_t)(&ai - base);
-            return (ai / masses[i]) ^ rbd->get_rotated_lever_arm(i);
+            return (ai * masses[i]) ^ rbd->get_rotated_lever_arm(i);
         }
     );
     

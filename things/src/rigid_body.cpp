@@ -24,6 +24,8 @@ void RigidBodyStateData::_initialize_default_attributes() {
 	add_attribute<Vector>("acceleration", DSAv());
 	_acc_map_iter = _vec_attr.find("accelleration");
 
+	add_attribute<Vector>("positions", DSAv());
+
 }
 
 void RigidBodyStateData::set_initial_position(size_t p, const Vector& pos) {
@@ -120,8 +122,8 @@ void RigidBodyStateData::_compute_moi(int i, int j) noexcept {
 		0.0,
 		std::plus<double>(), 
 		[this, i, j, base = masses.data()](float mi) {
-			size_t i = (size_t)(&mi - base);
-			auto larm = get_rotated_lever_arm(i);
+			size_t index = (size_t)(&mi - base);
+			auto larm = get_rotated_lever_arm(index);
 			double delta = i == j ? 1.0 : 0.0;
 			double mag = larm.magnitude();
 			return (double)mi * (delta * mag * mag - larm[i] * larm[j]);
