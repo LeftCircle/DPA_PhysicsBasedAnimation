@@ -15,11 +15,11 @@ void PartialSolverAdvancePosition::solve(const double dt){
 
 AdvancePositionWithCollisions::AdvancePositionWithCollisions(DynamicalStateData_sp dsd, CollisionHandler_sp collision_handler) :
 	_state_data(dsd), _collision_handler(collision_handler) {
-		if (!dsd->has_vector_attribute("new_positions")) {
-			// Create the new_positions attribute if it doesn't exist
-			dsd->add_attribute<Vector>("new_positions", DSAv("new_positions", Vector(0.0f, 0.0f, 0.0f)));
-		}
+	if (!dsd->has_vector_attribute("new_positions")) {
+		// Create the new_positions attribute if it doesn't exist
+		dsd->add_attribute<Vector>("new_positions", DSAv("new_positions", Vector(0.0f, 0.0f, 0.0f)));
 	}
+}
 
 void AdvancePositionWithCollisions::solve(const double dt){
 	const size_t n = _state_data->n_particles();

@@ -5,12 +5,16 @@ using namespace pba;
 
 
 
-void CollisionHandler::handle_collisions(DynamicalStateData_sp dsd, const std::string& updated_pos_attr_name, const double dt){
+void CollisionHandler::handle_collisions(
+	DynamicalStateDataBase_sp dsd,
+	const std::string& updated_pos_attr_name,
+	const double dt)
+{
 	const size_t n = dsd->n_particles();
 	auto updated_positions = dsd->get_vector_attribute_span(updated_pos_attr_name);
 	auto start_positions = dsd->get_vector_attribute_span("positions");
 	auto velocities = dsd->get_vector_attribute_span("velocities");
-	//#pragma omp parallel for
+	#pragma omp parallel for
 	for( size_t i=0; i<n; i++ ){
 		Vector& start_pos = start_positions[i];
 		Vector& updated_pos = updated_positions[i];
@@ -62,12 +66,7 @@ bool CollisionHandler::_check_for_collision_against_all_surfaces(
 }
 
 void CollisionHandler::_on_collision_detected(CollisionHandleInfo& earliest_hit, ParticleUpdateInfo& pui) const noexcept{
-	// Now we actually have to handle the collision
-	//pui.remaining_dt = pui.remaining_dt > 0 ? std::max(pui.remaining_dt - earliest_hit.hit_info.time_of_impact, 0.0) :
-	//	 			   std::min(pui.remaining_dt - earliest_hit.hit_info.time_of_impact, 0.0);
-	
 	pui.remaining_dt = pui.remaining_dt - earliest_hit.hit_info.time_of_impact;
-	// TODO -> always using normal of the triangle here. Need to check based off of starting position. 
 	pui.updated_pos = _resolve_collision_against_static_object(
 		pui,
 		earliest_hit.hit_info.position,
@@ -91,22 +90,59 @@ Vector CollisionHandler::_resolve_collision_against_static_object(
 	pui.velocity = sticky * pui.velocity  - (sticky + restitution) * (pui.velocity * hit_normal) * hit_normal;
 	Vector new_position = collision_position + pui.velocity * pui.remaining_dt;
 	
-	// We have to ensure that the end position is far enough away from the collision plane
-	// This prevents multi collisions and also keeps the particle on the correct side of the collision object
-	// as long as the particle ends on the same side that it started!
 	double dist_to_plane = (new_position - collision_position) * hit_normal;
 	if (dist_to_plane < MIN_END_DIST_FROM_COLLISION) {
-		// figure out dir from end pos to start pos
-		//Vector end_to_start_dir = (pui.start_pos - new_position).unitvector();
-		// double dir_plane_to_start_dot = (pui.start_pos - collision_position) * hit_normal;
-		// if (dir_plane_to_start_dot > 0) {
-		// 	// The start position is on the same side of the plane as the end position,
-		// 	new_position += hit_normal * (MIN_END_DIST_FROM_COLLISION + EPSILON);
-		// } else {
-		// 	new_position -= hit_normal * (MIN_END_DIST_FROM_COLLISION + EPSILON);
-		// }
 		new_position += hit_normal * (MIN_END_DIST_FROM_COLLISION);
 	}
 	return new_position;
 
+}
+
+void RBDCollisionHandler::handle_collisions(
+	DynamicalStateDataBase_sp dsd,
+	const std::string& updated_pos_attr_name,
+	const double dt
+) {
+	auto rbd_sp = std::dynamic_pointer_cast<RigidBodyStateData>(dsd);
+	// TODO -> We could have general solver/update classes and then just have the different dynamical state data
+	// feed everything into uniforms... then we would only ever need the dsd and could use any collision/force. 
+	if (!rbd_sp) throw std::runtime_error("RBDCollision handler requires rbd");
+	_handle_rbd_collisions(rbd_sp);
+}
+
+ void RBDCollisionHandler::register_collision_surface(const CollisionSurface_sp cs){
+	CollisionHandler::register_collision_surface(cs);
+	_collision_handle_data.emplace(cs, RBD_CollisionSurfaceInfo());
+	// Now we need to resize all of the maps to have the correct size
+	size_t n_objects = collision_surfaces.size();
+	for (auto& csinfo : _collision_handle_data){
+		csinfo.second.collision_time.resize(n_objects);
+		csinfo.second.plane_implicit_end.resize(n_objects);
+		csinfo.second.plane_implicit_start.resize(n_objects);
+		csinfo.second.colliding_particle.resize(n_objects);
+	}
+ }
+
+void RBDCollisionHandler::_handle_rbd_collisions(RB_sp rbd) {
+	const size_t n = rbd->n_particles();
+	auto updated_positions = rbd->get_vector_attribute_span("updated_positions");
+	auto start_positions = rbd->get_vector_attribute_span("positions");
+	
+	// We need to evaluate the plane implicit function for each collision object
+	// kind of silly but I want vectors for the implicit results for all of the
+	// collision planes
+	for (size_t i = 0; i < rbd->n_particles(); i++){
+		for (auto& cs : collision_surfaces){
+			auto& pi_start = _collision_handle_data[cs].plane_implicit_start;
+			const std::vector<CollisionObject_sp>& cobjs = cs->get_collision_objects();
+			std::transform(std::execution::par_unseq, cobjs.begin(), cobjs.end(),
+				pi_start.begin(),
+				[](const Vector& pos){
+					return 0;
+				} 
+			);
+		}
+	}
+	// For each 
+	
 }

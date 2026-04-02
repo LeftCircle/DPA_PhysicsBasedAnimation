@@ -28,6 +28,7 @@ class CollisionObject
 public:
 	
 	CollisionObject() = default;
+	CollisionObject(Vector n) : _normal(n) {};
 	virtual ~CollisionObject() = default;
 
 	// Packs the data into hit_info.
@@ -38,6 +39,11 @@ public:
 		const double dt,
 		CollisionHitInfo& hit_info
 	) const = 0;
+
+	const Vector& get_normal() const noexcept { return _normal; }
+
+protected:
+	Vector _normal;
 };
 
 using CollisionObject_sp = std::shared_ptr<CollisionObject>;
@@ -47,7 +53,7 @@ class CollisionPlane : public CollisionObject
 {
 public:
 	CollisionPlane(const Vector& point_on_plane, const Vector& plane_normal)
-	: _point_on_plane(point_on_plane), _plane_normal(plane_normal.unitvector()) {}
+	: _point_on_plane(point_on_plane), CollisionObject(plane_normal.unitvector()) {}
 	~CollisionPlane() = default;
 
 	bool hit(const Vector& start_pos,
@@ -60,7 +66,6 @@ public:
 
 private:
 	Vector _point_on_plane;
-	Vector _plane_normal;
 };
 
 inline CollisionObject_sp create_collision_plane(const Vector& point_on_plane, const Vector& plane_normal){
@@ -87,7 +92,6 @@ private:
 	Triangle _triangle;
 	Vector _edge1;
 	Vector _edge2;
-	Vector _normal;
 	double _one_over_area_scale;
 	double _det;
 

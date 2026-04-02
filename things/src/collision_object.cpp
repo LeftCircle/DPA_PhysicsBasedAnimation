@@ -94,7 +94,7 @@ bool CollisionPlane::hit(
 	const Vector& velocity,
 	const double dt,
 	CollisionHitInfo& hit_info) const {
-	return _point_plane_collision(_point_on_plane, _plane_normal, start_pos, end_pos, velocity, dt, hit_info);
+	return _point_plane_collision(_point_on_plane, _normal, start_pos, end_pos, velocity, dt, hit_info);
 }
 
 

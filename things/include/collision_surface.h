@@ -26,6 +26,7 @@ public:
 
 	const double get_restitution() const { return restitution; }
 	const double get_sticky() const { return sticky; }
+	const auto& get_collision_objects() { return _collision_objects; }
 
 	bool hit(
 		const Vector& start_pos,
@@ -34,6 +35,7 @@ public:
 		const double dt,
 		CollisionHitInfo& hit_info
 	);
+
 
 private:
 	std::vector<CollisionObject_sp> _collision_objects;
