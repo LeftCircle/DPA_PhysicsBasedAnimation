@@ -9,7 +9,7 @@
 
 namespace pba{
 
-inline constexpr double BISEC_TOLERANCE = 0.001;
+inline constexpr double BISEC_TOLERANCE = 0.01;
 inline constexpr int MAX_BISEC_ITERS = 100;
 class RBDCollisionHandler;
 

@@ -27,6 +27,7 @@ RigidBodyThingyDingy::RigidBodyThingyDingy(const std::string& nam)
 	// And now that the init is basically done. Let's build the solvers
 	SetSimulationTimestep(0.01667);
 	_set_to_sixth_order_solver();
+	//_set_to_backward_euler_solver();
 }
 
 void RigidBodyThingyDingy::Init( const std::vector<std::string>& args ) {
@@ -153,9 +154,11 @@ void RigidBodyThingyDingy::Keyboard( unsigned char key, int x, int y ){
 			break;
 		}
 		case 's':{
+			_adjust_coefficient_of_sticky(0.9);
 			break;
 		}
 		case 'S':{
+			_adjust_coefficient_of_sticky(1.1);
 			break;
 		}
 		case 't':{
@@ -182,7 +185,7 @@ void RigidBodyThingyDingy::Keyboard( unsigned char key, int x, int y ){
 }
 
 void RigidBodyThingyDingy::_emit_particles(const size_t n){
-    _create_rigid_body_from_obj(DEFAULT_SOFT_BODY_PATH, Vector(0, 10, 0));
+    _create_rigid_body_from_obj(DEFAULT_SOFT_BODY_PATH, Vector(0, 0, 0));
 	printf("Emitted %zu new particles. Total particle count is now %zu.\n", n, _dsd->n_particles());
 }
 
@@ -198,6 +201,11 @@ void RigidBodyThingyDingy::_adjust_gravity(const Vector& delta){
 void RigidBodyThingyDingy::_adjust_coefficient_of_restitution(const double delta){
 	_main_collision_surface->set_restitution( _main_collision_surface->get_restitution() + delta );
 	printf("New coefficient of restitution is %f\n", _main_collision_surface->get_restitution());
+}
+
+void RigidBodyThingyDingy::_adjust_coefficient_of_sticky(const double delta){
+	_main_collision_surface->set_sticky( _main_collision_surface->get_sticky() + delta );
+	printf("New coefficient of sticky is %f\n", _main_collision_surface->get_sticky());
 }
 
 void RigidBodyThingyDingy::Reset(){
@@ -231,6 +239,8 @@ void RigidBodyThingyDingy::_create_rigid_body_from_obj(const std::string& file_n
 		_dsd->set_position(i + n_starting_particles, verts[i] + center);
         //_dsd->set_velocity(i + n_starting_particles, vel);
     }
+	_dsd->linear_velocity = ParticleEmitter::generate_random_bounded_vector(0.5, 2);
+	_dsd->angular_velocity = ParticleEmitter::generate_random_bounded_vector(400, 800);
     _dsd->init_rbd();
 }
 
@@ -294,10 +304,9 @@ void RigidBodyThingyDingy::_draw_tris(){
 void RigidBodyThingyDingy::_draw_particles(){
 	glColor3d(1.0, 0.0, 0.0);
 	glPointSize(8.0f);
-	auto pos_span = _dsd->get_vector_attribute_span("positions");
 	glBegin(GL_POINTS);
 	for (size_t i=0; i<_dsd->n_particles(); i++){
-		Vector pos = pos_span[i];
+		Vector pos = _dsd->get_vert_pos(i);
 		glVertex3f(pos.X(), pos.Y(), pos.Z());
 	}
 	glEnd();

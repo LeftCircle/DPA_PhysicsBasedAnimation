@@ -75,6 +75,7 @@ private:
 	void _set_to_sixth_order_solver();
 	void _adjust_gravity(const Vector& delta);
 	void _adjust_coefficient_of_restitution(const double delta);
+	void _adjust_coefficient_of_sticky(const double delta);
 	void _emit_particles(const size_t n);
 	void _adjust_timestep(const double factor);
 
@@ -84,7 +85,7 @@ private:
 
 	RigidBodyThingyDingy() = delete;
 	const std::string DEFAULT_COLL_PATH = "../../models/bigsphere.obj";
-	const std::string DEFAULT_SOFT_BODY_PATH = "../../models/bunny_superlo_scaled.obj";
+	const std::string DEFAULT_SOFT_BODY_PATH = "../../models/bunny_lo.obj";
 };
 
 

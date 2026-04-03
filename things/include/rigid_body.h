@@ -54,7 +54,7 @@ public:
 	Vector center_of_mass = Vector(0, 0, 0);
 	Matrix angular_rotation{1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0};
 	Vector linear_velocity = Vector(0, 0, 0);
-	Vector angular_velocity = Vector(5, 2, 0);
+	Vector angular_velocity = Vector(0, 0, 0);
 	Vector com_accel = Vector(0, 0, 0);
 	Vector angular_accel = Vector(0, 0, 0);
 	Vector angular_momentum = Vector(0, 0, 0);
