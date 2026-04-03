@@ -9,7 +9,7 @@ RigidBodyThingyDingy::RigidBodyThingyDingy(const std::string& nam)
 	_dsd = std::make_shared<RigidBodyStateData>();
 	AABB bounds(Vector(-3.0, -3.0, -3.0), Vector(3.0, 3.0, 3.0));
 	
-	_create_rigid_body_from_obj(DEFAULT_SOFT_BODY_PATH, Vector(0, 10, 0));
+	_create_rigid_body_from_obj(DEFAULT_SOFT_BODY_PATH, Vector(0, 0, 0));
 
     // And now our systems, forces and collision surfaces
 	_force_system = std::make_shared<ForceSystem>();
@@ -31,7 +31,7 @@ RigidBodyThingyDingy::RigidBodyThingyDingy(const std::string& nam)
 
 void RigidBodyThingyDingy::Init( const std::vector<std::string>& args ) {
 	//void SetCameraEyeViewUp( float eyex, float eyey, float eyez, float viewx, float viewy, float viewz, float upx, float upy, float upz ); 
-	viewer->SetCameraEyeViewUp(0, 0, -2, 0, 0, 1, 0, 1, 0);
+	viewer->SetCameraEyeViewUp(0, 0, -22, 0, 0, 1, 0, 1, 0);
 }
 
 
@@ -40,7 +40,9 @@ void RigidBodyThingyDingy::_set_to_backward_euler_solver(){
 	_solver_system = create_gi_solver_system();
 
 	auto advance_position_solver = std::make_shared<AdvanceRotationAndCOMWithCollisions>(_dsd, _collision_handler);
-    auto advance_velocity_solver = std::make_shared<AdvanceAngularVelocityAndVelocity>(_dsd, _force_system);
+   	//auto advance_position_solver = std::make_shared<AdvanceRotationAndCOM>(_dsd);
+
+	auto advance_velocity_solver = std::make_shared<AdvanceAngularVelocityAndVelocity>(_dsd, _force_system);
 	_solver_system->add_solver(advance_velocity_solver, dt);
 	_solver_system->add_solver(advance_position_solver, dt);
 	printf("Switched to Backward Euler solver.\n");
@@ -51,7 +53,9 @@ void RigidBodyThingyDingy::_set_to_forward_euler_solver(){
 	_solver_system = create_gi_solver_system();
 
 	auto advance_position_solver = std::make_shared<AdvanceRotationAndCOMWithCollisions>(_dsd, _collision_handler);
-    auto advance_velocity_solver = std::make_shared<AdvanceAngularVelocityAndVelocity>(_dsd, _force_system);
+   	//auto advance_position_solver = std::make_shared<AdvanceRotationAndCOM>(_dsd);
+
+	auto advance_velocity_solver = std::make_shared<AdvanceAngularVelocityAndVelocity>(_dsd, _force_system);
 	_solver_system->add_solver(advance_position_solver, dt);
 	_solver_system->add_solver(advance_velocity_solver, dt);
 	printf("Switched to Forward Euler solver.\n");
@@ -60,7 +64,9 @@ void RigidBodyThingyDingy::_set_to_forward_euler_solver(){
 void RigidBodyThingyDingy::_set_to_leapfrog_solver(){
 	_solver_system = create_gi_solver_system();
 	auto advance_position_solver = std::make_shared<AdvanceRotationAndCOMWithCollisions>(_dsd, _collision_handler);
-    auto advance_velocity_solver = std::make_shared<AdvanceAngularVelocityAndVelocity>(_dsd, _force_system);
+   	//auto advance_position_solver = std::make_shared<AdvanceRotationAndCOM>(_dsd);
+
+	auto advance_velocity_solver = std::make_shared<AdvanceAngularVelocityAndVelocity>(_dsd, _force_system);
 	_solver_system->add_solver(advance_position_solver, dt / 2.0);
 	_solver_system->add_solver(advance_velocity_solver, dt);
 	_solver_system->add_solver(advance_position_solver, dt / 2.0);
@@ -70,7 +76,9 @@ void RigidBodyThingyDingy::_set_to_leapfrog_solver(){
 void RigidBodyThingyDingy::_set_to_sixth_order_solver(){
 	_solver_system = create_gi_solver_system();
 	auto advance_position_solver = std::make_shared<AdvanceRotationAndCOMWithCollisions>(_dsd, _collision_handler);
-    auto advance_velocity_solver = std::make_shared<AdvanceAngularVelocityAndVelocity>(_dsd, _force_system);
+   	//auto advance_position_solver = std::make_shared<AdvanceRotationAndCOM>(_dsd);
+
+	auto advance_velocity_solver = std::make_shared<AdvanceAngularVelocityAndVelocity>(_dsd, _force_system);
 	auto leapfrog_solver = std::make_shared<GISolverLeapfrog>(advance_position_solver, advance_velocity_solver);
 	auto sixth_order_solver = std::make_shared<GISolverSixthOrder>(leapfrog_solver);
 	_solver_system->add_solver(sixth_order_solver, dt);
@@ -220,9 +228,10 @@ void RigidBodyThingyDingy::_create_rigid_body_from_obj(const std::string& file_n
     for (size_t i = 0; i < r.get_verts().size(); i++){
         _dsd->add();
         _dsd->set_initial_position(i + n_starting_particles, verts[i] + center);
+		_dsd->set_position(i + n_starting_particles, verts[i] + center);
         //_dsd->set_velocity(i + n_starting_particles, vel);
     }
-    // And now the connections:
+    _dsd->init_rbd();
 }
 
 CollisionSurface_sp RigidBodyThingyDingy::_create_collision_geo_from(const std::string& file_name){

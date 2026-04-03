@@ -7,6 +7,11 @@ struct MassMoment{
 	float mass;
 };
 
+void RigidBodyStateData::init_rbd() {
+	compute_com();
+	compute_lever_arms();
+	angular_momentum = Matrix(1, 0, 0, 0, 1, 0, 0, 0, 1) * angular_velocity;
+}
 
 RigidBodyStateData::RigidBodyStateData(){
 	_initialize_default_attributes();
@@ -74,7 +79,6 @@ void RigidBodyStateData::compute_com() {
 	else
 	{
 		center_of_mass = Vector(0,0,0);
-		printf("Center of mass is zero!!");
 	}
 	_total_mass = result.mass;
 }
@@ -103,17 +107,12 @@ void RigidBodyStateData::_compute_moi(int i, int j) noexcept {
 	auto masses = get_float_attribute_span("mass");
 
 	// TODO -> implement a solution with std::ranges that zips positions and masses.
-	
-	// A bit of a hack to get indices to loop over. 
-	// Requires a TON of dynamic allocation
-	//std::vector<size_t> idx(_n_particles);
-	//std::iota(idx.begin(), idx.end(), 0);
 	double res = 0;
-	for (size_t i = 0; i < _n_particles; i++){
-		auto larm = get_rotated_lever_arm(i);
+	for (size_t index = 0; index < _n_particles; index++){
+		auto larm = get_rotated_lever_arm(index);
 		double delta = i == j ? 1.0 : 0.0;
 		double mag = larm.magnitude();
-		res += (double)masses[i] * (delta * mag * mag - larm[i] * larm[j]);
+		res += (double)masses[index] * (delta * mag * mag - larm[i] * larm[j]);
 	}
 	// double res = std::transform_reduce(
 	// 	std::execution::par,

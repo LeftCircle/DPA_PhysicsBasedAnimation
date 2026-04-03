@@ -97,6 +97,10 @@ bool CollisionPlane::hit(
 	return _point_plane_collision(_point_on_plane, _normal, start_pos, end_pos, velocity, dt, hit_info);
 }
 
+bool CollisionPlane::is_on_surface(const Vector& pos, const double threshold) const {
+	double dist = (((pos - _point_on_plane) * _normal) * _normal).magnitude();
+	return dist <= threshold;
+}
 
 CollisionTriangle::CollisionTriangle(const Triangle& tri)
 	: _triangle(tri) 
@@ -112,6 +116,10 @@ CollisionTriangle::CollisionTriangle(const Triangle& tri)
 
 CollisionTriangle::CollisionTriangle(const Vector& v0, const Vector& v1, const Vector& v2)
 	: CollisionTriangle(Triangle{v0, v1, v2}) {}
+
+bool CollisionTriangle::is_on_surface(const Vector& pos, const double threshold) const {
+	return _is_in_triangle(pos);
+}
 
 bool CollisionTriangle::_is_in_triangle(const Vector& p) const noexcept {
 	Vector v_to_p = p - _triangle.v0;

@@ -29,7 +29,7 @@ public:
 
 	void set_initial_position(size_t n, const Vector& pos);
 	
-	void init_rbd() { compute_com(); compute_lever_arms(); }
+	void init_rbd();
 
 	const Vector& get_lever_arm(const size_t p) const noexcept { return _lever_arms_iter->second.get(p); }
 	Vector get_rotated_lever_arm(const size_t p) const;
@@ -52,9 +52,9 @@ public:
 	void compute_torque();
 
 	Vector center_of_mass = Vector(0, 0, 0);
-	Matrix angular_rotation;
+	Matrix angular_rotation{1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0};
 	Vector linear_velocity = Vector(0, 0, 0);
-	Vector angular_velocity = Vector(0, 0, 0);
+	Vector angular_velocity = Vector(5, 2, 0);
 	Vector com_accel = Vector(0, 0, 0);
 	Vector angular_accel = Vector(0, 0, 0);
 	Vector angular_momentum = Vector(0, 0, 0);
@@ -66,9 +66,9 @@ private:
 	//std::map < std::string, DSAv >::iterator _acc_map_iter;
 	//std::map < std::string, DSAf >::iterator _mass_map_iter;
 	
-	Matrix _moment_of_inertia;
-	Matrix _inverse_moi;
-	float _total_mass;
+	Matrix _moment_of_inertia{1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0};
+	Matrix _inverse_moi{1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0};
+	float _total_mass = 1.0;
 	void _initialize_default_attributes() override;
 };
 

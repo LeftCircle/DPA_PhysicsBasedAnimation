@@ -28,7 +28,7 @@ class CollisionObject
 public:
 	
 	CollisionObject() = default;
-	CollisionObject(Vector n) : _normal(n) {};
+	CollisionObject(Vector n) : _normal(n.unitvector()) {};
 	virtual ~CollisionObject() = default;
 
 	// Packs the data into hit_info.
@@ -40,10 +40,13 @@ public:
 		CollisionHitInfo& hit_info
 	) const = 0;
 
+	virtual bool is_on_surface(const Vector& pos, const double threshold = 1e-5) const = 0;
+
 	const Vector& get_normal() const noexcept { return _normal; }
+	virtual const Vector& get_point_on_obj() const = 0; 
 
 protected:
-	Vector _normal;
+	Vector _normal{0, 1, 0};
 };
 
 using CollisionObject_sp = std::shared_ptr<CollisionObject>;
@@ -53,7 +56,7 @@ class CollisionPlane : public CollisionObject
 {
 public:
 	CollisionPlane(const Vector& point_on_plane, const Vector& plane_normal)
-	: _point_on_plane(point_on_plane), CollisionObject(plane_normal.unitvector()) {}
+	: _point_on_plane(point_on_plane), CollisionObject(plane_normal) {}
 	~CollisionPlane() = default;
 
 	bool hit(const Vector& start_pos,
@@ -63,6 +66,8 @@ public:
 		CollisionHitInfo& hit_info
 	) const override;
 
+	bool is_on_surface(const Vector& pos, const double threshold = 1e-5) const override;
+	const Vector& get_point_on_obj() const { return _point_on_plane; }
 
 private:
 	Vector _point_on_plane;
@@ -87,6 +92,9 @@ public:
 		const double dt,
 		CollisionHitInfo& hit_info
 	) const override;
+
+	bool is_on_surface(const Vector& pos, const double threshold = 1e-5) const override;
+	const Vector& get_point_on_obj() const { return _triangle.v0; }
 
 private:
 	Triangle _triangle;
