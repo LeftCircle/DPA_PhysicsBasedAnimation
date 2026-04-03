@@ -3,36 +3,41 @@
 using namespace pba;
 
 void AdvanceRotationAndCOM::solve(const double dt) {
-    Vector rotor = _rbd->angular_velocity * dt;
-    _rbd->angular_rotation = rotation(rotor.unitvector(), -rotor.magnitude()) * _rbd->angular_rotation;
-    _rbd->compute_moi();
-    _rbd->center_of_mass += _rbd->linear_velocity * dt;
+	solve(_rbd, dt);
 }
 
-AdvanceRotationAndCOMWithCollisions::AdvanceRotationAndCOMWithCollisions(RB_sp rbd) :
-    AdvanceRotationAndCOM(rbd) {
+AdvanceRotationAndCOMWithCollisions::AdvanceRotationAndCOMWithCollisions(
+	RB_sp rbd,
+	std::shared_ptr<RBDCollisionHandler> rbd_ch) :
+    AdvanceRotationAndCOM(rbd), rbd_coll_handler(rbd_ch) {
     if (!_rbd->has_vector_attribute("updated_positions")){
         _rbd->add_attribute<Vector>("updated_positions", DSAv());
     }
 }
 
 void AdvanceRotationAndCOMWithCollisions::solve(const double dt) {
-    solve_no_collisions_and_populate_pos_and_updated_pos(dt);
-    rbd_coll_handler.handle_collisions(_rbd, "updated_positions", dt);
+    AdvanceRotationAndCOM::solve(_rbd, dt);
+    rbd_coll_handler->handle_collisions(_rbd, "updated_positions", dt);
+	auto pos = _rbd->get_vector_attribute_span("positions");
+	auto updated_pos = _rbd->get_vector_attribute_span("updated_positions");
+	std::copy(std::execution::par, updated_pos.begin(), updated_pos.end(), pos.begin());
 }
 
-void AdvanceRotationAndCOMWithCollisions::solve_no_collisions_and_populate_pos_and_updated_pos(const double dt) {
+void AdvanceRotationAndCOM::solve(RB_sp rbd, const double dt) {
     // determine the current position of all the particles
-    auto pos = _rbd->get_vector_attribute_span("positions");
-    auto updated_pos = _rbd->get_vector_attribute_span("updated_positions");
+    auto pos = rbd->get_vector_attribute_span("positions");
+    auto updated_pos = rbd->get_vector_attribute_span("updated_positions");
     #pragma omp parallel for
-    for (int i = 0; i < _rbd->n_particles(); i++){
-        pos[i] = _rbd->get_vert_pos(i);
+    for (int i = 0; i < rbd->n_particles(); i++){
+        pos[i] = rbd->get_vert_pos(i);
     }
-    solve(dt);
+    Vector rotor = rbd->angular_velocity * dt;
+    rbd->angular_rotation = rotation(rotor.unitvector(), -rotor.magnitude()) * rbd->angular_rotation;
+    rbd->compute_moi();
+    rbd->center_of_mass += rbd->linear_velocity * dt;
     #pragma omp parallel for
-    for (int i = 0; i < _rbd->n_particles(); i++){
-        updated_pos[i] = _rbd->get_vert_pos(i);
+    for (int i = 0; i < rbd->n_particles(); i++){
+        updated_pos[i] = rbd->get_vert_pos(i);
     }
 
 }

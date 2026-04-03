@@ -53,7 +53,7 @@ TEST_CASE( "Does dynamical state data have default attributes"){
 
 	REQUIRE(dsd->has_vector_attribute("positions"));
 	REQUIRE(dsd->has_vector_attribute("velocities"));
-	REQUIRE(dsd->has_vector_attribute("accelleration"));
+	REQUIRE(dsd->has_vector_attribute("acceleration"));
 	REQUIRE(dsd->has_float_attribute("mass"));
 	REQUIRE(dsd->has_color_attribute("color"));
 }

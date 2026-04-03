@@ -112,34 +112,32 @@ void RBDCollisionHandler::handle_collisions(
 
  void RBDCollisionHandler::register_collision_surface(const CollisionSurface_sp cs){
 	CollisionHandler::register_collision_surface(cs);
-	_collision_handle_data.emplace(cs, RBD_CollisionSurfaceInfo());
-	// Now we need to resize all of the maps to have the correct size
-	size_t n_objects = collision_surfaces.size();
-	for (auto& csinfo : _collision_handle_data){
-		csinfo.second.collision_time.resize(n_objects);
-		csinfo.second.plane_implicit_end.resize(n_objects);
-		csinfo.second.plane_implicit_start.resize(n_objects);
-		csinfo.second.colliding_particle.resize(n_objects);
-		csinfo.second.hit_pos.resize(n_objects);
-		csinfo.second.hit_normal.resize(n_objects);
-	}
+	// TODO -> this does not support adding faces to collision surfaces during sim
+	RBD_CollisionSurfaceInfo info;
+	size_t n_obj = cs->get_n_collision_objs();
+	info.colliding_particle.resize(n_obj);
+	info.collision_time.resize(n_obj);
+	info.hit_normal.resize(n_obj);
+	info.hit_pos.resize(n_obj);
+	info.plane_implicit_end.resize(n_obj);
+	info.plane_implicit_start.resize(n_obj);
+	_collision_handle_data.emplace(cs, info);
  }
 
 void RBDCollisionHandler::_handle_rbd_collisions(RB_sp rbd, const double dt) {
 	const size_t n = rbd->n_particles();
 	auto updated_positions = rbd->get_vector_attribute_span("updated_positions");
 	auto start_positions = rbd->get_vector_attribute_span("positions");
+	if (updated_positions.size() != start_positions.size()) [[unlikely]] {
+		throw std::runtime_error("updated positions and positions don't match somehow");
+	}
 	auto m = rbd->get_float_attribute_span("mass");
-
-	AdvanceRotationAndCOMWithCollisions rb_solver(rbd);
 
 	// have to reset the collision times
 	for (auto& cs : collision_surfaces){
 		auto& pi_time = _collision_handle_data[cs].collision_time;
 		std::fill(pi_time.begin(), pi_time.end(), 2 * dt);
 	}
-	bool checking_for_hit = true;
-
 	
 	for (size_t i = 0; i < rbd->n_particles(); i++){
 		for (auto& cs : collision_surfaces){
@@ -179,13 +177,13 @@ void RBDCollisionHandler::_handle_rbd_collisions(RB_sp rbd, const double dt) {
 								pi_time[j] = th;
 								pi_i[j] = i;
 								pi_hp[j] = x_mid;
-								checking = false;
 								// set the normal to be in the direction of the center of mass
 								Vector norm = cobjs[j]->get_normal();
 								Vector hit_to_com = rbd->center_of_mass - x_mid;
 								norm = hit_to_com * norm > 0 ? norm : -norm;
 								pi_norm[j] = norm;
 							}
+							checking = false;
 						} else {
 							if (f1 * fmid > 0){
 								f1 = fmid;
@@ -223,13 +221,9 @@ void RBDCollisionHandler::_handle_rbd_collisions(RB_sp rbd, const double dt) {
 	}
 
 	// now we have the earliest time and hit position
-	if (earliest_p = -1){
-		// There is no hit!
-		checking_for_hit = false;
-	} else {	
+	if (earliest_p != -1){
 		// now let's update the com position and rotation to the hit point
-		rb_solver.solve_no_collisions_and_populate_pos_and_updated_pos(earliest_t);
-
+		AdvanceRotationAndCOM::solve(rbd, earliest_t);
 		// Now we have to make the rbd bounce
 		// conserve kinetic energy
 		// TODO -> are we supposed to use rotated lever arm here???
@@ -247,7 +241,7 @@ void RBDCollisionHandler::_handle_rbd_collisions(RB_sp rbd, const double dt) {
 		
 		// Now we have to update position/rotation
 		double time_left = dt - earliest_t;
-		rb_solver.solve_no_collisions_and_populate_pos_and_updated_pos(time_left);
+		AdvanceRotationAndCOM::solve(rbd, time_left);
 		// yay recursive function call!
 		_handle_rbd_collisions(rbd, time_left);
 	}

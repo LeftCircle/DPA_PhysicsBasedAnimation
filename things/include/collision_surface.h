@@ -27,6 +27,7 @@ public:
 	const double get_restitution() const { return restitution; }
 	const double get_sticky() const { return sticky; }
 	const auto& get_collision_objects() { return _collision_objects; }
+	size_t get_n_collision_objs() const { return _collision_objects.size(); }
 
 	bool hit(
 		const Vector& start_pos,

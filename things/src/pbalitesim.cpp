@@ -5,7 +5,7 @@
 #include "thing_bouncing_ball.h"
 #include "thing_sph.h"
 #include "thing_soft_bunny.h"
-
+#include "thing_rigid_body.h"
 
 int main(int argc, char** argv)
 {
@@ -26,7 +26,8 @@ int main(int argc, char** argv)
    //viewer->AddThing(mything);
    //pba::PbaThing mything = pba::create_bouncing_ball_thing("Bouncing ball thing");
    //pba::PbaThing mything = pba::create_sph_thingy_dingy("Sph thing");
-   pba::PbaThing mything = pba::create_soft_bunny_thing("Soft Bunny Sim");
+   //pba::PbaThing mything = pba::create_soft_bunny_thing("Soft Bunny Sim");
+	pba::PbaThing mything = pba::create_rigid_body_thing("Rigid Body Thing");  
    viewer->AddThing(mything);
    //Optional thing to capture the screen each window and write it to a file
    pba::PbaThing imager = pba::CreateScreenCapturePPM("./" + mything->Name());

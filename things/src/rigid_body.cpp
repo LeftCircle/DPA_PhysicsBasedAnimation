@@ -14,6 +14,7 @@ RigidBodyStateData::RigidBodyStateData(){
 
 void RigidBodyStateData::_initialize_default_attributes() {
 	add_attribute<Vector>("initial_positions", DSAv());
+	add_attribute<Vector>("positions", DSAv());
 	
 	add_attribute<Vector>("lever_arms", DSAv());
 	_lever_arms_iter = _vec_attr.find("lever_arms");
@@ -22,9 +23,8 @@ void RigidBodyStateData::_initialize_default_attributes() {
 	_mass_map_iter = _float_attr.find("mass");
 	
 	add_attribute<Vector>("acceleration", DSAv());
-	_acc_map_iter = _vec_attr.find("accelleration");
+	_acc_map_iter = _vec_attr.find("acceleration");
 
-	add_attribute<Vector>("positions", DSAv());
 
 }
 
@@ -115,20 +115,26 @@ void RigidBodyStateData::_compute_moi(int i, int j) noexcept {
 	// Requires a TON of dynamic allocation
 	//std::vector<size_t> idx(_n_particles);
 	//std::iota(idx.begin(), idx.end(), 0);
-
-	double res = std::transform_reduce(
-		std::execution::par,
-		masses.begin(), masses.end(),
-		0.0,
-		std::plus<double>(), 
-		[this, i, j, base = masses.data()](float mi) {
-			size_t index = (size_t)(&mi - base);
-			auto larm = get_rotated_lever_arm(index);
-			double delta = i == j ? 1.0 : 0.0;
-			double mag = larm.magnitude();
-			return (double)mi * (delta * mag * mag - larm[i] * larm[j]);
-		}
-	);
+	double res = 0;
+	for (size_t i = 0; i < _n_particles; i++){
+		auto larm = get_rotated_lever_arm(i);
+		double delta = i == j ? 1.0 : 0.0;
+		double mag = larm.magnitude();
+		res += (double)masses[i] * (delta * mag * mag - larm[i] * larm[j]);
+	}
+	// double res = std::transform_reduce(
+	// 	std::execution::par,
+	// 	masses.begin(), masses.end(),
+	// 	0.0,
+	// 	std::plus<double>(), 
+	// 	[this, i, j, base = masses.data()](float mi) {
+	// 		size_t index = (size_t)(&mi - base);
+	// 		auto larm = get_rotated_lever_arm(index);
+	// 		double delta = i == j ? 1.0 : 0.0;
+	// 		double mag = larm.magnitude();
+	// 		return (double)mi * (delta * mag * mag - larm[i] * larm[j]);
+	// 	}
+	// );
 	_moment_of_inertia.Set(i, j, res);
 }
 

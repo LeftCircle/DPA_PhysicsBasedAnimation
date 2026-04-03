@@ -15,6 +15,7 @@ public:
 
 	void init() override {};
 	virtual void solve(const double dt) override;
+	static void solve(RB_sp rbd, const double dt);
 
 
 protected:
@@ -23,14 +24,14 @@ protected:
 
 };
 
+
 class AdvanceRotationAndCOMWithCollisions : public AdvanceRotationAndCOM {
 public:
-	AdvanceRotationAndCOMWithCollisions(RB_sp);
+	explicit AdvanceRotationAndCOMWithCollisions(RB_sp rbd, std::shared_ptr<RBDCollisionHandler> rbd_ch);
 	void solve(const double dt) override;
-	void solve_no_collisions_and_populate_pos_and_updated_pos(const double dt);
 
 private:
-	RBDCollisionHandler rbd_coll_handler;
+	std::shared_ptr<RBDCollisionHandler> rbd_coll_handler;
 };
 
 class AdvanceAngularVelocityAndVelocity : public GISolverBase {
