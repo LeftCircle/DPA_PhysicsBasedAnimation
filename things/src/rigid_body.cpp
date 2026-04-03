@@ -12,20 +12,13 @@ RigidBodyStateData::RigidBodyStateData(){
 	_initialize_default_attributes();
 }
 
-void RigidBodyStateData::_initialize_default_attributes() {
+void RigidBodyStateData::_initialize_default_attributes() 
+{
+	DynamicalStateData::_initialize_default_attributes();
 	add_attribute<Vector>("initial_positions", DSAv());
-	add_attribute<Vector>("positions", DSAv());
 	
 	add_attribute<Vector>("lever_arms", DSAv());
 	_lever_arms_iter = _vec_attr.find("lever_arms");
-	
-	add_attribute<float>("mass", DSAf());
-	_mass_map_iter = _float_attr.find("mass");
-	
-	add_attribute<Vector>("acceleration", DSAv());
-	_acc_map_iter = _vec_attr.find("acceleration");
-
-
 }
 
 void RigidBodyStateData::set_initial_position(size_t p, const Vector& pos) {

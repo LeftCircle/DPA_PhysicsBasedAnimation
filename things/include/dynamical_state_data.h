@@ -24,6 +24,7 @@ public:
 
 	// accessors for common attributes
 	const Vector& get_position(size_t i) const { return _pos_map_iter->second.get(i); }
+	const Vector& get_updated_position(size_t i) const { return _updated_pos_map_iter->second.get(i); }
 	const Vector& get_velocity(size_t i) const { return _vel_map_iter->second.get(i); }
 	const Vector& get_acceleration(size_t i) const { return _acc_map_iter->second.get(i); }
 	const float& get_mass(size_t i) const { return _mass_map_iter->second.get(i); }
@@ -39,16 +40,18 @@ public:
 protected:
 	// caching these to avoid map lookup for commonly used lookups
 	std::map< std::string, DSAv >::iterator _pos_map_iter;
+	std::map< std::string, DSAv >::iterator _updated_pos_map_iter;
 	std::map < std::string, DSAv >::iterator _vel_map_iter;
 	std::map < std::string, DSAv >::iterator _acc_map_iter;
 	std::map < std::string, DSAf >::iterator _mass_map_iter;
 	std::map < std::string, DSAc >::iterator _color_map_iter;
 	//std::string _name;
 
-	void _initialize_default_attributes() override;
+	virtual void _initialize_default_attributes() override;
 };
 
 using DynamicalStateData_sp = std::shared_ptr<DynamicalStateData>;
+using DSD_sp = std::shared_ptr<DynamicalStateData>;
 
 inline DynamicalStateData_sp create_dynamical_state_data() { return std::make_shared<DynamicalStateData>(); };
 

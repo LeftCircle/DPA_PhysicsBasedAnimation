@@ -16,7 +16,7 @@
 namespace pba {
 
 
-class RigidBodyStateData : public DynamicalStateDataBase {
+class RigidBodyStateData : public DynamicalStateData {
 public:
 	RigidBodyStateData();
 	~RigidBodyStateData() = default;
@@ -33,12 +33,13 @@ public:
 
 	const Vector& get_lever_arm(const size_t p) const noexcept { return _lever_arms_iter->second.get(p); }
 	Vector get_rotated_lever_arm(const size_t p) const;
-	const Vector& get_acceleration(size_t i) const noexcept { return _acc_map_iter->second.get(i); }
-	const float& get_mass(size_t i) const noexcept { return _mass_map_iter->second.get(i); }
+	
+	//const Vector& get_acceleration(size_t i) const noexcept { return _acc_map_iter->second.get(i); }
+	//const float& get_mass(size_t i) const noexcept { return _mass_map_iter->second.get(i); }
+	//void set_acceleration(size_t i, const Vector& v) { _acc_map_iter->second.set(i, v); }
+	//void set_mass(size_t i, const float& m) { _mass_map_iter->second.set(i, m); }
 
-	void set_acceleration(size_t i, const Vector& v) { _acc_map_iter->second.set(i, v); }
-	void set_mass(size_t i, const float& m) { _mass_map_iter->second.set(i, m); }
-
+	// Calculates the vertex position based on the lever arm, COM, and rotation
 	Vector get_vert_pos(const size_t p) const;
 	const float get_total_mass() const noexcept {return _total_mass; }
 	const Matrix& get_inverse_moi() const noexcept { return _inverse_moi; }
@@ -62,8 +63,8 @@ private:
 	void _compute_moi(int i, int j) noexcept;
 
 	std::map< std::string, DSAv >::iterator _lever_arms_iter;
-	std::map < std::string, DSAv >::iterator _acc_map_iter;
-	std::map < std::string, DSAf >::iterator _mass_map_iter;
+	//std::map < std::string, DSAv >::iterator _acc_map_iter;
+	//std::map < std::string, DSAf >::iterator _mass_map_iter;
 	
 	Matrix _moment_of_inertia;
 	Matrix _inverse_moi;

@@ -9,6 +9,8 @@
 
 namespace pba{
 
+Vector rbd_single_particle_pos_rot_update(const RB_sp& rb, const size_t idx, const double dt);
+
 class AdvanceRotationAndCOM : public GISolverBase {
 public:
 	AdvanceRotationAndCOM(RB_sp rbd) : _rbd(rbd) {}

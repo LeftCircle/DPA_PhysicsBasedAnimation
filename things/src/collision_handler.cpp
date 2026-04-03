@@ -169,7 +169,7 @@ void RBDCollisionHandler::_handle_rbd_collisions(RB_sp rbd, const double dt) {
 
 						x_mid = rbd->center_of_mass + rbd->linear_velocity * th + ang_rot * rbd->get_lever_arm(i);
 						fmid = cobjs[j]->get_normal() * x_mid;
-						if (std::abs(fmid) < RBD_COLL_TOLERANCE || n_steps > RBD_COLL_MAX_ITERS){
+						if (std::abs(fmid) < BISEC_TOLERANCE || n_steps > MAX_BISEC_ITERS){
 							if (std::abs(th) < std::abs(pi_time[j])){
 								// earlier particle collision found for this collision object!
 								// TODO -> actually check if a hit occurs at this position 

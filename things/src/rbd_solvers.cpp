@@ -2,6 +2,13 @@
 
 using namespace pba;
 
+Vector rbd_single_particle_pos_rot_update(const RB_sp& rbd, const size_t idx, const double dt){
+    Vector rotor = rbd->angular_velocity * dt;
+    Matrix angular_rotation = rotation(rotor.unitvector(), -rotor.magnitude()) * rbd->angular_rotation;
+    Vector center_of_mass = rbd->center_of_mass + rbd->linear_velocity * dt;
+    return angular_rotation * rbd->get_lever_arm(idx) + center_of_mass;
+}
+
 void AdvanceRotationAndCOM::solve(const double dt) {
 	solve(_rbd, dt);
 }
