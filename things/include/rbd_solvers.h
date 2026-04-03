@@ -9,6 +9,10 @@
 
 namespace pba{
 
+inline constexpr double BISEC_TOLERANCE = 0.001;
+inline constexpr int MAX_BISEC_ITERS = 100;
+class RBDCollisionHandler;
+
 Vector rbd_single_particle_pos_rot_update(const RB_sp& rb, const size_t idx, const double dt);
 
 class AdvanceRotationAndCOM : public GISolverBase {
@@ -19,11 +23,9 @@ public:
 	virtual void solve(const double dt) override;
 	static void solve(RB_sp rbd, const double dt);
 
-
 protected:
 	AdvanceRotationAndCOM() = delete;
 	RB_sp _rbd;
-
 };
 
 
@@ -50,6 +52,34 @@ private:
 };
 
 
+struct RBDHitResult {
+	double time;
+	size_t particle;
+	Vector position;
+	Vector normal;
+	CollisionSurface_sp surface;
+};
+
+std::optional<RBDHitResult> bisect_collision(
+	const RB_sp& rbd, size_t particle_idx,
+	const CollisionObject_sp& cobj, CollisionSurface_sp cs,
+	double max_t);
+
+
+class RBDCollisionHandler : public CollisionHandler {
+public:
+	RBDCollisionHandler() = default;
+	~RBDCollisionHandler() = default;
+
+	void handle_collisions(
+		DynamicalStateDataBase_sp dsd,
+		const std::string& updated_pos_attr_name,
+		const double dt
+	) override;
+
+private:
+	void _handle_rbd_collisions(RB_sp rbd, RBDHitResult& min_hit, const double dt);
+};
 
 } // end namespace pba
 

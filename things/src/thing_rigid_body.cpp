@@ -31,7 +31,7 @@ RigidBodyThingyDingy::RigidBodyThingyDingy(const std::string& nam)
 
 void RigidBodyThingyDingy::Init( const std::vector<std::string>& args ) {
 	//void SetCameraEyeViewUp( float eyex, float eyey, float eyez, float viewx, float viewy, float viewz, float upx, float upy, float upz ); 
-	viewer->SetCameraEyeViewUp(0, 0, -130, 0, 0, 1, 0, 1, 0);
+	viewer->SetCameraEyeViewUp(0, 0, -2, 0, 0, 1, 0, 1, 0);
 }
 
 
