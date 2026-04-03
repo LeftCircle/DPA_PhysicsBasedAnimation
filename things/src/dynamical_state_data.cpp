@@ -11,8 +11,8 @@ void DynamicalStateData::_initialize_default_attributes() {
 	_vec_attr["velocities"] = DSAv("velocities", Vector(0.0f, 0.0f, 0.0f));
 	_vel_map_iter = _vec_attr.find("velocities");
 
-	_vec_attr["accelleration"] = DSAv("accelleration", Vector(0.0f, 0.0f, 0.0f));
-	_acc_map_iter = _vec_attr.find("accelleration");
+	_vec_attr["acceleration"] = DSAv("acceleration", Vector(0.0f, 0.0f, 0.0f));
+	_acc_map_iter = _vec_attr.find("acceleration");
 
 	_float_attr["mass"] = DSAf("mass", 1.0f);
 	_mass_map_iter = _float_attr.find("mass");
