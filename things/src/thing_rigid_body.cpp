@@ -110,11 +110,11 @@ void RigidBodyThingyDingy::Keyboard( unsigned char key, int x, int y ){
 			break;
 		}
 		case 'c':{
-			_adjust_coefficient_of_restitution(-0.05);
+			_adjust_coefficient_of_restitution(0.9);
 			break;
 		}
 		case 'C':{
-			_adjust_coefficient_of_restitution(0.05);
+			_adjust_coefficient_of_restitution(1.1);
 			break;
 		}
 		case 'd':{
@@ -124,7 +124,7 @@ void RigidBodyThingyDingy::Keyboard( unsigned char key, int x, int y ){
 			break;
 		}
 		case 'e':{
-			_emit_particles(1);
+			//_emit_particles(1);
 			break;
 		}
 		case 'g':{
@@ -199,12 +199,12 @@ void RigidBodyThingyDingy::_adjust_gravity(const Vector& delta){
 }
 
 void RigidBodyThingyDingy::_adjust_coefficient_of_restitution(const double delta){
-	_main_collision_surface->set_restitution( _main_collision_surface->get_restitution() + delta );
+	_main_collision_surface->set_restitution( _main_collision_surface->get_restitution() * delta );
 	printf("New coefficient of restitution is %f\n", _main_collision_surface->get_restitution());
 }
 
 void RigidBodyThingyDingy::_adjust_coefficient_of_sticky(const double delta){
-	_main_collision_surface->set_sticky( _main_collision_surface->get_sticky() + delta );
+	_main_collision_surface->set_sticky( _main_collision_surface->get_sticky() * delta );
 	printf("New coefficient of sticky is %f\n", _main_collision_surface->get_sticky());
 }
 
@@ -276,7 +276,6 @@ CollisionSurface_sp RigidBodyThingyDingy::_create_collision_geo_from(const std::
 void RigidBodyThingyDingy::Usage(){
 	printf("SPH Controls:\n");
 	printf("  c/C: Decrease/Increase coefficient of restitution for box collisions\n");
-	printf("  e: Emit? new bunny?\n");
 	printf("  g/G: Increase/Decrease gravity strength\n");
 	printf("  l: Switch to Leapfrog solver\n");
 	printf("  L: Switch to Sixth Order solver\n");
@@ -303,7 +302,7 @@ void RigidBodyThingyDingy::_draw_tris(){
 
 void RigidBodyThingyDingy::_draw_particles(){
 	glColor3d(1.0, 0.0, 0.0);
-	glPointSize(8.0f);
+	glPointSize(3.5f);
 	glBegin(GL_POINTS);
 	for (size_t i=0; i<_dsd->n_particles(); i++){
 		Vector pos = _dsd->get_vert_pos(i);

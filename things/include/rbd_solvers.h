@@ -58,6 +58,8 @@ struct RBDHitResult {
 	Vector position;
 	Vector normal;
 	CollisionSurface_sp surface;
+	bool converged = false;
+	Vector point_on_cobj;
 };
 
 std::optional<RBDHitResult> bisect_collision(

@@ -42,6 +42,7 @@ public:
 	// Calculates the vertex position based on the lever arm, COM, and rotation
 	Vector get_vert_pos(const size_t p) const;
 	const float get_total_mass() const noexcept {return _total_mass; }
+	const Matrix& get_moi() const noexcept { return _moment_of_inertia; }
 	const Matrix& get_inverse_moi() const noexcept { return _inverse_moi; }
 
 	void compute_moi();
