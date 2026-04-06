@@ -25,7 +25,7 @@ RigidBodyThingyDingy::RigidBodyThingyDingy(const std::string& nam)
     _force_system->add_forces(_gravity_force);
 	
 	// And now that the init is basically done. Let's build the solvers
-	SetSimulationTimestep(0.01667);
+	SetSimulationTimestep(0.01667 / 2.0);
 	_set_to_sixth_order_solver();
 	//_set_to_backward_euler_solver();
 }

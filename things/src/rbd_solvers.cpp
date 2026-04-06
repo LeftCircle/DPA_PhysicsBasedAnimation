@@ -69,7 +69,7 @@ void RBDCollisionHandler::handle_collisions(
 
 void RBDCollisionHandler::_handle_rbd_collisions(RB_sp rbd, RBDHitResult& min_hit, double dt) {
 	const size_t n = rbd->n_particles();
-	auto m = rbd->get_float_attribute_span("mass");
+	auto masses = rbd->get_float_attribute_span("mass");
     while (std::abs(min_hit.time) > 0.0001){
         bool hit_found = false;
         for (size_t i = 0; i < rbd->n_particles(); i++){
@@ -89,24 +89,39 @@ void RBDCollisionHandler::_handle_rbd_collisions(RB_sp rbd, RBDHitResult& min_hi
         if (hit_found){
             // now let's update the com position and rotation to the hit point
             AdvanceRotationAndCOM::solve(rbd, min_hit.time);
-            
-            // Now we have to make the rbd bounce
-            // conserve kinetic energy
-            // I tried to derive this from conservation of energy and cannot
-            Vector nxr = min_hit.normal ^ rbd->get_rotated_lever_arm(min_hit.particle);
-            double A_numerator = (2.0 * rbd->linear_velocity * min_hit.normal) + ((m[min_hit.particle] / rbd->get_total_mass()) * (rbd->angular_velocity * nxr));
-            double A_denom = 1.0 + (m[min_hit.particle] * m[min_hit.particle] / rbd->get_total_mass() * (nxr * rbd->get_inverse_moi() * nxr));
-            double A = -A_numerator / A_denom;
-            
-            // Now update pos and rotation with the bounce
-            rbd->linear_velocity += A * min_hit.normal;
-            rbd->angular_velocity += A * m[min_hit.particle] * rbd->get_inverse_moi() * nxr;
-            
-            // now scale by sticky and restitution?
             double ks = min_hit.surface->get_sticky();
             double kr = min_hit.surface->get_restitution();
             const Vector& lv = rbd->linear_velocity;
             const Vector& n = min_hit.normal;
+            const Vector& r = rbd->get_rotated_lever_arm(min_hit.particle);
+            const Vector& w = rbd->angular_velocity;
+            const float M = rbd->get_total_mass();
+
+            float m = masses[min_hit.particle];
+            // Now we have to make the rbd bounce
+            // conserve kinetic energy
+            // I tried to derive this from conservation of energy and cannot
+            Vector nxr =  n ^ r;
+            double A_numerator = (2.0 * lv * n) + ((m / M) * (w * nxr));
+            double A_denom = 1.0 + (m * m / M * (nxr * rbd->get_inverse_moi() * nxr));
+            double A = -A_numerator / A_denom;
+            
+
+            // Now update pos and rotation with the bounce
+            rbd->linear_velocity += A * min_hit.normal;
+            rbd->angular_velocity += A * m * rbd->get_inverse_moi() * nxr;
+            
+            // now scale by sticky and restitution?
+            
+            
+            // wee need the velocity of the collision point....
+            Vector v = lv + rbd->angular_velocity ^ r;
+            float v_pre_coll = v * n;
+            // from donald house:
+            double j = (-(1.0 + kr) * v_pre_coll) / ((1.0 / m) + (n * (rbd->get_inverse_moi() * ((r ^ n) ^ r))));
+            // rbd->linear_velocity += 1 / m * j * n;
+            // rbd->angular_velocity += j * rbd->get_inverse_moi() * (r ^ n); 
+            
             rbd->linear_velocity = (ks * (lv - (lv * n) * n)) + kr * (lv * n) * n;
             // I have no clue how to update the angular velocity here
             rbd->angular_velocity *= (ks + kr) / 2;
