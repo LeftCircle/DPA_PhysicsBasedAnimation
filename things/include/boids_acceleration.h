@@ -15,7 +15,7 @@ struct NeighborData {
 	Vector vec_to;
 	Vector vel_diff;
 	double weight;
-	const BoidParams& p;
+	const BoidParams* p;
 };
 
 struct BoidParams {
@@ -38,41 +38,61 @@ class BoidBehaviors {
 		const Vector& vel,
 		span<const Vector> neighbor_pos,
 		span<const Vector> neighbor_vel,
-		const BoidParams& params	
+		const BoidParams* params	
 	) const;
 	
 private:
-
-	Vector _get_neighbor_acceleration(const NeighborData& nd, const BoidParams& p);
+	using BehaviorFn = std::function<Vector(const NeighborData&)>;
+	std::array<BehaviorFn, 3> _behaviors = {
+		[this](const NeighborData& nd) -> Vector {
+			return _collision_avoidance(nd.vec_to, nd.p) * nd.weight;
+		},
+		[this](const NeighborData& nd) -> Vector {
+			return _velocity_match(nd.vel_diff, nd.p) * nd.weight;
+		},
+		[this](const NeighborData& nd) -> Vector {
+			return _centering(nd.vec_to, nd.p) * nd.weight;
+		}
+	};
 
 	NeighborData _make_neighbor_data(
 		const Vector& pos,
 		const Vector& vel,
 		const Vector& neighbor_pos,
 		const Vector& neighbor_vel,
-		const BoidParams& p
+		const BoidParams* p
 	) const;
-	double _range_limit(const Vector& vec_to_point, const BoidParams& params) const;
+	double _range_limit(const Vector& vec_to_point, const BoidParams* params) const;
 	double _fov_limiter(
 		const Vector& vec_to_point,
 		const Vector& vel,
-		const BoidParams& params
+		const BoidParams* params
 	) const;
 
 	Vector _collision_avoidance(
 		const Vector& a_to_b,
-		const BoidParams& params
+		const BoidParams* params
 	) const;
 
 	Vector _velocity_match(
 		const Vector& vel_diff,
-		const BoidParams& params
+		const BoidParams* params
 	) const;
 
 	Vector _centering(
 		const Vector& a_to_b,
-		const BoidParams& params
+		const BoidParams* params
 	) const;
+
+	void _cache_neighbor_data(
+		const Vector& pos,
+		const Vector& vel,
+		span<const Vector> neighbor_pos,
+		span<const Vector> neighbor_vel,
+		const BoidParams* params
+	) const;
+	
+	mutable std::vector<NeighborData> _ndata;
 };
 
 
