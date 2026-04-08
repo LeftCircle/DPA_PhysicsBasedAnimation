@@ -8,8 +8,8 @@ void DynamicalStateData::_initialize_default_attributes() {
 	_vec_attr["positions"] = DSAv("positions", Vector(0.0, 0.0, 0.0));
 	_pos_map_iter = _vec_attr.find("positions");
 
-	_vec_attr["updated_positions"] = DSAv("updated_positions", Vector(0.0, 0.0, 0.0));
-	_updated_pos_map_iter = _vec_attr.find("updated_positions");
+	_vec_attr["new_positions"] = DSAv("new_positions", Vector(0.0, 0.0, 0.0));
+	_updated_pos_map_iter = _vec_attr.find("new_positions");
 
 	_vec_attr["velocities"] = DSAv("velocities", Vector(0.0, 0.0, 0.0));
 	_vel_map_iter = _vec_attr.find("velocities");

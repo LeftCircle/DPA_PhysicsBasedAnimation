@@ -146,6 +146,7 @@ private:
 	double _friction;
 };
 
+
 } // end namespace pba
 
 

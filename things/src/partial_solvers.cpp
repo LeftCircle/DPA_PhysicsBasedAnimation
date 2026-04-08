@@ -12,12 +12,14 @@ using vec_st = std::vector<size_t>;
 
 void PartialSolverAdvancePosition::solve(const double dt){
 	const size_t n = _state_data->n_particles();
-	#pragma omp parallel for
-	for( size_t i=0; i<n; i++ ){
-		const Vector& pos = _state_data->get_position(i);
-		const Vector& vel = _state_data->get_velocity(i);
-		_state_data->set_position(i, pos + vel * static_cast<float>(dt) );
-	}
+	auto pos = _state_data->get_vector_attribute_span("positions");
+	auto new_pos = _state_data->get_vector_attribute_span("new_positions");
+	auto vel = _state_data->get_vector_attribute_span("velocities");
+	std::transform(std::execution::par_unseq, pos.begin(), pos.end(), vel.begin(), new_pos.begin(),
+		[dt](const Vector& p, const Vector& v) -> Vector {
+			return p + v * dt;
+		}
+	);
 	if (_collision_handler) {
 		_collision_handler->handle_collisions(_state_data, "new_positions", dt);
 	}
@@ -27,6 +29,7 @@ void PartialSolverAdvancePosition::solve(const double dt){
 			[](vec_st& cell, size_t i){ cell.push_back(i); }
 		);
 	}
+	std::copy(std::execution::par, new_pos.begin(), new_pos.end(), pos.begin());
 }
 
 AdvancePositionWithCollisions::AdvancePositionWithCollisions(DynamicalStateData_sp dsd, CollisionHandler_sp collision_handler) :

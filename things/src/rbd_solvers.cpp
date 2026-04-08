@@ -15,7 +15,7 @@ Vector pba::rbd_single_particle_pos_rot_update(const RB_sp& rbd, const size_t id
 void AdvanceRotationAndCOM::solve(const double dt) {
 	solve(_rbd, dt);
     auto pos = _rbd->get_vector_attribute_span("positions");
-    auto updated_pos = _rbd->get_vector_attribute_span("updated_positions");
+    auto updated_pos = _rbd->get_vector_attribute_span("new_positions");
     std::copy(std::execution::par, updated_pos.begin(), updated_pos.end(), pos.begin());
 }
 
@@ -24,16 +24,16 @@ AdvanceRotationAndCOMWithCollisions::AdvanceRotationAndCOMWithCollisions(
 	std::shared_ptr<RBDCollisionHandler> rbd_ch
     ) : AdvanceRotationAndCOM(rbd), rbd_coll_handler(rbd_ch)
 {
-    if (!_rbd->has_vector_attribute("updated_positions")){
-        _rbd->add_attribute<Vector>("updated_positions", DSAv());
+    if (!_rbd->has_vector_attribute("new_positions")){
+        _rbd->add_attribute<Vector>("new_positions", DSAv());
     }
 }
 
 void AdvanceRotationAndCOMWithCollisions::solve(const double dt) {
     //AdvanceRotationAndCOM::solve(_rbd, dt);
-    rbd_coll_handler->handle_collisions(_rbd, "updated_positions", dt);
+    rbd_coll_handler->handle_collisions(_rbd, "new_positions", dt);
 	// auto pos = _rbd->get_vector_attribute_span("positions");
-	// auto updated_pos = _rbd->get_vector_attribute_span("updated_positions");
+	// auto updated_pos = _rbd->get_vector_attribute_span("new_positions");
 	// std::copy(std::execution::par, updated_pos.begin(), updated_pos.end(), pos.begin());
 }
 

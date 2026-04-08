@@ -7,6 +7,10 @@
 #include "force.h"
 #include "occupancy_volume.h"
 #include "boids_acceleration.h"
+#include "the_wheel.h"
+
+#include <numeric>
+#include <execution>
 
 namespace pba{
 
