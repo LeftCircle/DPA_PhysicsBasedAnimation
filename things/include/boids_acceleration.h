@@ -11,13 +11,6 @@
 
 namespace pba{
 
-struct NeighborData {
-	Vector vec_to;
-	Vector vel_diff;
-	double weight;
-	const BoidParams* p;
-};
-
 struct BoidParams {
 	double range;
 	double range_amp;
@@ -27,6 +20,13 @@ struct BoidParams {
 	double vm_strength;
 	double cent_strength;
 	double threshold;
+};
+
+struct NeighborData {
+	Vector vec_to;
+	Vector vel_diff;
+	double weight;
+	const BoidParams* p;
 };
 
 class BoidBehaviors {
