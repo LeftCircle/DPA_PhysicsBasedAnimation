@@ -61,7 +61,7 @@ public:
 	}
 
 	template <typename Inserter>
-	//	requires std::invocable<Inserter, CellType&, size_t>
+	// requires std::invocable<Inserter, CellType&, size_t>
 	void populate(span<const Vector> positions, Inserter inserter_fn) {
 		_voxels.clear();
 		for (size_t i = 0; i < positions.size(); i++) {
@@ -122,6 +122,8 @@ using idx_volume_sp = std::shared_ptr<OccupancyVolume<std::vector<size_t>>>;
 inline idx_volume_sp create_idx_occupancy_volume(const AABB& aabb, double cell_size) {
 	return std::make_shared<OccupancyVolume<std::vector<size_t>>>(aabb, cell_size);
 }
+
+using idx_func = std::function<void(std::vector<size_t>, size_t)>;
 
 
 } // end namespace pba

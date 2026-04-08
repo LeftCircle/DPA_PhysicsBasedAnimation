@@ -5,6 +5,8 @@
 #include "dynamical_state_data.h"
 #include "collision_handler.h"
 #include "force.h"
+#include "occupancy_volume.h"
+#include "boids_acceleration.h"
 
 namespace pba{
 
@@ -12,13 +14,21 @@ class PartialSolverAdvancePosition : public GISolverBase
 {
 public:
 	PartialSolverAdvancePosition(DynamicalStateData_sp dsd) : _state_data(dsd) {}
+	PartialSolverAdvancePosition(DSD_sp dsd, CollisionHandler_sp ch)
+		: _state_data(dsd), _collision_handler(ch) {}
+	PartialSolverAdvancePosition(DSD_sp dsd, idx_volume_sp ov)
+		: _state_data(dsd), _occupancy_volume(ov) {}
+	PartialSolverAdvancePosition(DSD_sp dsd, CollisionHandler_sp ch, idx_volume_sp ov)
+		: _state_data(dsd), _collision_handler(ch), _occupancy_volume(ov) {}
 	~PartialSolverAdvancePosition() = default;
 
 	void init() override {}
-	void solve(const double dt) override;
+	virtual void solve(const double dt) override;
 
-private:
+protected:
 	DynamicalStateData_sp _state_data;
+	idx_volume_sp _occupancy_volume;
+	CollisionHandler_sp _collision_handler;
 };
 
 class AdvancePositionWithCollisions : public GISolverBase{
@@ -50,6 +60,18 @@ public:
 protected:
 	DynamicalStateData_sp _state_data;
 	ForceSystem_sp _force_system;
+};
+
+class AdvanceVelocityWithForcesBoids : public AdvanceVelocityWithForces{
+public:
+	AdvanceVelocityWithForcesBoids(DynamicalStateData_sp dsd, ForceSystem_sp fs, idx_volume_sp ov)
+	 : AdvanceVelocityWithForces(dsd, fs), _occupancy_volume(ov) {}
+
+	void init() override {};
+	void solve(const double dt) override;
+
+private:
+	idx_volume_sp _occupancy_volume;
 };
 
 class GISolverLeapfrog : public GISolverBase{

@@ -1,7 +1,14 @@
 #include "partial_solvers.h"
 
+namespace{
 
+	
+};
+
+//}
 using namespace pba;
+
+using vec_st = std::vector<size_t>;
 
 void PartialSolverAdvancePosition::solve(const double dt){
 	const size_t n = _state_data->n_particles();
@@ -10,6 +17,15 @@ void PartialSolverAdvancePosition::solve(const double dt){
 		const Vector& pos = _state_data->get_position(i);
 		const Vector& vel = _state_data->get_velocity(i);
 		_state_data->set_position(i, pos + vel * static_cast<float>(dt) );
+	}
+	if (_collision_handler) {
+		_collision_handler->handle_collisions(_state_data, "new_positions", dt);
+	}
+	if (_occupancy_volume) {
+		_occupancy_volume->populate(
+			_state_data->get_vector_attribute_span("positions"),
+			[](vec_st& cell, size_t i){ cell.push_back(i); }
+		);
 	}
 }
 
@@ -43,4 +59,9 @@ void AdvanceVelocityWithForces::solve(const double dt){
 		const Vector& acc = _state_data->get_acceleration(i);
 		_state_data->set_velocity(i, vel + acc * dt);
 	}
+}
+
+void AdvanceVelocityWithForcesBoids::solve(const double dt){
+	_force_system->compute(_state_data, dt);
+
 }

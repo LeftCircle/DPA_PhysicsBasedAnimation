@@ -62,7 +62,9 @@ private:
 		const Vector& neighbor_vel,
 		const BoidParams* p
 	) const;
+	
 	double _range_limit(const Vector& vec_to_point, const BoidParams* params) const;
+	
 	double _fov_limiter(
 		const Vector& vec_to_point,
 		const Vector& vel,

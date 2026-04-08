@@ -14,6 +14,7 @@
 #include "sph_kernel.h"
 #include "sph_data.h"
 #include "soft_body_data.h"
+#include "boids_acceleration.h"
 
 namespace pba{
 
