@@ -26,8 +26,9 @@ RigidBodyThingyDingy::RigidBodyThingyDingy(const std::string& nam)
 	
 	// And now that the init is basically done. Let's build the solvers
 	SetSimulationTimestep(0.01667 / 2.0);
-	_set_to_sixth_order_solver();
+	//_set_to_sixth_order_solver();
 	//_set_to_backward_euler_solver();
+	_set_to_leapfrog_solver();
 }
 
 void RigidBodyThingyDingy::Init( const std::vector<std::string>& args ) {

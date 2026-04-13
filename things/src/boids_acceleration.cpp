@@ -60,7 +60,7 @@ NeighborData BoidBehaviors::_make_neighbor_data(
     Vector vec_to_n = neighbor_pos - pos;
     double range_limit = _range_limit(vec_to_n, p);
     double fov_limit = _fov_limiter(vec_to_n, vel, p);
-    return NeighborData{ vec_to_n, neighbor_vel - vel, range_limit * fov_limit, p};
+    return NeighborData{vec_to_n, neighbor_vel - vel, range_limit * fov_limit, p};
 };
 
 double BoidBehaviors::_range_limit(const Vector& vec_to_point, const BoidParams* params) const{

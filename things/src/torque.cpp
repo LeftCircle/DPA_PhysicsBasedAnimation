@@ -14,27 +14,9 @@ void Torque::compute(RB_sp& rbd, const double dt){
     rbd->com_accel = Vector(0, 0, 0);
     for (int i = 0; i < rbd->n_particles(); i++){
         Vector f = acc[i] * masses[i];
-        rbd->angular_accel += rbd->get_lever_arm(i) ^ f;
+        rbd->angular_accel += rbd->get_rotated_lever_arm(i) ^ f;
         rbd->com_accel += f;
     }
-    // still have to divide by total mass tho
-    // TODO -> implement a counting iterator within the_wheel
-    
-    // rbd->angular_accel = std::transform_reduce(
-    //     std::execution::par,
-    //     acc.begin(),
-    //     acc.end(),
-    //     Vector(0, 0, 0),
-    //     [](const Vector&a, const Vector& b) { return a + b; },
-    //     [&, base = acc.data()](const Vector& ai) {
-    //         const size_t i = (size_t)(&ai - base);
-    //         return (ai * masses[i]) ^ rbd->get_rotated_lever_arm(i);
-    //     }
-    // );
-    
-    // rbd->com_accel = std::accumulate(acc.begin(), acc.end(), Vector(0, 0, 0), 
-    //     [](Vector com_a, const Vector& a){return com_a + a;}
-    // );
     if (rbd->get_total_mass()){
         rbd->com_accel /= rbd->get_total_mass();
     }

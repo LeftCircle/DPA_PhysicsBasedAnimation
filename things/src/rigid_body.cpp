@@ -85,7 +85,7 @@ void RigidBodyStateData::compute_com() {
 
 void RigidBodyStateData::compute_lever_arms() {
 	auto larm_span = get_vector_attribute_span("lever_arms");
-	auto positions = get_vector_attribute_span("positions");
+	auto positions = get_vector_attribute_span("initial_positions");
 	const Vector& com = center_of_mass;
 	// just a basic transform
 	std::transform(std::execution::par, positions.begin(), positions.end(), larm_span.begin(), 
@@ -112,21 +112,8 @@ void RigidBodyStateData::_compute_moi(int i, int j) noexcept {
 		auto larm = get_rotated_lever_arm(index);
 		double delta = i == j ? 1.0 : 0.0;
 		double mag = larm.magnitude();
-		res += (double)masses[index] * (delta * mag * mag - larm[i] * larm[j]);
+		res += (double)masses[index] * ((delta * mag * mag) - (larm[i] * larm[j]));
 	}
-	// double res = std::transform_reduce(
-	// 	std::execution::par,
-	// 	masses.begin(), masses.end(),
-	// 	0.0,
-	// 	std::plus<double>(), 
-	// 	[this, i, j, base = masses.data()](float mi) {
-	// 		size_t index = (size_t)(&mi - base);
-	// 		auto larm = get_rotated_lever_arm(index);
-	// 		double delta = i == j ? 1.0 : 0.0;
-	// 		double mag = larm.magnitude();
-	// 		return (double)mi * (delta * mag * mag - larm[i] * larm[j]);
-	// 	}
-	// );
 	_moment_of_inertia.Set(i, j, res);
 }
 

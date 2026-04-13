@@ -123,6 +123,7 @@ inline idx_volume_sp create_idx_occupancy_volume(const AABB& aabb, double cell_s
 	return std::make_shared<OccupancyVolume<std::vector<size_t>>>(aabb, cell_size);
 }
 
+using idx_vec = std::vector<size_t>;
 using idx_func = std::function<void(std::vector<size_t>, size_t)>;
 
 

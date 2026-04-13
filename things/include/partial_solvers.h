@@ -6,7 +6,6 @@
 #include "collision_handler.h"
 #include "force.h"
 #include "occupancy_volume.h"
-#include "boids_acceleration.h"
 #include "the_wheel.h"
 
 #include <numeric>
@@ -55,7 +54,7 @@ inline GISolver_sp create_advance_position_with_collisions(DynamicalStateData_sp
 class AdvanceVelocityWithForces : public GISolverBase{
 public:
 	AdvanceVelocityWithForces(DynamicalStateData_sp dsd, ForceSystem_sp force_system)
-	: _state_data(dsd), _force_system(force_system) {}
+		: _state_data(dsd), _force_system(force_system) {}
 	~AdvanceVelocityWithForces() = default;
 
 	void init() override {}
@@ -64,18 +63,6 @@ public:
 protected:
 	DynamicalStateData_sp _state_data;
 	ForceSystem_sp _force_system;
-};
-
-class AdvanceVelocityWithForcesBoids : public AdvanceVelocityWithForces{
-public:
-	AdvanceVelocityWithForcesBoids(DynamicalStateData_sp dsd, ForceSystem_sp fs, idx_volume_sp ov)
-	 : AdvanceVelocityWithForces(dsd, fs), _occupancy_volume(ov) {}
-
-	void init() override {};
-	void solve(const double dt) override;
-
-private:
-	idx_volume_sp _occupancy_volume;
 };
 
 class GISolverLeapfrog : public GISolverBase{

@@ -63,8 +63,3 @@ void AdvanceVelocityWithForces::solve(const double dt){
 		_state_data->set_velocity(i, vel + acc * dt);
 	}
 }
-
-void AdvanceVelocityWithForcesBoids::solve(const double dt){
-	_force_system->compute(_state_data, dt);
-
-}

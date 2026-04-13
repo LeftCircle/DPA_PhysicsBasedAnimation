@@ -30,6 +30,7 @@ struct NeighborData {
 };
 
 class BoidBehaviors {
+public:
 	BoidBehaviors() = default;
 	~BoidBehaviors() = default;	
 	
