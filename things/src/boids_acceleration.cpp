@@ -6,8 +6,9 @@ using namespace pba;
 Vector BoidBehaviors::get_acceleration_due_to_neighbors(
     	const Vector& pos,
 		const Vector& vel,
-		span<const Vector> neighbor_pos,
-		span<const Vector> neighbor_vel,
+        std::vector<size_t> neighbor_indices,
+		span<const Vector> positions,
+		span<const Vector> velocities,
         const BoidParams* params
 	) const
 {
@@ -18,7 +19,7 @@ Vector BoidBehaviors::get_acceleration_due_to_neighbors(
 	// 		return _make_neighbor_data(pos, vel, neighbor_pos[i], neighbor_vel[i], params);
 	// 	}); // This does come at the cost of recomputing neighbor data for each function
 	// Instead we store this cache. 
-	_cache_neighbor_data(pos, vel, neighbor_pos, neighbor_vel, params);
+	_cache_neighbor_data(pos, vel, neighbor_indices, positions, velocities, params);
 
 	Vector acc(0, 0, 0);
 	for (const auto& behavior : _behaviors){
@@ -37,15 +38,16 @@ Vector BoidBehaviors::get_acceleration_due_to_neighbors(
 void BoidBehaviors::_cache_neighbor_data(
 	const Vector& pos,
 	const Vector& vel,
-	span<const Vector> neighbor_pos,
-	span<const Vector> neighbor_vel,
+    std::vector<size_t> neighbor_idxs,
+	span<const Vector> positions,
+	span<const Vector> vels,
 	const BoidParams* params) const
 {
-	const size_t n_neighbors = neighbor_pos.size();
+	const size_t n_neighbors = neighbor_idxs.size();
     _ndata.clear();
     _ndata.resize(n_neighbors);
 	for (size_t i = 0; i < n_neighbors; i++){
-        _ndata[i] = _make_neighbor_data(pos, vel, neighbor_pos[i], neighbor_vel[i], params);
+        _ndata[i] = _make_neighbor_data(pos, vel, positions[neighbor_idxs[i]], vels[neighbor_idxs[i]], params);
     }
 }
 

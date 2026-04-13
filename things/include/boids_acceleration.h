@@ -37,8 +37,9 @@ public:
 	Vector get_acceleration_due_to_neighbors(
 		const Vector& pos,
 		const Vector& vel,
-		span<const Vector> neighbor_pos,
-		span<const Vector> neighbor_vel,
+		std::vector<size_t> neighbor_indeces,
+		span<const Vector> positions,
+		span<const Vector> velocities,
 		const BoidParams* params	
 	) const;
 	
@@ -90,8 +91,9 @@ private:
 	void _cache_neighbor_data(
 		const Vector& pos,
 		const Vector& vel,
-		span<const Vector> neighbor_pos,
-		span<const Vector> neighbor_vel,
+		std::vector<size_t> neighbor_idxs,
+		span<const Vector> positions,
+		span<const Vector> vels,
 		const BoidParams* params
 	) const;
 	
