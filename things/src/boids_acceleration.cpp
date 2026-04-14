@@ -51,6 +51,7 @@ void BoidBehaviors::_cache_neighbor_data(
     }
 }
 
+
 NeighborData BoidBehaviors::_make_neighbor_data(
     const Vector& pos,
 	const Vector& vel,
