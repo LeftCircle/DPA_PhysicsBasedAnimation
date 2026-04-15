@@ -6,7 +6,7 @@ using namespace pba;
 Vector BoidBehaviors::get_acceleration_due_to_neighbors(
     	const Vector& pos,
 		const Vector& vel,
-        std::vector<size_t> neighbor_indices,
+        std::vector<size_t>& neighbor_indices,
 		span<const Vector> positions,
 		span<const Vector> velocities,
         const BoidParams* params
@@ -19,12 +19,17 @@ Vector BoidBehaviors::get_acceleration_due_to_neighbors(
 	// 		return _make_neighbor_data(pos, vel, neighbor_pos[i], neighbor_vel[i], params);
 	// 	}); // This does come at the cost of recomputing neighbor data for each function
 	// Instead we store this cache. 
-	_cache_neighbor_data(pos, vel, neighbor_indices, positions, velocities, params);
-
+	//_cache_neighbor_data(pos, vel, neighbor_indices, positions, velocities, params);
+    const size_t n_neighbors = neighbor_indices.size();
+    std::vector<NeighborData> nd;
+    nd.resize(n_neighbors);
+	for (size_t i = 0; i < n_neighbors; i++){
+        nd[i] = _make_neighbor_data(pos, vel, positions[neighbor_indices[i]], velocities[neighbor_indices[i]], params);
+    }
 	Vector acc(0, 0, 0);
 	for (const auto& behavior : _behaviors){
 		acc += std::transform_reduce(
-			_ndata.begin(), _ndata.end(), Vector(0, 0, 0),
+			nd.begin(), nd.end(), Vector(0, 0, 0),
 			std::plus<>(), behavior
 		);
 		double acc_mag = acc.magnitude();

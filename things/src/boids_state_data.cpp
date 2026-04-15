@@ -29,3 +29,13 @@ const BoidParams BoidStateData::get_params(const size_t idx) const {
         get_double_attribute("acc_budget", idx)
     };
 }
+
+void BoidStateData::set_all_view_and_view_ramp(double cos_ang, double cos_ang_plus_ramp){
+    auto view_span = get_double_attribute_span("cos_fov_angle");
+    auto view_ramp_span = get_double_attribute_span("cos_fov_plus_amp");
+    #pragma omp parallel for
+    for (size_t i = 0; i < _n_particles; i++){
+        view_span[i] = cos_ang;
+        view_ramp_span[i] = cos_ang_plus_ramp;
+    }
+}

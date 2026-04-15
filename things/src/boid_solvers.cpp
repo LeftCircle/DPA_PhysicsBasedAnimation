@@ -10,6 +10,7 @@ void AdvanceBoidVelocityWithForces::solve(const double dt){
     auto accel = _state_data->get_vector_attribute_span("acceleration");
     // for each boid, get its neighbors, then find acceleration
     std::shared_ptr<BoidStateData> bsd = std::dynamic_pointer_cast<BoidStateData>(_state_data);
+    #pragma omp parallel for
     for (size_t i = 0; i < n; i++){
         const BoidParams params = bsd->get_params(i);
         Vector boid_acc = _occupancy_grid->accumulate_neighbor_cells(
