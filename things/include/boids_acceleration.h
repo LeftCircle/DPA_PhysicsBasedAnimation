@@ -37,7 +37,7 @@ public:
 	Vector get_acceleration_due_to_neighbors(
 		const Vector& pos,
 		const Vector& vel,
-		std::vector<size_t> neighbor_indeces,
+		const std::vector<size_t>& neighbor_indeces,
 		span<const Vector> positions,
 		span<const Vector> velocities,
 		const BoidParams* params	

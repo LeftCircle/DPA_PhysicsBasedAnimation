@@ -6,7 +6,7 @@ using namespace pba;
 Vector BoidBehaviors::get_acceleration_due_to_neighbors(
     	const Vector& pos,
 		const Vector& vel,
-        std::vector<size_t>& neighbor_indices,
+        const std::vector<size_t>& neighbor_indices,
 		span<const Vector> positions,
 		span<const Vector> velocities,
         const BoidParams* params
