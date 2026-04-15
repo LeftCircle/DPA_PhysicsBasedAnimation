@@ -8,20 +8,15 @@ namespace pba{
 
 class BoidStateData : public DynamicalStateData{
 public:
+	BoidStateData() { _initialize_default_attributes(); };
 	const BoidParams get_params(const size_t idx) const;
+	void set_max_range(double range, double range_amp) { _max_range = range + range_amp; }
+	double get_max_range() const noexcept { return _max_range; }
 
 private:
 	void _initialize_default_attributes() override;
+	double _max_range = 2.0;
 };
-
-// _double_attr["centering_str"] = DSAd("centering_str", 1.0);
-//     _double_attr["vel_match_str"] = DSAd("vel_match_str", 1.0);
-//     _double_attr["coll_avoid_str"] = DSAd("coll_avoid_str", 1.0);
-//     _double_attr["acc_budget"] = DSAd("acc_budget", 1.0);
-//     _double_attr["range"] = DSAd("range", 1.0);
-//     _double_attr["range_amp"] = DSAd("range_amp", 1.0);
-//     _double_attr["cos_fov_angle"] = DSAd("cos_fov_angle", std::cos(120));
-//     _double_attr["cos_fov_plus_amp"] = DSAd("cos_fov_plus_amp", std::cos(180));
 
 
 }// end namespace pba
