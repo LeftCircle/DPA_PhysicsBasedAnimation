@@ -73,6 +73,8 @@ private:
 	void _emit_particles(const size_t n);
 	void _add_random_particle();
 	void _adjust_timestep(const double factor);
+	void _adjust_coefficient_of_sticky(const double delta);
+
 
 	BoidThingyDingy() = delete;
 };

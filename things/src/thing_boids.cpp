@@ -14,7 +14,6 @@ BoidThingyDingy::BoidThingyDingy(const std::string& nam)
 	_particle_emitter_sp->set_max_speed(5.0);
     _dsd = std::make_shared<BoidStateData>();
 
-
     // currently 2 because range = 1 and range_amp = 1
     _occupancy_volume = create_idx_occupancy_volume(bounds, 1.0);
 
@@ -26,6 +25,7 @@ BoidThingyDingy::BoidThingyDingy(const std::string& nam)
 	_force_system = std::make_shared<ForceSystem>();
 	_solver_system = create_gi_solver_system();
 	_box = create_collision_surface();
+	_box->set_sticky(1.0);
 	_collision_handler = create_collision_handler();
 	_collision_handler->register_collision_surface(_box);
 	_initialize_box_collision_surface(bounds);
@@ -169,9 +169,11 @@ void BoidThingyDingy::Keyboard( unsigned char key, int x, int y ){
 			break;
 		}
 		case 's':{
+			_adjust_coefficient_of_sticky(-0.05);
 			break;
 		}
 		case 'S':{
+			_adjust_coefficient_of_sticky(0.05);
 			break;
 		}
 		case 't':{
@@ -213,6 +215,11 @@ void BoidThingyDingy::_adjust_gravity(const Vector& delta){
 	);
 }
 
+void BoidThingyDingy::_adjust_coefficient_of_sticky(const double delta){
+	_box->set_sticky( _box->get_sticky() + delta );
+	printf("New coefficient of sticky is %f\n", _box->get_sticky());
+}
+
 void BoidThingyDingy::_adjust_coefficient_of_restitution(const double delta){
 	_box->set_restitution( _box->get_restitution() + delta );
 	printf("New coefficient of restitution is %f\n", _box->get_restitution());
@@ -242,6 +249,7 @@ void BoidThingyDingy::Usage(){
 	printf("  l: Switch to Leapfrog solver\n");
 	printf("  L: Switch to Sixth Order solver\n");
 	printf("  r: Reset the simulation\n");
+	printf("  s/S: Decrease/Increase coefficient of sticky\n");
 	printf("  t/T: Decrease/Increase simulation timestep\n");
 	printf("  u/U: Print this usage information\n");
 }
