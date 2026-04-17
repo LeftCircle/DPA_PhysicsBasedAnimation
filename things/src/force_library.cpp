@@ -7,7 +7,7 @@ using namespace pba;
 void SimpleGravityForce::compute(DynamicalStateDataBase_sp dsd, const double dt) const {
 	const size_t n = dsd->n_particles();
 	auto acc = dsd->get_vector_attribute_span("acceleration");
-	std::for_each(std::execution::par, acc.begin(), acc.end(),
+	std::for_each(acc.begin(), acc.end(),
 		[g=_gravity](Vector& a){ a += g; }
 	);
 }

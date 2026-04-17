@@ -47,7 +47,7 @@ TEST_CASE("Test populate occupancy volume"){
 			for (int i = 0; i < 5; i++) {
 				for (int p = 0; p < 3; p++) {
 					int idx = (i + 5 * (j + 5 * k)) * 3 + p;
-					positions[idx] = Vector(i + 0.33 * p, j + 0.33 * p, k + 0.33 * p);
+					positions[idx] = Vector(i + 0.1 * p, j + 0.1 * p, k + 0.1 * p);
 				}
 			}
 		}

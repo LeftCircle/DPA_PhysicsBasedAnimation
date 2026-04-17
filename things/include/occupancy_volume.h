@@ -54,7 +54,6 @@ public:
 	//	requires std::invocable<Inserter, CellType&, size_t>
 	void populate(const std::vector<Vector>& positions, Inserter inserter_fn) {
 		_voxels.clear();
-		#pragma omp parallel for
 		for (size_t i = 0; i < positions.size(); i++) {
 			CellType& cell = _get_cell(positions[i]);
 			inserter_fn(cell, i);
@@ -65,7 +64,6 @@ public:
 	// requires std::invocable<Inserter, CellType&, size_t>
 	void populate(span<const Vector> positions, Inserter inserter_fn) {
 		_voxels.clear();
-		#pragma omp parallel for
 		for (size_t i = 0; i < positions.size(); i++) {
 			CellType& cell = _get_cell(positions[i]);
 			inserter_fn(cell, i);
@@ -91,6 +89,7 @@ private:
 	std::vector<indices> _get_neighbor_cell_indices(const Vector& position) const {
 		indices idx = _get_cell_indices(position);
 		std::vector<indices> neighbor_indices;
+		neighbor_indices.reserve(26);
 		for (int k = -1; k <= 1; k++) {
 			for (int j = -1; j <= 1; j++) {
 				for (int i = -1; i <= 1; i++) {

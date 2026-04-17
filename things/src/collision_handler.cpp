@@ -13,7 +13,7 @@ void CollisionHandler::handle_collisions(
 	auto updated_positions = dsd->get_vector_attribute_span(updated_pos_attr_name);
 	auto start_positions = dsd->get_vector_attribute_span("positions");
 	auto velocities = dsd->get_vector_attribute_span("velocities");
-	#pragma omp parallel for
+	//#pragma omp parallel for
 	for( size_t i=0; i<n; i++ ){
 		Vector& start_pos = start_positions[i];
 		Vector& updated_pos = updated_positions[i];

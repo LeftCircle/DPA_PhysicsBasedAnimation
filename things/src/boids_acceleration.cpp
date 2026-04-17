@@ -11,28 +11,21 @@ Vector BoidBehaviors::get_acceleration_due_to_neighbors(
 		span<const Vector> velocities,
         const BoidParams* params
 	) const
-{
-    
-	// If we had C++20, we could lazily compute the neighbor data as needed with:
-	// auto _ndata = std::views::iota(size_t{0}, neighbor_pos.size())
-	// 	| std::views::transform([&](size_t i) {
-	// 		return _make_neighbor_data(pos, vel, neighbor_pos[i], neighbor_vel[i], params);
-	// 	}); // This does come at the cost of recomputing neighbor data for each function
-	// Instead we store this cache. 
-	//_cache_neighbor_data(pos, vel, neighbor_indices, positions, velocities, params);
+{    
     const size_t n_neighbors = neighbor_indices.size();
-    std::vector<NeighborData> nd;
-    nd.resize(n_neighbors);
-	for (size_t i = 0; i < n_neighbors; i++){
-        nd[i] = _make_neighbor_data(pos, vel, positions[neighbor_indices[i]], velocities[neighbor_indices[i]], params);
-    }
 	Vector acc(0, 0, 0);
 	for (const auto& behavior : _behaviors){
-		acc += std::transform_reduce(
-			nd.begin(), nd.end(), Vector(0, 0, 0),
-			std::plus<>(), behavior
-		);
-		double acc_mag = acc.magnitude();
+		// acc += std::transform_reduce(
+		// 	nd.begin(), nd.end(), Vector(0, 0, 0),
+		// 	std::plus<>(), behavior
+		// );
+        for (int i = 0; i < n_neighbors; i++){
+            acc += behavior(_make_neighbor_data(
+                pos, vel, positions[neighbor_indices[i]],
+                velocities[neighbor_indices[i]], params
+            ));
+        }
+        double acc_mag = acc.magnitude();
 		if (acc_mag >= params->threshold){
 			return acc * (params->threshold / acc_mag);
 		}
@@ -91,7 +84,7 @@ double BoidBehaviors::_fov_limiter(
     if (cos_ab >= params->cos_fov_angle){
         return 1.0;
     } else if (cos_ab > params->cos_fov_angle_plus_amp){
-        return 1 - (params->cos_fov_angle - cos_ab) / (
+        return 1.0 - (params->cos_fov_angle - cos_ab) / (
             params->cos_fov_angle - params->cos_fov_angle_plus_amp
         );
     } else {

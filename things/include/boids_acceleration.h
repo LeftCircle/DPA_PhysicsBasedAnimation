@@ -33,7 +33,7 @@ class BoidBehaviors {
 public:
 	BoidBehaviors() = default;
 	~BoidBehaviors() = default;	
-	
+
 	Vector get_acceleration_due_to_neighbors(
 		const Vector& pos,
 		const Vector& vel,

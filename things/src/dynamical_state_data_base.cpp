@@ -118,6 +118,24 @@ void DynamicalStateDataBase::_resize_all_attributes(size_t n){
 	}
 }
 
+void DynamicalStateDataBase::clear(){
+for( auto& [name, attr] : _int_attr ){
+		attr.clear();
+	}
+	for( auto& [name, attr] : _float_attr ){
+		attr.clear();
+	}
+	for( auto& [name, attr] : _vec_attr ){
+		attr.clear();
+	}
+	for( auto& [name, attr] : _color_attr ){
+		attr.clear();
+	}
+	for( auto& [name, attr] : _double_attr ){
+		attr.clear();
+	}
+}
+
 
 
 

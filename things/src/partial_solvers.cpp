@@ -15,7 +15,7 @@ void PartialSolverAdvancePosition::solve(const double dt){
 	auto pos = _state_data->get_vector_attribute_span("positions");
 	auto new_pos = _state_data->get_vector_attribute_span("new_positions");
 	auto vel = _state_data->get_vector_attribute_span("velocities");
-	std::transform(std::execution::par_unseq, pos.begin(), pos.end(), vel.begin(), new_pos.begin(),
+	std::transform(std::execution::par_unseq,pos.begin(), pos.end(), vel.begin(), new_pos.begin(),
 		[dt](const Vector& p, const Vector& v) -> Vector {
 			return p + v * dt;
 		}
@@ -29,7 +29,7 @@ void PartialSolverAdvancePosition::solve(const double dt){
 			[](vec_st& cell, size_t i){ cell.push_back(i); }
 		);
 	}
-	std::copy(std::execution::par, new_pos.begin(), new_pos.end(), pos.begin());
+	std::copy(new_pos.begin(), new_pos.end(), pos.begin());
 }
 
 AdvancePositionWithCollisions::AdvancePositionWithCollisions(DynamicalStateData_sp dsd, CollisionHandler_sp collision_handler) :

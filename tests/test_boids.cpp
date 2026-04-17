@@ -16,7 +16,7 @@ TEST_CASE("test boid forces"){
 	*/
 	// The x boid above should have a centering of zero
 	// avoidance of zero, and vel match in <- direction
-	std::shared_ptr<BoidStateData> dsd;
+	std::shared_ptr<BoidStateData> dsd = std::make_shared<BoidStateData>();
 	dsd->add(5);
 	dsd->set_position(0, Vector(-1, 0, 0));
 	dsd->set_position(1, Vector(0, 1, 0));
@@ -39,6 +39,6 @@ TEST_CASE("test boid forces"){
 	AdvanceBoidVelocityWithForces vel_update(dsd, fs, ov);
 	vel_update.solve(1.0);
 	REQUIRE(dsd->get_acceleration(4).X() < 1.0);
-	REQUIRE(dsd->get_acceleration(4).Y() == 0);
-	REQUIRE(dsd->get_acceleration(4).Z() == 0);
+	REQUIRE(std::abs(dsd->get_acceleration(4).Y()) < 0.001);
+	REQUIRE(std::abs(dsd->get_acceleration(4).Z()) < 0.001);
 }

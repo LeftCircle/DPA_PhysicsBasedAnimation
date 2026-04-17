@@ -23,6 +23,10 @@ public:
 		static std::mt19937 rng{std::random_device{}()};
 		return rng;
 	}
+	static double rand_d(double min, double max) {
+		std::uniform_real_distribution<double> dist(min, max);
+		return dist(get_rng());
+	}
 
 private:
 	void _generate_random_bounded_position(Vector& pos) const noexcept;

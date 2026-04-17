@@ -25,6 +25,7 @@ public:
 	virtual size_t add(size_t n);
 
 	virtual void resize(size_t n);
+	virtual void clear();
 
 	// accessors for attributes by name
 	const Vector& get_vector_attribute(const std::string& name, size_t i) const;
