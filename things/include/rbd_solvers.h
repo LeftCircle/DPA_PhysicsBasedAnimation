@@ -40,7 +40,7 @@ private:
 
 class AdvanceAngularVelocityAndVelocity : public GISolverBase {
 public:
-	AdvanceAngularVelocityAndVelocity( RB_sp rbd, Force_sp f) : _rbd(rbd), _torque(Torque(f)) {}; 
+	AdvanceAngularVelocityAndVelocity( RB_sp rbd, ForceSystem_sp f) : _rbd(rbd), _torque(Torque(f)) {}; 
 	~AdvanceAngularVelocityAndVelocity() = default;
 
 	void init() override {};

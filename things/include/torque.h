@@ -13,13 +13,13 @@ namespace pba{
 
 class Torque {
 public:
-	Torque(Force_sp& f) : _force(f) {};
+	Torque(ForceSystem_sp f) : _force(f) {};
 	~Torque() = default;
 
 	void compute(RB_sp& rbd, const double dt);
 
 private:
-	Force_sp _force;
+	ForceSystem_sp _force;
 
 };
 
