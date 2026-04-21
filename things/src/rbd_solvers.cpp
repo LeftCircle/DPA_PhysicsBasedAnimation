@@ -119,18 +119,18 @@ void RBDCollisionHandler::_resolve_collision(RB_sp rbd, RBDHitResult& min_hit, f
     Vector rxn = r ^ n;
     
     // Now we have to make the rbd bounce
-    double A_numerator = 2.0 * (lv * n) + w * rxn;
+    double A_numerator = 2.0 * (rbd->linear_velocity * n) + rbd->angular_velocity * rxn;
     double A_denom = (1.0 / M) + rxn * rbd->get_inverse_moi() * rxn;
-    double A = -A_numerator / A_denom;
+    double A = std::abs(A_numerator / A_denom);
     printf("A = %f\n", A);
     //double A = _get_A(rbd, min_hit.particle, min_hit.normal);
 
     // Now update pos and rotation with the bounce
-    lv += A / rbd->get_total_mass() * min_hit.normal;
+    rbd->linear_velocity += A / rbd->get_total_mass() * min_hit.normal;
     rbd->angular_velocity += A * rbd->get_inverse_moi() * rxn;
     
     // Restitution and Sticky
-    lv = (ks * (lv - (lv * n) * n)) + kr * (lv * n) * n;
+    rbd->linear_velocity = (ks * (rbd->linear_velocity - (rbd->linear_velocity * n) * n)) + kr * (rbd->linear_velocity * n) * n;
     rbd->angular_velocity *= (ks + kr) / 2.0;
 
     // Angular momentum update!!!
