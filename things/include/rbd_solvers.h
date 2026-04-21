@@ -80,6 +80,7 @@ public:
 	) override;
 
 private:
+	double _get_A(RB_sp rbd, size_t particle_idx, Vector& n) const;
 	void _handle_rbd_collisions(RB_sp rbd, RBDHitResult& min_hit, const double dt);
 	void _resolve_collision(RB_sp rbd, RBDHitResult& min_hit, float mass_hit, double dt);
 };

@@ -107,6 +107,8 @@ void RBDCollisionHandler::_handle_rbd_collisions(RB_sp rbd, RBDHitResult& min_hi
 void RBDCollisionHandler::_resolve_collision(RB_sp rbd, RBDHitResult& min_hit, float mass_hit, double dt){
     // now let's update the com position and rotation to the hit point
     AdvanceRotationAndCOM::solve(rbd, min_hit.time);
+    
+    // Now some helpers post moving to collision point
     double ks = min_hit.surface->get_sticky();
     double kr = min_hit.surface->get_restitution();
     Vector& lv = rbd->linear_velocity;
@@ -114,33 +116,28 @@ void RBDCollisionHandler::_resolve_collision(RB_sp rbd, RBDHitResult& min_hit, f
     const Vector& r = rbd->get_rotated_lever_arm(min_hit.particle);
     Vector& w = rbd->angular_velocity;
     const float M = rbd->get_total_mass();
-
-    float m = mass_hit;
-    // Now we have to make the rbd bounce
     Vector rxn = r ^ n;
+    
+    // Now we have to make the rbd bounce
     double A_numerator = 2.0 * (lv * n) + w * rxn;
     double A_denom = (1.0 / M) + rxn * rbd->get_inverse_moi() * rxn;
     double A = -A_numerator / A_denom;
-    //printf("A = %f\n", A);
+    printf("A = %f\n", A);
+    //double A = _get_A(rbd, min_hit.particle, min_hit.normal);
 
     // Now update pos and rotation with the bounce
-    rbd->linear_velocity += A / M * min_hit.normal;
-    
-    //rbd->angular_velocity += A * m * rbd->get_inverse_moi() * rxn;
+    lv += A / rbd->get_total_mass() * min_hit.normal;
     rbd->angular_velocity += A * rbd->get_inverse_moi() * rxn;
+    
     // Restitution and Sticky
-    const Vector& updated_lv = rbd->linear_velocity;
-    rbd->linear_velocity = (ks * (updated_lv - (updated_lv * n) * n)) + kr * (updated_lv * n) * n;
-    // I have no clue how to update the angular velocity here
-    rbd->angular_velocity *= (ks + kr) / 2;
+    lv = (ks * (lv - (lv * n) * n)) + kr * (lv * n) * n;
+    rbd->angular_velocity *= (ks + kr) / 2.0;
 
     // Angular momentum update!!!
     rbd->angular_momentum = rbd->get_moi() * rbd->angular_velocity;
 
     // Now we have to update position/rotation
     double time_left = dt - min_hit.time;
-    // We don't actually advance yet. Leave that to the bisecting to predict. 
-    // Now do it again with min_hit_time
     dt = time_left;
     min_hit.time = time_left;
     
@@ -157,6 +154,18 @@ void RBDCollisionHandler::_resolve_collision(RB_sp rbd, RBDHitResult& min_hit, f
     //     printf("Hit time near zero");
     //     rbd->center_of_mass += 0.000001 * min_hit.normal;
     // }
+}
+
+double RBDCollisionHandler::_get_A(RB_sp rbd, size_t particle_idx, Vector& n) const{
+    Vector& lv = rbd->linear_velocity;
+    const Vector& r = rbd->get_rotated_lever_arm(particle_idx);
+    Vector& w = rbd->angular_velocity;
+    const float M = rbd->get_total_mass();
+    
+    Vector rxn = r ^ n;
+    double A_numerator = 2.0 * (lv * n) + w * rxn;
+    double A_denom = (1.0 / M) + rxn * rbd->get_inverse_moi() * rxn;
+    double A = -A_numerator / A_denom;
 }
 
 std::optional<RBDHitResult> pba::bisect_collision(
