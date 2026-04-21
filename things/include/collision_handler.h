@@ -43,6 +43,7 @@ public:
 	~CollisionHandler() = default;
 
 	virtual void register_collision_surface(const CollisionSurface_sp cs) { collision_surfaces.push_back(cs); }
+	virtual void register_rbd(RB_sp rbd) { _rbds.push_back(rbd); }
 	virtual void handle_collisions(DynamicalStateDataBase_sp dsd, const std::string& updated_pos_attr_name, const double dt);
 	
 protected:
@@ -59,6 +60,7 @@ protected:
 	) const noexcept;
 
 	std::vector<CollisionSurface_sp> collision_surfaces;
+	std::vector<RB_sp> _rbds;
 };
 
 using CollisionHandler_sp =  std::shared_ptr<CollisionHandler> ;

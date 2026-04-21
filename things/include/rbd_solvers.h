@@ -9,8 +9,8 @@
 
 namespace pba{
 
-inline constexpr double BISEC_TOLERANCE = 0.01;
-inline constexpr int MAX_BISEC_ITERS = 100;
+inline constexpr double BISEC_TOLERANCE = 0.000001;
+inline constexpr int MAX_BISEC_ITERS = 100000;
 class RBDCollisionHandler;
 
 Vector rbd_single_particle_pos_rot_update(const RB_sp& rb, const size_t idx, const double dt);
@@ -81,6 +81,7 @@ public:
 
 private:
 	void _handle_rbd_collisions(RB_sp rbd, RBDHitResult& min_hit, const double dt);
+	void _resolve_collision(RB_sp rbd, RBDHitResult& min_hit, float mass_hit, double dt);
 };
 
 } // end namespace pba

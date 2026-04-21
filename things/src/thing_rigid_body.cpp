@@ -29,6 +29,7 @@ RigidBodyThingyDingy::RigidBodyThingyDingy(const std::string& nam)
 	//_set_to_sixth_order_solver();
 	//_set_to_backward_euler_solver();
 	_set_to_leapfrog_solver();
+	//_set_to_forward_euler_solver();
 }
 
 void RigidBodyThingyDingy::Init( const std::vector<std::string>& args ) {

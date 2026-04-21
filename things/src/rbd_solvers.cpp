@@ -58,7 +58,7 @@ void RBDCollisionHandler::handle_collisions(
 ) {
 	auto rbd_sp = std::dynamic_pointer_cast<RigidBodyStateData>(dsd);
 	if (!rbd_sp) throw std::runtime_error("RBDCollision handler requires rbd");
-    RBDHitResult min_hit{2 * dt, 0, Vector(0, 0, 0), Vector(0, 0, 0), nullptr};
+    RBDHitResult min_hit{2 * dt, 0, Vector(0, 0, 0), Vector(0, 0, 0), nullptr, false, Vector(0, 0, 0)};
 	_handle_rbd_collisions(rbd_sp, min_hit, dt);
 }
 
@@ -66,8 +66,9 @@ void RBDCollisionHandler::_handle_rbd_collisions(RB_sp rbd, RBDHitResult& min_hi
 	const size_t n = rbd->n_particles();
 	auto masses = rbd->get_float_attribute_span("mass");
     bool colliding = true;
+    int iter = 0;
+    const double start_dt = dt;
     while (colliding){
-    //while (std::abs(min_hit.time) > 0.0001){
         bool hit_found = false;
         for (size_t i = 0; i < rbd->n_particles(); i++){
             for (auto& cs : collision_surfaces){
@@ -84,80 +85,9 @@ void RBDCollisionHandler::_handle_rbd_collisions(RB_sp rbd, RBDHitResult& min_hi
         
         // now we have the earliest time and hit position
         if (hit_found){
-            // now let's update the com position and rotation to the hit point
-            AdvanceRotationAndCOM::solve(rbd, min_hit.time);
-            double ks = min_hit.surface->get_sticky();
-            double kr = min_hit.surface->get_restitution();
-            Vector& lv = rbd->linear_velocity;
-            const Vector& n = min_hit.normal;
-            const Vector& r = rbd->get_rotated_lever_arm(min_hit.particle);
-            const Vector& w = rbd->angular_velocity;
-            const float M = rbd->get_total_mass();
-
-            float m = masses[min_hit.particle];
-            // Now we have to make the rbd bounce
-            // conserve kinetic energy
-            // I tried to derive this from conservation of energy and cannot
-            //Vector nxr =  n ^ r;
-            Vector rxn = r ^ n;
-            //double A_numerator = (2.0 * lv * n) + ((m / M) * (w * nxr));
-            //double A_denom = 1.0 + ((m * m / M) * (nxr * rbd->get_inverse_moi() * nxr));
-            //double A_numerator = 2 * (n * lv + w * (nxr));
-            //double A_denom = 1 + M * (nxr * rbd->get_inverse_moi() * nxr);
-            double A_numerator = 2.0 * (lv * n) + w * rxn;
-            double A_denom = (1.0 / M) + rxn * rbd->get_inverse_moi() * rxn;
-            double A = -A_numerator / A_denom;
-            //printf("A = %f | nxr = %f | r = %f\n", A, nxr.magnitude(), r.magnitude());
-
-
-            // Now update pos and rotation with the bounce
-            rbd->linear_velocity += A / M * min_hit.normal;
-            
-            // 
-            rbd->angular_velocity += A * m * rbd->get_inverse_moi() * rxn;
-            
-            // now scale by sticky and restitution?
-            
-            
-            // wee need the velocity of the collision point....
-            // Vector v = lv + rbd->angular_velocity ^ r;
-            // float v_pre_coll = v * n;
-            // // from donald house:
-            // double j = (-(1.0 + kr) * v_pre_coll) / ((1.0 / m) + (n * (rbd->get_inverse_moi() * ((r ^ n) ^ r))));
-            // rbd->linear_velocity += 1 / m * j * n;
-            // rbd->angular_velocity += j * rbd->get_inverse_moi() * (r ^ n); 
-            
-            // Restitution and Sticky
-            const Vector& updated_lv = rbd->linear_velocity;
-            //rbd->linear_velocity = (ks * (updated_lv - (updated_lv * n) * n)) + kr * (updated_lv * n) * n;
-            // I have no clue how to update the angular velocity here
-            //rbd->angular_velocity *= (ks + kr) / 2;
-
-            // Angular momentum update!!!
-            rbd->angular_momentum = rbd->get_moi() * rbd->angular_velocity;
-
-            // Now we have to update position/rotation
-            double time_left = dt - min_hit.time;
-            // We don't actually advance yet. Leave that to the bisecting to predict. 
-            // Now do it again with min_hit_time
-            dt = time_left;
-            min_hit.time = time_left;
-            // move it up a smidgen if no convergence. Keeps all particles on the same side
-            // of the collision plane
-            
-            float n_dot_vec_from_plane_to_hit_pos = min_hit.normal * (min_hit.position - min_hit.point_on_cobj);
-            if (n_dot_vec_from_plane_to_hit_pos < 0){ //!min_hit.converged){//} &&
-                rbd->center_of_mass += 2 * n_dot_vec_from_plane_to_hit_pos * min_hit.normal;
-                printf("Adjusted COM\n");
-            }
-            // This is a bit of a hack to avoid an infinite loop and to keep the bunny from freezing
-            // when it is on a surface
-            if (std::abs(min_hit.time) < 0.00000001){
-                printf("Adjust slightly above plane");
-                rbd->center_of_mass += 0.000001 * min_hit.normal;
-            }
-            
-            
+            _resolve_collision(rbd, min_hit, masses[min_hit.particle], dt);
+            dt = min_hit.time;
+            //printf("resolving collision %i dt = %f start_dt = %f\n", iter++, dt, start_dt);
         } else {
             colliding = false;
             // no collision! 
@@ -165,7 +95,68 @@ void RBDCollisionHandler::_handle_rbd_collisions(RB_sp rbd, RBDHitResult& min_hi
             AdvanceRotationAndCOM::solve(rbd, dt);
             return;
         }
+        if (iter > 100){
+            float n_dot_vec_from_plane_to_hit_pos = min_hit.normal * (min_hit.position - min_hit.point_on_cobj);
+            rbd->center_of_mass += 4 * n_dot_vec_from_plane_to_hit_pos * min_hit.normal;
+            printf("Itered out\n");
+            return;
+        }
     }
+}
+
+void RBDCollisionHandler::_resolve_collision(RB_sp rbd, RBDHitResult& min_hit, float mass_hit, double dt){
+    // now let's update the com position and rotation to the hit point
+    AdvanceRotationAndCOM::solve(rbd, min_hit.time);
+    double ks = min_hit.surface->get_sticky();
+    double kr = min_hit.surface->get_restitution();
+    Vector& lv = rbd->linear_velocity;
+    const Vector& n = min_hit.normal;
+    const Vector& r = rbd->get_rotated_lever_arm(min_hit.particle);
+    Vector& w = rbd->angular_velocity;
+    const float M = rbd->get_total_mass();
+
+    float m = mass_hit;
+    // Now we have to make the rbd bounce
+    Vector rxn = r ^ n;
+    double A_numerator = 2.0 * (lv * n) + w * rxn;
+    double A_denom = (1.0 / M) + rxn * rbd->get_inverse_moi() * rxn;
+    double A = -A_numerator / A_denom;
+    //printf("A = %f\n", A);
+
+    // Now update pos and rotation with the bounce
+    rbd->linear_velocity += A / M * min_hit.normal;
+    
+    //rbd->angular_velocity += A * m * rbd->get_inverse_moi() * rxn;
+    rbd->angular_velocity += A * rbd->get_inverse_moi() * rxn;
+    // Restitution and Sticky
+    const Vector& updated_lv = rbd->linear_velocity;
+    rbd->linear_velocity = (ks * (updated_lv - (updated_lv * n) * n)) + kr * (updated_lv * n) * n;
+    // I have no clue how to update the angular velocity here
+    rbd->angular_velocity *= (ks + kr) / 2;
+
+    // Angular momentum update!!!
+    rbd->angular_momentum = rbd->get_moi() * rbd->angular_velocity;
+
+    // Now we have to update position/rotation
+    double time_left = dt - min_hit.time;
+    // We don't actually advance yet. Leave that to the bisecting to predict. 
+    // Now do it again with min_hit_time
+    dt = time_left;
+    min_hit.time = time_left;
+    
+    // move it up a smidgen if no convergence. Keeps all particles on the same side
+    // of the collision plane
+    // float n_dot_vec_from_plane_to_hit_pos = min_hit.normal * (min_hit.position - min_hit.point_on_cobj);
+    // if (n_dot_vec_from_plane_to_hit_pos < 0 && !min_hit.converged){//} &&
+    //     rbd->center_of_mass += 8 * n_dot_vec_from_plane_to_hit_pos * min_hit.normal;
+    //     printf("Adjusted COM\n");
+    // }
+    // // This is a bit of a hack to avoid an infinite loop and to keep the bunny from freezing
+    // // when it is on a surface
+    // if (std::abs(min_hit.time) < 0.00000001){
+    //     printf("Hit time near zero");
+    //     rbd->center_of_mass += 0.000001 * min_hit.normal;
+    // }
 }
 
 std::optional<RBDHitResult> pba::bisect_collision(
@@ -194,11 +185,13 @@ std::optional<RBDHitResult> pba::bisect_collision(
 		if (std::abs(fmid) < BISEC_TOLERANCE && fmid * f1 > 0){
             // We need to check if the collision is actually on the object.
             // like for a triangle if it is within the barycentric coords
-            bool is_within = cobj->is_on_surface(x_mid);
+            // We should project the point to the plane that the triangle is on first. 
+            Vector norm = (rbd->center_of_mass - cobj->get_point_on_obj()) * n > 0 ? n : -n;
+            Vector vec_to_surface = x_mid - (fmid * norm);
+            bool is_within = cobj->is_on_surface(vec_to_surface);
             if (!is_within){
                 return std::nullopt;
             }
-			Vector norm = (rbd->center_of_mass - x_mid) * n > 0 ? n : -n;
             return RBDHitResult{th, particle_idx, x_mid, norm, cs, true, cobj->get_point_on_obj()};
 		}
 		if (f1 * fmid > 0){
@@ -208,7 +201,7 @@ std::optional<RBDHitResult> pba::bisect_collision(
 		}
 	}
 	// did not converge. Just return what we have
-    printf("Did not converge\n");
+    printf("Did not converge th = %f\n", th);
 	Vector norm = (rbd->center_of_mass - x_mid) * n > 0 ? n : -n;
 	return RBDHitResult{th, particle_idx, x_mid, norm, cs, false, cobj->get_point_on_obj()};
 }
