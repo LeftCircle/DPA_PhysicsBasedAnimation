@@ -93,8 +93,17 @@ bool CollisionPlane::hit(
 	const Vector& end_pos,
 	const Vector& velocity,
 	const double dt,
-	CollisionHitInfo& hit_info) const {
-	return _point_plane_collision(_point_on_plane, _normal, start_pos, end_pos, velocity, dt, hit_info);
+	CollisionHitInfo& hit_info) const
+{
+	bool hit = _point_plane_collision(_point_on_plane, _normal, start_pos, end_pos, velocity, dt, hit_info);
+	if (hit){
+		if ( (end_pos - start_pos) * _normal > 0 ) {
+			hit_info.normal = _normal * -1.0;
+		} else {
+			hit_info.normal = _normal;
+		}
+	}
+	return hit;
 }
 
 bool CollisionPlane::is_on_surface(const Vector& pos, const double threshold) const {

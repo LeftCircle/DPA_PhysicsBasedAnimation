@@ -23,13 +23,13 @@ void PartialSolverAdvancePosition::solve(const double dt){
 	if (_collision_handler) {
 		_collision_handler->handle_collisions(_state_data, "new_positions", dt);
 	}
+	std::copy(new_pos.begin(), new_pos.end(), pos.begin());
 	if (_occupancy_volume) {
 		_occupancy_volume->populate(
 			_state_data->get_vector_attribute_span("positions"),
 			[](vec_st& cell, size_t i){ cell.push_back(i); }
 		);
 	}
-	std::copy(new_pos.begin(), new_pos.end(), pos.begin());
 }
 
 AdvancePositionWithCollisions::AdvancePositionWithCollisions(DynamicalStateData_sp dsd, CollisionHandler_sp collision_handler) :

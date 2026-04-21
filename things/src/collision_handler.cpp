@@ -25,11 +25,10 @@ void CollisionHandler::handle_collisions(
 }
 
 void CollisionHandler::_handle_particle_collisions(
-													Vector& start_pos,
-													Vector& updated_pos,
-													Vector& velocity,
-													const double dt
-	) const 
+	Vector& start_pos,
+	Vector& updated_pos,
+	Vector& velocity,
+	const double dt) const 
 {
 	bool keep_checking = true;
 	CollisionHandleInfo earliest_hit;

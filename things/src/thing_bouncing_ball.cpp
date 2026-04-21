@@ -45,7 +45,8 @@ void BouncingBallThing::_set_to_backward_euler_solver(){
 	// Clear existing solvers
 	_solver_system = create_gi_solver_system();
 
-	auto advance_position_solver = create_advance_position_with_collisions(_dsd, _collision_handler);
+	//auto advance_position_solver = create_advance_position_with_collisions(_dsd, _collision_handler);
+	auto advance_position_solver = std::make_shared<PartialSolverAdvancePosition>(_dsd, _collision_handler);
 	auto advance_velocity_solver = std::make_shared<AdvanceVelocityWithForces>(_dsd, _force_system);
 	_solver_system->add_solver(advance_velocity_solver, dt);
 	_solver_system->add_solver(advance_position_solver, dt);
@@ -57,7 +58,8 @@ void BouncingBallThing::_set_to_forward_euler_solver(){
 	_solver_system = create_gi_solver_system();
 
 	auto advance_velocity_solver = std::make_shared<AdvanceVelocityWithForces>(_dsd, _force_system);
-	auto advance_position_solver = create_advance_position_with_collisions(_dsd, _collision_handler);
+	//auto advance_position_solver = create_advance_position_with_collisions(_dsd, _collision_handler);
+	auto advance_position_solver = std::make_shared<PartialSolverAdvancePosition>(_dsd, _collision_handler);
 	_solver_system->add_solver(advance_position_solver, dt);
 	_solver_system->add_solver(advance_velocity_solver, dt);
 	printf("Switched to Forward Euler solver.\n");
@@ -65,7 +67,8 @@ void BouncingBallThing::_set_to_forward_euler_solver(){
 
 void BouncingBallThing::_set_to_leapfrog_solver(){
 	_solver_system = create_gi_solver_system();
-	auto advance_position_solver = create_advance_position_with_collisions(_dsd, _collision_handler);
+	//auto advance_position_solver = create_advance_position_with_collisions(_dsd, _collision_handler);
+	auto advance_position_solver = std::make_shared<PartialSolverAdvancePosition>(_dsd, _collision_handler);
 	auto advance_velocity_solver = std::make_shared<AdvanceVelocityWithForces>(_dsd, _force_system);
 	_solver_system->add_solver(advance_position_solver, dt / 2.0);
 	_solver_system->add_solver(advance_velocity_solver, dt);
@@ -75,7 +78,8 @@ void BouncingBallThing::_set_to_leapfrog_solver(){
 
 void BouncingBallThing::_set_to_sixth_order_solver(){
 	_solver_system = create_gi_solver_system();
-	auto advance_position_solver = create_advance_position_with_collisions(_dsd, _collision_handler);
+	//auto advance_position_solver = create_advance_position_with_collisions(_dsd, _collision_handler);
+	auto advance_position_solver = std::make_shared<PartialSolverAdvancePosition>(_dsd, _collision_handler);
 	auto advance_velocity_solver = std::make_shared<AdvanceVelocityWithForces>(_dsd, _force_system);
 	auto leapfrog_solver = std::make_shared<GISolverLeapfrog>(advance_position_solver, advance_velocity_solver);
 	auto sixth_order_solver = std::make_shared<GISolverSixthOrder>(leapfrog_solver);
@@ -216,29 +220,45 @@ void BouncingBallThing::_initialize_box_collision_surface(const AABB& bounds){
 	// All the normals will point into the box
 	Triangle b1 = Triangle(bll, brf, brl);
 	Triangle b2 = Triangle(bll, blf, brf);
-	_box->add_collision_object(std::make_shared<CollisionTriangle>(b1));
-	_box->add_collision_object(std::make_shared<CollisionTriangle>(b2));
+	//_box->add_collision_object(std::make_shared<CollisionTriangle>(b1));
+	//_box->add_collision_object(std::make_shared<CollisionTriangle>(b2));
 	Triangle t1 = Triangle(tll, trl, trf);
 	Triangle t2 = Triangle(tll, trf, tlf);
-	_box->add_collision_object(std::make_shared<CollisionTriangle>(t1));
-	_box->add_collision_object(std::make_shared<CollisionTriangle>(t2));
+	//_box->add_collision_object(std::make_shared<CollisionTriangle>(t1));
+	//_box->add_collision_object(std::make_shared<CollisionTriangle>(t2));
 	Triangle l1 = Triangle(bll, tlf, blf);
 	Triangle l2 = Triangle(bll, tll, tlf);
-	_box->add_collision_object(std::make_shared<CollisionTriangle>(l1));
-	_box->add_collision_object(std::make_shared<CollisionTriangle>(l2));
+	//_box->add_collision_object(std::make_shared<CollisionTriangle>(l1));
+	//_box->add_collision_object(std::make_shared<CollisionTriangle>(l2));
 	Triangle r1 = Triangle(brl, brf, trf);
 	Triangle r2 = Triangle(brl, trf, trl);
-	_box->add_collision_object(std::make_shared<CollisionTriangle>(r1));
-	_box->add_collision_object(std::make_shared<CollisionTriangle>(r2));
+	//_box->add_collision_object(std::make_shared<CollisionTriangle>(r1));
+	//_box->add_collision_object(std::make_shared<CollisionTriangle>(r2));
 	Triangle back1 = Triangle(bll, brl, trl);
 	Triangle back2 = Triangle(bll, trl, tll);
-	_box->add_collision_object(std::make_shared<CollisionTriangle>(back1));
-	_box->add_collision_object(std::make_shared<CollisionTriangle>(back2));
+	//_box->add_collision_object(std::make_shared<CollisionTriangle>(back1));
+	//_box->add_collision_object(std::make_shared<CollisionTriangle>(back2));
 	Triangle front1 = Triangle(blf, trf, brf);
 	Triangle front2 = Triangle(blf, tlf, trf);
-	_box->add_collision_object(std::make_shared<CollisionTriangle>(front1));
-	_box->add_collision_object(std::make_shared<CollisionTriangle>(front2));
+	//_box->add_collision_object(std::make_shared<CollisionTriangle>(front1));
+	//_box->add_collision_object(std::make_shared<CollisionTriangle>(front2));
 	
+	// Just doing planes for now
+	Vector size = bounds.size();
+	Vector hs = size / 2.0;
+	Vector top = bounds.upper_right() - Vector(hs.X(), 0, hs.Z());
+	Vector right = bounds.upper_right() - Vector(0, hs.Y(), hs.Z());
+	Vector left = bounds.lower_left() + Vector(0, hs.Y(), hs.Z());
+	Vector back = bounds.upper_right() - Vector(hs.X(), hs.Y(), 0);
+	Vector front = bounds.lower_left() + Vector(hs.X(), hs.Y(), 0);
+	Vector bottom = bounds.lower_left() + Vector(hs.X(), 0, hs.Z());
+	_box->add_collision_object(std::make_shared<CollisionPlane>(top, Vector(0, -1, 0)));
+	_box->add_collision_object(std::make_shared<CollisionPlane>(left, Vector(1, 0, 0)));
+	_box->add_collision_object(std::make_shared<CollisionPlane>(right, Vector(-1, 0, 0)));
+	_box->add_collision_object(std::make_shared<CollisionPlane>(back, Vector(0, 0, 1)));
+	_box->add_collision_object(std::make_shared<CollisionPlane>(front, Vector(0, 0, -1)));
+	_box->add_collision_object(std::make_shared<CollisionPlane>(bottom, Vector(0, 1, 0)));
+
 	_tris_to_draw.push_back(b1);
 	_tris_to_draw.push_back(b2);
 	_tris_to_draw.push_back(t1);

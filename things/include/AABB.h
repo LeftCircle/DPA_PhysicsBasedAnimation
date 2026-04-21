@@ -18,6 +18,7 @@ public:
 				point.Y() >= llc.Y() && point.Y() <= urc.Y() &&
 				point.Z() >= llc.Z() && point.Z() <= urc.Z());
 	}
+	const Vector size() const {return urc - llc; }
 
 private:
 	Vector llc;
