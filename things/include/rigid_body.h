@@ -33,6 +33,7 @@ public:
 
 	const Vector& get_lever_arm(const size_t p) const noexcept { return _lever_arms_iter->second.get(p); }
 	Vector get_rotated_lever_arm(const size_t p) const;
+	Vector get_rotated_lever_arm(const Vector& position) const;
 	
 	//const Vector& get_acceleration(size_t i) const noexcept { return _acc_map_iter->second.get(i); }
 	//const float& get_mass(size_t i) const noexcept { return _mass_map_iter->second.get(i); }

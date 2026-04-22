@@ -48,7 +48,7 @@ private:
 		double dt
 	) const;
 	void _update_rbd_and_particles_by(DSD_sp dsd, const double dt);
-	void _resolve_particle_rbd_collision(DSD_sp dsd, ParticleRBDHitResult& hit_info);
+	void _resolve_particle_rbd_collision(DSD_sp dsd, ParticleRBDHitResult& hit_info, const double dt);
 
 	std::vector<RB_sp> _rbds;
 

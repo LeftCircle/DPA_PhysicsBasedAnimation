@@ -8,56 +8,80 @@ void ParticleRBDCollisionHandler::handle_collisions(
 	const std::string& updated_pos_attr_name,
 	const double dt
 ){
-	// This assumes that all particles have updated positions
-	// So start by checking for earliest particle collision, then earliest rbd collisions
-
-	// 1.) find earliest particle static geo collision (we might not need this)
-	CollisionHandleInfo earliest_particle_hit = _find_earliest_particle_static_geo_collision(
-		dsd, "updated_positions", dt
-	);
-
-	// 2.) find earliest rbd static geo collision
-	std::pair<RB_sp, RBDHitResult> earliest_rbd_hit = _find_earliest_rbd_static_collision_from_all_rbds(dt);
-
-	// 3.) find earliest particle rbd triangle collision
-	// Will need a different data structure that tracks what triangle of what rbd is hit
-	ParticleRBDHitResult earliest_particle_triangle_hit = _find_earliest_particle_rbd_collision(dsd, dt);
-	
-	// 4.) advance all to the time of earliest collision
-	double p_t = std::abs(earliest_particle_hit.hit_info.time_of_impact);
-	double rbd_t = std::abs(earliest_rbd_hit.second.time);
-	double p_rbd_t = std::abs(earliest_particle_triangle_hit.time);
-	double abs_2dt = std::abs(2.0 * dt);
+	bool collision_found = true;
 	double time_left = dt;
-	if (p_t < abs_2dt && p_t < rbd_t && p_t < p_rbd_t){
-		// Min time is for particles. Advance particles with collisions and the rest without
-		_update_rbd_and_particles_by(dsd, earliest_particle_hit.hit_info.time_of_impact);
-		_resolve_particle_collision(dsd, earliest_particle_hit, dt);
-		time_left = dt - earliest_particle_hit.hit_info.time_of_impact;
-	} else if (rbd_t < abs_2dt && rbd_t < p_t && rbd_t < p_rbd_t){
-		// Min time is for rbd. Advance rbd with collisions and rest without
-		_update_rbd_and_particles_by(dsd, earliest_rbd_hit.second.time);
-		_resolve_collision(earliest_rbd_hit.first, earliest_rbd_hit.second, earliest_rbd_hit.second.time);
-		time_left = dt - earliest_rbd_hit.second.time;
-	} else if (p_rbd_t < abs_2dt && p_rbd_t < p_t && p_rbd_t < rbd_t){
-		// particle rbd collision. Advance particles and rbd, then rest without.
-		_update_rbd_and_particles_by(dsd, earliest_particle_triangle_hit.time);
-		_resolve_particle_rbd_collision(dsd, earliest_particle_triangle_hit);
-		time_left = dt - earliest_particle_triangle_hit.time;
+	while (collision_found){
+
+		// 1.) find earliest particle static geo collision (we might not need this)
+		CollisionHandleInfo earliest_particle_hit = _find_earliest_particle_static_geo_collision(
+			dsd, "updated_positions", time_left
+		);
+
+		// 2.) find earliest rbd static geo collision
+		std::pair<RB_sp, RBDHitResult> earliest_rbd_hit = _find_earliest_rbd_static_collision_from_all_rbds(time_left);
+
+		// 3.) find earliest particle rbd triangle collision
+		// Will need a different data structure that tracks what triangle of what rbd is hit
+		ParticleRBDHitResult earliest_particle_triangle_hit = _find_earliest_particle_rbd_collision(dsd, time_left);
+		
+		// 4.) advance all to the time of earliest collision
+		double p_t = std::abs(earliest_particle_hit.hit_info.time_of_impact);
+		double rbd_t = std::abs(earliest_rbd_hit.second.time);
+		double p_rbd_t = std::abs(earliest_particle_triangle_hit.time);
+		double abs_2dt = std::abs(2.0 * time_left);
+		if (p_t < abs_2dt && p_t < rbd_t && p_t < p_rbd_t){
+			// Min time is for particles. Advance particles with collisions and the rest without
+			_update_rbd_and_particles_by(dsd, earliest_particle_hit.hit_info.time_of_impact);
+			_resolve_particle_collision(dsd, earliest_particle_hit, time_left);
+			time_left = time_left - earliest_particle_hit.hit_info.time_of_impact;
+		} else if (rbd_t < abs_2dt && rbd_t < p_t && rbd_t < p_rbd_t){
+			// Min time is for rbd. Advance rbd with collisions and rest without
+			_update_rbd_and_particles_by(dsd, earliest_rbd_hit.second.time);
+			_resolve_collision(earliest_rbd_hit.first, earliest_rbd_hit.second, earliest_rbd_hit.second.time);
+			time_left = time_left - earliest_rbd_hit.second.time;
+		} else if (p_rbd_t < abs_2dt && p_rbd_t < p_t && p_rbd_t < rbd_t){
+			// particle rbd collision. Advance particles and rbd, then rest without.
+			_update_rbd_and_particles_by(dsd, earliest_particle_triangle_hit.time);
+			_resolve_particle_rbd_collision(dsd, earliest_particle_triangle_hit, time_left);
+			time_left = time_left - earliest_particle_triangle_hit.time;
+		} else{
+			collision_found = false;
+			// No collisions! update everything by the remaining dt
+			_update_rbd_and_particles_by(dsd, time_left);
+			break;
+		}
 	}
-
-	// 5.) determine new velocities for the colliding particles/rbds based on collision type
-
-	// 6.) repeat until there are no more collisions this timestep. 
 }
 
-void ParticleRBDCollisionHandler::_resolve_particle_rbd_collision(DSD_sp dsd, ParticleRBDHitResult& hit_info){
+void ParticleRBDCollisionHandler::_resolve_particle_rbd_collision(DSD_sp dsd, ParticleRBDHitResult& hit_info, const double dt){
 	// Everything is already updated to the correct space in time. Now we just need the particle and
 	// rbd collision response. 
+    const Vector& n = hit_info.normal;
+    const Vector& r = hit_info.rbd->get_rotated_lever_arm(hit_info.position);
+	const float mp = dsd->get_mass(hit_info.particle);
+    const float M = hit_info.rbd->get_total_mass() + mp;
+    Vector rxn = r ^ n;
+    RB_sp rbd = hit_info.rbd;
+	const float rbd_m = rbd->get_total_mass();
+	//Vector COM = (mp * dsd->get_position(hit_info.particle) + rbd_m * rbd->center_of_mass) / M;
 
-	// NOTE -> The collision response MIGHT cause the particle to be on the opposite side of the
-	// collision surface. We should check for this case. 
+    // Now we have to make the rbd bounce
+    double A_numer_a = (rbd->linear_velocity * M / rbd_m + dsd->get_velocity(hit_info.particle)) * n;
+    double A_numer_b = rbd->angular_velocity * rxn;
+	double A_denom = 1.0 / mp + M / (rbd_m * rbd_m) + rxn * rbd->get_inverse_moi() * rxn;
+    double A = std::abs(2.0 * (A_numer_a + A_numer_b) / A_denom);
+    //printf("A = %f\n", A);
 
+    // Now update pos and rotation with the bounce
+    rbd->linear_velocity -= A / rbd->get_total_mass() * n;
+    rbd->angular_velocity -= A * rbd->get_inverse_moi() * rxn;
+	dsd->set_velocity(hit_info.particle, dsd->get_velocity(hit_info.particle) + A / mp * n);
+	// Now we have to set the expected update position for this particle
+	Vector new_p = dsd->get_position(hit_info.particle) + dsd->get_velocity(hit_info.particle) * (dt - hit_info.time);
+	dsd->set_updated_position(hit_info.particle, new_p);
+
+    // Angular momentum update!!!
+    rbd->angular_momentum = rbd->get_moi() * rbd->angular_velocity;
 }
 
 void ParticleRBDCollisionHandler::_update_rbd_and_particles_by(DSD_sp dsd,const double dt){

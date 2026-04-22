@@ -59,6 +59,10 @@ Vector RigidBodyStateData::get_rotated_lever_arm(const size_t p) const{
 	return angular_rotation * get_lever_arm(p);
 }
 
+Vector RigidBodyStateData::get_rotated_lever_arm(const Vector& pos) const {
+	return pos - center_of_mass;
+}
+
 void RigidBodyStateData::compute_com() {
 	auto masses = get_float_attribute_span("mass");
 	auto positions = get_vector_attribute_span("initial_positions");

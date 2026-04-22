@@ -39,6 +39,7 @@ public:
 
 	// setters for common attributes
 	void set_position(size_t i, const Vector& v) { _pos_map_iter->second.set(i, v); }
+	void set_updated_position(size_t i, const Vector& v) {_updated_pos_map_iter->second.set(i, v); }
 	void set_velocity(size_t i, const Vector& v) { _vel_map_iter->second.set(i, v); }
 	void set_acceleration(size_t i, const Vector& v) { _acc_map_iter->second.set(i, v); }
 	void set_mass(size_t i, const float& m) { _mass_map_iter->second.set(i, m); }
