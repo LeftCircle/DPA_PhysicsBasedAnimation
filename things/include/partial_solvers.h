@@ -27,6 +27,8 @@ public:
 
 	void init() override {}
 	virtual void solve(const double dt) override;
+	// Updates positions by dt. Does not override updated_positions
+	static void partial_update(DSDB_sp dsd, const double dt);
 
 protected:
 	DynamicalStateData_sp _state_data;

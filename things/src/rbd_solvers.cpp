@@ -52,7 +52,7 @@ void AdvanceAngularVelocityAndVelocity::solve(const double dt){
 }
 
 void RBDCollisionHandler::handle_collisions(
-	DynamicalStateDataBase_sp dsd,
+	DSD_sp dsd,
 	const std::string& updated_pos_attr_name,
 	const double dt
 ) {
@@ -72,7 +72,8 @@ void RBDCollisionHandler::_handle_rbd_collisions(RB_sp rbd, RBDHitResult& min_hi
         bool hit_found = _find_earliest_rbd_static_collision(rbd, min_hit, dt);
         // now we have the earliest time and hit position
         if (hit_found){
-            _resolve_collision(rbd, min_hit, masses[min_hit.particle], dt);
+            AdvanceRotationAndCOM::solve(rbd, min_hit.time);
+            _resolve_collision(rbd, min_hit, dt);
             dt = min_hit.time;
         } else {
             colliding = false;
@@ -107,10 +108,8 @@ bool RBDCollisionHandler::_find_earliest_rbd_static_collision(RB_sp rbd, RBDHitR
 	return hit_found;
 }
 
-void RBDCollisionHandler::_resolve_collision(RB_sp rbd, RBDHitResult& min_hit, float mass_hit, double dt){
+void RBDCollisionHandler::_resolve_collision(RB_sp rbd, RBDHitResult& min_hit, double dt){
     // now let's update the com position and rotation to the hit point
-    AdvanceRotationAndCOM::solve(rbd, min_hit.time);
-    
     // Now some helpers post moving to collision point
     double ks = min_hit.surface->get_sticky();
     double kr = min_hit.surface->get_restitution();

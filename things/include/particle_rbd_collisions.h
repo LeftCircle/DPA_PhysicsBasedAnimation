@@ -3,6 +3,7 @@
 
 #include "rbd_solvers.h"
 #include "shapes.h"
+#include "partial_solvers.h"
 
 using namespace pba;
 
@@ -13,6 +14,9 @@ struct ParticleRBDHitResult {
 	Vector position;
 	Vector normal;
 	bool converged = false;
+	RB_sp rbd;
+
+	void set_rbd(RB_sp new_rbd) {rbd = new_rbd; }
 };
 
 class ParticleRBDCollisionHandler : public RBDCollisionHandler{
@@ -20,7 +24,7 @@ public:
 	virtual void register_rbd(RB_sp rbd) { _rbds.push_back(rbd); }
 
 	void handle_collisions(
-		DynamicalStateDataBase_sp dsd,
+		DSD_sp dsd,
 		const std::string& updated_pos_attr_name,
 		const double dt
 	) override;
@@ -33,7 +37,7 @@ public:
 	) const;
 
 private:
-	RBDHitResult _find_earliest_rbd_static_collision_from_all_rbds(const double dt) const;
+	std::pair<RB_sp, RBDHitResult> _find_earliest_rbd_static_collision_from_all_rbds(const double dt) const;
 	ParticleRBDHitResult _find_earliest_particle_rbd_collision(DSDB_sp dsd, const double dt) const;
 	ParticleRBDHitResult _bisect_particle_rbd_collision(
 		size_t particle_idx,
@@ -43,6 +47,9 @@ private:
 		RB_sp rbd,
 		double dt
 	) const;
+	void _update_rbd_and_particles_by(DSD_sp dsd, const double dt);
+	void _resolve_particle_rbd_collision(DSD_sp dsd, ParticleRBDHitResult& hit_info);
+
 	std::vector<RB_sp> _rbds;
 
 };

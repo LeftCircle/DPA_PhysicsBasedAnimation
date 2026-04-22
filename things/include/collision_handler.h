@@ -26,6 +26,7 @@ struct CollisionHandleInfo {
 		collision_surface(cs), hit_info(hi) {}
 	CollisionSurface_sp collision_surface;
 	CollisionHitInfo hit_info;
+	size_t particle_idx;
 };
 
 struct ParticleUpdateInfo {
@@ -37,23 +38,29 @@ struct ParticleUpdateInfo {
 	double remaining_dt;
 };
 
-class CollisionHandler{
+class CollisionHandler {
 public:
 	CollisionHandler() = default;
 	~CollisionHandler() = default;
 
 	virtual void register_collision_surface(const CollisionSurface_sp cs) { collision_surfaces.push_back(cs); }
-	virtual void handle_collisions(DynamicalStateDataBase_sp dsd, const std::string& updated_pos_attr_name, const double dt);
+	virtual void handle_collisions(DSD_sp dsd, const std::string& updated_pos_attr_name, const double dt);
 	
 protected:
 	CollisionHandleInfo _find_earliest_particle_static_geo_collision(
-		DSDB_sp dsd,
+		DSD_sp dsd,
 		const std::string& updated_pos_attr_name,
 		const double dt
 	) const;
 	
-	virtual void _add_required_attributes(DynamicalStateDataBase_sp dsd) const {}
-	void _handle_particle_collisions(Vector& start_pos, Vector& updated_pos, Vector& velocity, const double dt) const;
+	virtual void _add_required_attributes(DSD_sp dsd) const {}
+	void _handle_particle_collisions(
+		size_t particle_idx,
+		Vector& start_pos,
+		Vector& updated_pos,
+		Vector& velocity,
+		const double dt
+	) const;
 	bool _check_for_collision_against_all_surfaces(CollisionHandleInfo& earliest_hit, CollisionHitInfo& temp_hit, ParticleUpdateInfo& pui) const;
 	void _on_collision_detected(CollisionHandleInfo& earliest_hit, ParticleUpdateInfo& pui) const noexcept;
 	Vector _resolve_collision_against_static_object(
@@ -63,6 +70,7 @@ protected:
 		const double restitution, 
 		const double sticky
 	) const noexcept;
+	void _resolve_particle_collision(DSD_sp dsd, CollisionHandleInfo& hit, double dt);
 
 	std::vector<CollisionSurface_sp> collision_surfaces;
 };

@@ -29,6 +29,13 @@ public:
 	const Vector& get_acceleration(size_t i) const { return _acc_map_iter->second.get(i); }
 	const float& get_mass(size_t i) const { return _mass_map_iter->second.get(i); }
 	const Color& get_color(size_t i) const { return _color_map_iter->second.get(i); }
+	
+	Vector& get_position(size_t i) { return _pos_map_iter->second.get(i); }
+	Vector& get_updated_position(size_t i) { return _updated_pos_map_iter->second.get(i); }
+	Vector& get_velocity(size_t i) { return _vel_map_iter->second.get(i); }
+	Vector& get_acceleration(size_t i) { return _acc_map_iter->second.get(i); }
+	float& get_mass(size_t i) { return _mass_map_iter->second.get(i); }
+	Color& get_color(size_t i) { return _color_map_iter->second.get(i); }
 
 	// setters for common attributes
 	void set_position(size_t i, const Vector& v) { _pos_map_iter->second.set(i, v); }

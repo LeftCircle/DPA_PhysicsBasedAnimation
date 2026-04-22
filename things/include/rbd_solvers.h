@@ -75,7 +75,7 @@ public:
 	~RBDCollisionHandler() = default;
 
 	virtual void handle_collisions(
-		DynamicalStateDataBase_sp dsd,
+		DSD_sp dsd,
 		const std::string& updated_pos_attr_name,
 		const double dt
 	) override;
@@ -84,7 +84,7 @@ protected:
 	bool _find_earliest_rbd_static_collision(RB_sp rbd, RBDHitResult& min_hit, double dt) const;
 	virtual double _get_A(RB_sp rbd, size_t particle_idx, Vector& n) const;
 	void _handle_rbd_collisions(RB_sp rbd, RBDHitResult& min_hit, const double dt);
-	void _resolve_collision(RB_sp rbd, RBDHitResult& min_hit, float mass_hit, double dt);
+	void _resolve_collision(RB_sp rbd, RBDHitResult& min_hit, double dt);
 };
 
 } // end namespace pba
