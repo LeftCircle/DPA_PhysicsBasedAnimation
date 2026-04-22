@@ -50,6 +50,23 @@ void RigidBodyStateData::resize(size_t n){
 	init_rbd();
 }
 
+void RigidBodyStateData::create_from_obj(ObjReader<cato::Vec3i>& obj, const Vector& center){
+    auto verts = obj.get_verts();
+    auto faces = obj.get_faces();
+    for (size_t i = 0; i < obj.get_verts().size(); i++){
+        add();
+		cato::Vec3i& v = verts[i];
+		Vector pos = Vector(v.x(), v.y(), v.z()) + center;
+        set_initial_position(i, pos);
+		set_position(i, pos);
+    }
+	_faces.resize(faces.size());
+	for (size_t i = 0; i < faces.size(); i++){
+		_faces[i] = cato::Vec3s(faces[i].x(), faces[i].y(), faces[i].z());
+	}
+    init_rbd();
+}
+
 Vector RigidBodyStateData::get_vert_pos(size_t p) const {
 	return angular_rotation * get_lever_arm(p) + center_of_mass;
 }

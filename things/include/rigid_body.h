@@ -11,6 +11,7 @@
 #include "the_wheel.h"
 #include "dynamical_state_data.h"
 #include "LinearAlgebra.h"
+#include "obj_reader.h"
 
 
 namespace pba {
@@ -28,6 +29,7 @@ public:
 	void resize(size_t n) override;
 
 	void set_initial_position(size_t n, const Vector& pos);
+	void create_from_obj(ObjReader<cato::Vec3i>& obj, const Vector& center);
 	
 	void init_rbd();
 
@@ -45,7 +47,7 @@ public:
 	const float get_total_mass() const noexcept {return _total_mass; }
 	const Matrix& get_moi() const noexcept { return _moment_of_inertia; }
 	const Matrix& get_inverse_moi() const noexcept { return _inverse_moi; }
-
+	const std::vector<cato::Vec3s>& get_face_indices() const noexcept { return _faces; }
 	void compute_moi();
 
 	void compute_com();
@@ -65,8 +67,7 @@ private:
 	void _compute_moi(int i, int j) noexcept;
 
 	std::map< std::string, DSAv >::iterator _lever_arms_iter;
-	//std::map < std::string, DSAv >::iterator _acc_map_iter;
-	//std::map < std::string, DSAf >::iterator _mass_map_iter;
+	std::vector<cato::Vec3s> _faces;
 	
 	Matrix _moment_of_inertia{1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0};
 	Matrix _inverse_moi{1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0};

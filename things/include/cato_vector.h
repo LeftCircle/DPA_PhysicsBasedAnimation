@@ -20,6 +20,7 @@ private:
 };
 
 using Vec3i = Vector3<int>;
+using Vec3s = Vector3<size_t>;
 }
 
 

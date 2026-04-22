@@ -115,8 +115,9 @@ ParticleRBDHitResult ParticleRBDCollisionHandler::_find_earliest_particle_rbd_co
 	for (size_t i = 0; i < dsd->n_particles(); i++){
 		for (auto& rbd: _rbds){
 			// rbds can have a vector attribute that contains all of the indices for each face of the mesh
-			auto tri_indices = rbd->get_vector_attribute_span("tri_indices");
-			for (auto& tri_vec : tri_indices){
+			auto tri_indices = rbd->get_face_indices();
+			for (auto& cato_tri_vec : tri_indices){
+				Vector tri_vec = Vector(cato_tri_vec.x(), cato_tri_vec.y(), cato_tri_vec.z());
 				// We can run collision checks against each tri here
 				Triangle tri_start(
 					rbd->get_rotated_lever_arm(tri_vec.X()),
