@@ -43,10 +43,15 @@ public:
 	~CollisionHandler() = default;
 
 	virtual void register_collision_surface(const CollisionSurface_sp cs) { collision_surfaces.push_back(cs); }
-	virtual void register_rbd(RB_sp rbd) { _rbds.push_back(rbd); }
 	virtual void handle_collisions(DynamicalStateDataBase_sp dsd, const std::string& updated_pos_attr_name, const double dt);
 	
 protected:
+	CollisionHandleInfo _find_earliest_particle_static_geo_collision(
+		DSDB_sp dsd,
+		const std::string& updated_pos_attr_name,
+		const double dt
+	) const;
+	
 	virtual void _add_required_attributes(DynamicalStateDataBase_sp dsd) const {}
 	void _handle_particle_collisions(Vector& start_pos, Vector& updated_pos, Vector& velocity, const double dt) const;
 	bool _check_for_collision_against_all_surfaces(CollisionHandleInfo& earliest_hit, CollisionHitInfo& temp_hit, ParticleUpdateInfo& pui) const;
@@ -60,7 +65,6 @@ protected:
 	) const noexcept;
 
 	std::vector<CollisionSurface_sp> collision_surfaces;
-	std::vector<RB_sp> _rbds;
 };
 
 using CollisionHandler_sp =  std::shared_ptr<CollisionHandler> ;

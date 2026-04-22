@@ -69,25 +69,11 @@ void RBDCollisionHandler::_handle_rbd_collisions(RB_sp rbd, RBDHitResult& min_hi
     int iter = 0;
     const double start_dt = dt;
     while (colliding){
-        bool hit_found = false;
-        for (size_t i = 0; i < rbd->n_particles(); i++){
-            for (auto& cs : collision_surfaces){
-                const std::vector<CollisionObject_sp>& cobjs = cs->get_collision_objects();
-                for(size_t j = 0; j < cobjs.size(); j++){
-                    std::optional<RBDHitResult> hit = bisect_collision(rbd, i, cobjs[j], cs, dt);
-                    if (hit && std::abs(hit->time) < std::abs(min_hit.time)){
-                        min_hit = hit.value();
-                        hit_found = true;
-                    }
-                } // end looping through collision objects
-            }  // end looping through collision surfaces
-        } // end looping through particles
-        
+        bool hit_found = _find_earliest_rbd_static_collision(rbd, min_hit, dt);
         // now we have the earliest time and hit position
         if (hit_found){
             _resolve_collision(rbd, min_hit, masses[min_hit.particle], dt);
             dt = min_hit.time;
-            //printf("resolving collision %i dt = %f start_dt = %f\n", iter++, dt, start_dt);
         } else {
             colliding = false;
             // no collision! 
@@ -95,13 +81,30 @@ void RBDCollisionHandler::_handle_rbd_collisions(RB_sp rbd, RBDHitResult& min_hi
             AdvanceRotationAndCOM::solve(rbd, dt);
             return;
         }
-        if (iter > 100){
-            float n_dot_vec_from_plane_to_hit_pos = min_hit.normal * (min_hit.position - min_hit.point_on_cobj);
-            rbd->center_of_mass += 4 * n_dot_vec_from_plane_to_hit_pos * min_hit.normal;
-            printf("Itered out\n");
-            return;
-        }
+        // if (iter > 100){
+        //     float n_dot_vec_from_plane_to_hit_pos = min_hit.normal * (min_hit.position - min_hit.point_on_cobj);
+        //     rbd->center_of_mass += 4 * n_dot_vec_from_plane_to_hit_pos * min_hit.normal;
+        //     printf("Itered out\n");
+        //     return;
+        // }
     }
+}
+
+bool RBDCollisionHandler::_find_earliest_rbd_static_collision(RB_sp rbd, RBDHitResult& min_hit, double dt) const {
+	bool hit_found = false;
+	for (size_t i = 0; i < rbd->n_particles(); i++){
+		for (auto& cs : collision_surfaces){
+			const std::vector<CollisionObject_sp>& cobjs = cs->get_collision_objects();
+			for(size_t j = 0; j < cobjs.size(); j++){
+				std::optional<RBDHitResult> hit = bisect_collision(rbd, i, cobjs[j], cs, dt);
+				if (hit && std::abs(hit->time) < std::abs(min_hit.time)){
+					min_hit = hit.value();
+					hit_found = true;
+				}
+			} // end looping through collision objects
+		}  // end looping through collision surfaces
+	}
+	return hit_found;
 }
 
 void RBDCollisionHandler::_resolve_collision(RB_sp rbd, RBDHitResult& min_hit, float mass_hit, double dt){
@@ -188,7 +191,6 @@ std::optional<RBDHitResult> pba::bisect_collision(
 	Vector x_mid;
 	for (int step = 0; step <= MAX_BISEC_ITERS; step++){
 		th = (t0 + t1) / 2.0;
-		// Do we have to swap the direction of the update each time?
 		x_mid = rbd_single_particle_pos_rot_update(rbd, particle_idx, th);
 		double fmid = (x_mid - cobj->get_point_on_obj()) * n;
 		if (std::abs(fmid) < BISEC_TOLERANCE && fmid * f1 > 0){

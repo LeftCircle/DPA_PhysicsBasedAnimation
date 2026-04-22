@@ -65,7 +65,8 @@ struct RBDHitResult {
 std::optional<RBDHitResult> bisect_collision(
 	const RB_sp& rbd, size_t particle_idx,
 	const CollisionObject_sp& cobj, CollisionSurface_sp cs,
-	double max_t);
+	double max_t
+);
 
 
 class RBDCollisionHandler : public CollisionHandler {
@@ -73,14 +74,15 @@ public:
 	RBDCollisionHandler() = default;
 	~RBDCollisionHandler() = default;
 
-	void handle_collisions(
+	virtual void handle_collisions(
 		DynamicalStateDataBase_sp dsd,
 		const std::string& updated_pos_attr_name,
 		const double dt
 	) override;
 
-private:
-	double _get_A(RB_sp rbd, size_t particle_idx, Vector& n) const;
+protected:
+	bool _find_earliest_rbd_static_collision(RB_sp rbd, RBDHitResult& min_hit, double dt) const;
+	virtual double _get_A(RB_sp rbd, size_t particle_idx, Vector& n) const;
 	void _handle_rbd_collisions(RB_sp rbd, RBDHitResult& min_hit, const double dt);
 	void _resolve_collision(RB_sp rbd, RBDHitResult& min_hit, float mass_hit, double dt);
 };

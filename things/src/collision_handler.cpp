@@ -63,6 +63,30 @@ bool CollisionHandler::_check_for_collision_against_all_surfaces(
 	return keep_checking;
 }
 
+CollisionHandleInfo CollisionHandler::_find_earliest_particle_static_geo_collision(
+	DSDB_sp dsd,
+	const std::string& updated_pos_attr_name,
+	const double dt) const
+{
+	CollisionHandleInfo earliest_hit;
+	auto updated_positions = dsd->get_vector_attribute_span(updated_pos_attr_name);
+	auto start_positions = dsd->get_vector_attribute_span("positions");
+	auto velocities = dsd->get_vector_attribute_span("velocities");
+	for (size_t i = 0; i < dsd->n_particles(); i++){
+		CollisionHitInfo temp_hit;
+		Vector& start_pos = start_positions[i];
+		Vector& updated_pos = updated_positions[i];
+		Vector& velocity = velocities[i];
+		ParticleUpdateInfo pui(start_pos, updated_pos, velocity, dt);
+		CollisionHandleInfo this_particle_earliest_hit;
+		bool particle_collision = _check_for_collision_against_all_surfaces(this_particle_earliest_hit, temp_hit, pui);
+		if (this_particle_earliest_hit.hit_info.time_of_impact < earliest_hit.hit_info.time_of_impact){
+			earliest_hit = this_particle_earliest_hit;
+		}
+	}
+	return earliest_hit;
+}
+
 void CollisionHandler::_on_collision_detected(CollisionHandleInfo& earliest_hit, ParticleUpdateInfo& pui) const noexcept{
 	pui.remaining_dt = pui.remaining_dt - earliest_hit.hit_info.time_of_impact;
 	pui.updated_pos = _resolve_collision_against_static_object(
