@@ -11,7 +11,10 @@ public:
 
 	T x() const { return _x; }
 	T y() const { return _y; }
-	T z() const {return _z; }
+	T z() const { return _z; }
+	T X() const { return _x; }
+	T Y() const { return _y; }
+	T Z() const { return _z; }
 
 private:
 	T _x;

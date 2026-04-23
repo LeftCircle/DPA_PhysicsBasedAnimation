@@ -29,11 +29,14 @@ public:
 	void resize(size_t n) override;
 
 	void set_initial_position(size_t n, const Vector& pos);
-	void create_from_obj(ObjReader<cato::Vec3i>& obj, const Vector& center);
+	void create_from_obj(ObjReader<Vector>& obj, const Vector& center, const double scale = 1.0);
 	
 	void init_rbd();
+	void scale_rbd(const double scale);
 
-	const Vector& get_lever_arm(const size_t p) const noexcept { return _lever_arms_iter->second.get(p); }
+	const Vector& get_lever_arm(const size_t p) const { return _lever_arms_iter->second.get(p); }
+	
+	Vector& get_lever_arm(const size_t p) { return _lever_arms_iter->second.get(p); }
 	Vector get_rotated_lever_arm(const size_t p) const;
 	Vector get_rotated_lever_arm(const Vector& position) const;
 	

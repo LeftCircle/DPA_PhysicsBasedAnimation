@@ -29,42 +29,54 @@ void RigidBodyStateData::_initialize_default_attributes()
 void RigidBodyStateData::set_initial_position(size_t p, const Vector& pos) {
 	set_vector_attribute("initial_positions", p, pos);
 	// TO DO -> optimize
-	init_rbd();
+	//init_rbd();
 }
 
 size_t RigidBodyStateData::add() {
 	auto size = DynamicalStateDataBase::add();
 	// TO DO -> optimize instead of recalculating everything
-	init_rbd();
+	//init_rbd();
 	return size;
 }
 
 size_t RigidBodyStateData::add(size_t n){
 	auto size = DynamicalStateDataBase::add(n);
-	init_rbd();
+	//init_rbd();
 	return size;
 }
 
 void RigidBodyStateData::resize(size_t n){
 	DynamicalStateDataBase::resize(n);
-	init_rbd();
+	//init_rbd();
 }
 
-void RigidBodyStateData::create_from_obj(ObjReader<cato::Vec3i>& obj, const Vector& center){
+void RigidBodyStateData::create_from_obj(ObjReader<Vector>& obj, const Vector& center, const double scale){
     auto verts = obj.get_verts();
     auto faces = obj.get_faces();
     for (size_t i = 0; i < obj.get_verts().size(); i++){
         add();
-		cato::Vec3i& v = verts[i];
-		Vector pos = Vector(v.x(), v.y(), v.z()) + center;
+		Vector pos = verts[i] + center;
         set_initial_position(i, pos);
 		set_position(i, pos);
+		set_mass(i, 5);
     }
 	_faces.resize(faces.size());
 	for (size_t i = 0; i < faces.size(); i++){
 		_faces[i] = cato::Vec3s(faces[i].x(), faces[i].y(), faces[i].z());
 	}
     init_rbd();
+	scale_rbd(scale);
+	init_rbd();
+}
+
+void RigidBodyStateData::scale_rbd(const double scale){
+	// adjust the default position and lever arms
+	if (scale == 1.0) { return; }
+	for (size_t i = 0; i < _n_particles; i++){
+		Vector lever_arm = get_lever_arm(i);
+		lever_arm *= scale;
+		set_initial_position(i, center_of_mass + lever_arm);
+	}
 }
 
 Vector RigidBodyStateData::get_vert_pos(size_t p) const {

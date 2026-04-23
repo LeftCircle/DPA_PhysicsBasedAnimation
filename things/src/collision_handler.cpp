@@ -70,6 +70,7 @@ CollisionHandleInfo CollisionHandler::_find_earliest_particle_static_geo_collisi
 	const double dt) const
 {
 	CollisionHandleInfo earliest_hit;
+	earliest_hit.set_time(2.0 * dt);
 	auto updated_positions = dsd->get_vector_attribute_span(updated_pos_attr_name);
 	auto start_positions = dsd->get_vector_attribute_span("positions");
 	auto velocities = dsd->get_vector_attribute_span("velocities");
@@ -110,13 +111,14 @@ void CollisionHandler::_resolve_particle_collision(DSD_sp dsd, CollisionHandleIn
 		dsd->get_velocity(hit.particle_idx),
 		dt - hit.hit_info.time_of_impact
 	);
-	_resolve_collision_against_static_object(
+	info.updated_pos = _resolve_collision_against_static_object(
 		info,
 		hit.hit_info.position,
 		hit.hit_info.normal,
 		hit.collision_surface->get_restitution(),
 		hit.collision_surface->get_sticky()
 	);
+	info.start_pos = hit.hit_info.position + hit.hit_info.normal * MIN_END_DIST_FROM_COLLISION;
 }
 
 Vector CollisionHandler::_resolve_collision_against_static_object(

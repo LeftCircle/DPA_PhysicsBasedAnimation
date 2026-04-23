@@ -10,13 +10,14 @@ using namespace pba;
 struct ParticleRBDHitResult {
 	double time;
 	size_t particle;
-	Vector rbd_indices;
+	cato::Vec3s rbd_indices;
 	Vector position;
 	Vector normal;
 	bool converged = false;
 	RB_sp rbd;
 
 	void set_rbd(RB_sp new_rbd) {rbd = new_rbd; }
+	void set_time(double dt) { time = dt; }
 };
 
 class ParticleRBDCollisionHandler : public RBDCollisionHandler{
@@ -29,7 +30,7 @@ public:
 		const double dt
 	) override;
 
-	bool does_moving_particle_collide_with_moving_rbd_tri(
+	bool does_moving_particle_collide_with_moving_rbd_tri_plane(
 		Vector p_start,
 		Vector p_end,
 		Triangle tri_start,
@@ -38,12 +39,12 @@ public:
 
 private:
 	std::pair<RB_sp, RBDHitResult> _find_earliest_rbd_static_collision_from_all_rbds(const double dt) const;
-	ParticleRBDHitResult _find_earliest_particle_rbd_collision(DSDB_sp dsd, const double dt) const;
-	ParticleRBDHitResult _bisect_particle_rbd_collision(
+	std::optional<ParticleRBDHitResult> _find_earliest_particle_rbd_collision(DSDB_sp dsd, const double dt) const;
+	std::optional<ParticleRBDHitResult> _bisect_particle_rbd_collision(
 		size_t particle_idx,
 		Vector p_start,
 		Vector p_vel,
-		Vector rbd_indices,
+		cato::Vec3s rbd_indices,
 		RB_sp rbd,
 		double dt
 	) const;

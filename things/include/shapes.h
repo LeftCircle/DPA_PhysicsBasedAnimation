@@ -17,6 +17,10 @@ struct Triangle{
 		v0 = a; v1 = b; v2 = c;	
 	}
 	Vector get_normal(){ return(v1 - v0) ^ (v2 - v0); };
+	bool is_close(Vector p) {
+		double dist_to_tri = (p - v0) * get_normal();
+		return dist_to_tri < std::max(std::max((v0 - v1).magnitude(), (v2 - v1).magnitude()), (v0 - v2).magnitude());
+	}
 };
 
 

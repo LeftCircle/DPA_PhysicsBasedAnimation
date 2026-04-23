@@ -27,6 +27,8 @@ struct CollisionHandleInfo {
 	CollisionSurface_sp collision_surface;
 	CollisionHitInfo hit_info;
 	size_t particle_idx;
+
+	void set_time(double time) { hit_info.time_of_impact = time; }
 };
 
 struct ParticleUpdateInfo {
