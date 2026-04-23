@@ -11,8 +11,8 @@ CollidingParticlesRBDThing::CollidingParticlesRBDThing(const std::string& nam)
 	AABB bounds(Vector(-3.0, -3.0, -3.0), Vector(3.0, 3.0, 3.0));
     AABB emission_bounds(Vector(2.7, 2.7, 2.7), Vector(2.9, 2.9, 2.9));
     _particle_emitter_sp = std::make_shared<ParticleEmitter>(emission_bounds);
-	_particle_emitter_sp->set_min_speed(1.0);
-	_particle_emitter_sp->set_max_speed(5.0);
+	_particle_emitter_sp->set_min_speed(0.1);
+	_particle_emitter_sp->set_max_speed(0.8);
 
 	_create_rigid_body_from_obj(DEFAULT_SOFT_BODY_PATH, Vector(0, 0, 0));
 

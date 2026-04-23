@@ -225,7 +225,7 @@ void RigidBodyThingyDingy::_adjust_timestep(const double factor){
 
 void RigidBodyThingyDingy::_create_rigid_body_from_obj(const std::string& file_name, const Vector& center){
     std::filesystem::path current_dir = std::filesystem::path(__FILE__).parent_path();
-    std::filesystem::path obj_file_path = current_dir / file_name;
+    std::filesystem::path obj_file_path = current_dir / "../../models/bunny_lo.obj";
 
     // we are just going to read it every time for now
     //ObjReader<cato::Vec3i> r(obj_file_path);

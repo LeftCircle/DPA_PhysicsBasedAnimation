@@ -77,11 +77,11 @@ void ParticleRBDCollisionHandler::_resolve_particle_rbd_collision(DSD_sp dsd, Pa
     //printf("A = %f\n", A);
 	Vector w = rbd->angular_velocity;
 	double A_numer_a = -2.0 * (dsd->get_velocity(hit_info.particle) * n - rbd->linear_velocity * n);
-	//double A_numer_b = w * rxn + (rbd->get_inverse_moi() * rxn) * (rbd->get_moi() * w);
-	double A_numer_b = 2 * w * rxn;
+	double A_numer_b = w * rxn + (rbd->get_moi() * w) * (rbd->get_inverse_moi() * rxn);
+	//double A_numer_b = 2 * w * rxn;
 	double A_denom = (1.0 / mp) + (1.0 / rbd_m) + rxn * rbd->get_inverse_moi() * rxn;
 	double A = (A_numer_a + A_numer_b) / A_denom;
-	A = std::abs(A);
+	//A = std::abs(A);
 	printf("Particle rbd A = %f\n", A);
 	//A = std::abs(A);
     // Now update pos and rotation with the bounce

@@ -121,9 +121,11 @@ void RBDCollisionHandler::_resolve_collision(RB_sp rbd, RBDHitResult& min_hit, d
     Vector rxn = r ^ n;
     
     // Now we have to make the rbd bounce
-    double A_numerator = 2.0 * (rbd->linear_velocity * n) + rbd->angular_velocity * rxn;
+    double A_numerator = -2.0 * (rbd->linear_velocity * n + rbd->angular_velocity * rxn);
+    //double A_numerator = -(2 * rbd->linear_velocity * n + w * rxn + (rbd->get_moi() * w) * (rbd->get_inverse_moi() * rxn));
     double A_denom = (1.0 / M) + rxn * rbd->get_inverse_moi() * rxn;
-    double A = std::abs(A_numerator / A_denom);
+    double A = A_numerator / A_denom;
+    //A = std::abs(A);
     //printf("rbd A = %f\n", A);
     //double A = _get_A(rbd, min_hit.particle, min_hit.normal);
 
