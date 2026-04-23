@@ -124,7 +124,7 @@ void RBDCollisionHandler::_resolve_collision(RB_sp rbd, RBDHitResult& min_hit, d
     double A_numerator = 2.0 * (rbd->linear_velocity * n) + rbd->angular_velocity * rxn;
     double A_denom = (1.0 / M) + rxn * rbd->get_inverse_moi() * rxn;
     double A = std::abs(A_numerator / A_denom);
-    printf("A = %f\n", A);
+    //printf("rbd A = %f\n", A);
     //double A = _get_A(rbd, min_hit.particle, min_hit.normal);
 
     // Now update pos and rotation with the bounce
@@ -211,8 +211,9 @@ std::optional<RBDHitResult> pba::bisect_collision(
 		}
 	}
 	// did not converge. Just return what we have
-    printf("Did not converge th = %f\n", th);
-	Vector norm = (rbd->center_of_mass - x_mid) * n > 0 ? n : -n;
-	return RBDHitResult{th, particle_idx, x_mid, norm, cs, false, cobj->get_point_on_obj()};
+    //printf("Did not converge th = %f\n", th);
+    return std::nullopt;
+	//Vector norm = (rbd->center_of_mass - x_mid) * n > 0 ? n : -n;
+	//return RBDHitResult{th, particle_idx, x_mid, norm, cs, false, cobj->get_point_on_obj()};
 }
 

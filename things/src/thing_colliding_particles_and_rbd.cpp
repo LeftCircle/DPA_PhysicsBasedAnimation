@@ -29,7 +29,7 @@ CollidingParticlesRBDThing::CollidingParticlesRBDThing(const std::string& nam)
 
 	_gravity_force = std::make_shared<SimpleGravityForce>(Vector(0.0, -9.81, 0.0));
     _force_system->add_forces(_gravity_force);
-    _emit_particles(100);
+    _emit_particles(3);
 	
 	// And now that the init is basically done. Let's build the solvers
 	SetSimulationTimestep(0.01667 / 2.0);

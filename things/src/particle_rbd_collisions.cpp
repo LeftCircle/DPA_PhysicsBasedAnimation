@@ -70,16 +70,24 @@ void ParticleRBDCollisionHandler::_resolve_particle_rbd_collision(DSD_sp dsd, Pa
 	//Vector COM = (mp * dsd->get_position(hit_info.particle) + rbd_m * rbd->center_of_mass) / M;
 
     // Now we have to make the rbd bounce
-    double A_numer_a = (rbd->linear_velocity * M / rbd_m + dsd->get_velocity(hit_info.particle)) * n;
-    double A_numer_b = rbd->angular_velocity * rxn;
-	double A_denom = 1.0 / mp + M / (rbd_m * rbd_m) + rxn * rbd->get_inverse_moi() * rxn;
-    double A = std::abs(2.0 * (A_numer_a + A_numer_b) / A_denom);
+    //double A_numer_a = (rbd->linear_velocity * M / rbd_m + dsd->get_velocity(hit_info.particle)) * n;
+    //double A_numer_b = rbd->angular_velocity * rxn;
+	//double A_denom = 1.0 / mp + M / (rbd_m * rbd_m) + rxn * rbd->get_inverse_moi() * rxn;
+    //double A = std::abs(2.0 * (A_numer_a + A_numer_b) / A_denom);
     //printf("A = %f\n", A);
-
+	Vector w = rbd->angular_velocity;
+	double A_numer_a = -2.0 * (dsd->get_velocity(hit_info.particle) * n - rbd->linear_velocity * n);
+	//double A_numer_b = w * rxn + (rbd->get_inverse_moi() * rxn) * (rbd->get_moi() * w);
+	double A_numer_b = 2 * w * rxn;
+	double A_denom = (1.0 / mp) + (1.0 / rbd_m) + rxn * rbd->get_inverse_moi() * rxn;
+	double A = (A_numer_a + A_numer_b) / A_denom;
+	A = std::abs(A);
+	printf("Particle rbd A = %f\n", A);
+	//A = std::abs(A);
     // Now update pos and rotation with the bounce
     rbd->linear_velocity -= A / rbd->get_total_mass() * n;
     rbd->angular_velocity -= A * rbd->get_inverse_moi() * rxn;
-	dsd->set_velocity(hit_info.particle, dsd->get_velocity(hit_info.particle) + A / mp * n);
+	dsd->set_velocity(hit_info.particle, dsd->get_velocity(hit_info.particle) + (A / mp) * n);
 	// Now we have to set the expected update position for this particle
 	Vector new_p = dsd->get_position(hit_info.particle) + dsd->get_velocity(hit_info.particle) * (dt - hit_info.time);
 	dsd->set_updated_position(hit_info.particle, new_p);
@@ -212,7 +220,8 @@ std::optional<ParticleRBDHitResult> ParticleRBDCollisionHandler::_bisect_particl
 			// starts on.
 			// still have to confirm that the collision point is on the surface
 			//Vector norm = (rbd->center_of_mass - cobj->get_point_on_obj()) * n > 0 ? n : -n;
-			Vector norm = (p_start - tri_start.v0) * tri_start.get_normal() > 0 ? updated_norm : -updated_norm;
+			//Vector norm = (p_start - tri_start.v0) * tri_start.get_normal() > 0 ? updated_norm : -updated_norm;
+			Vector norm = updated_norm;
 			Vector vec_to_surface = particle_mid - (fmid * norm);
 			CollisionTriangle ct(tri_mid);
             bool is_within = ct.is_on_surface(vec_to_surface);
