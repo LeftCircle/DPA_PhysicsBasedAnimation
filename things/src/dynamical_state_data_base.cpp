@@ -134,6 +134,7 @@ for( auto& [name, attr] : _int_attr ){
 	for( auto& [name, attr] : _double_attr ){
 		attr.clear();
 	}
+	_n_particles = 0;
 }
 
 

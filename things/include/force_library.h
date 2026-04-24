@@ -15,6 +15,7 @@
 #include "sph_data.h"
 #include "soft_body_data.h"
 #include "boids_acceleration.h"
+#include "collision_handler.h"
 
 namespace pba{
 
@@ -38,6 +39,7 @@ class SPHPressureForce : public ForceBase {
 public:
 	SPHPressureForce(idx_volume_sp occupancy_volume, Kernel_sp kernel) : 
 		_occupancy_volume(occupancy_volume), _kernel(kernel) {}
+	SPHPressureForce() = default;
 	~SPHPressureForce() = default;
 
 	// This is a bit of a hack to let us use the same force interface for SPH and standard forces
@@ -49,7 +51,7 @@ public:
 
 	virtual void compute_sph(SPHData_sp sph_data, const double dt) const;
 
-private:
+protected:
 	Vector _get_pressure_with_uniform_h(
 		size_t i,
 		const span<const size_t>& neighbor_indices,
@@ -65,10 +67,49 @@ private:
 	) const;
 
 
-	SPHPressureForce() = delete;
-	idx_volume_sp _occupancy_volume;
+	//SPHPressureForce() = delete;
+	mutable idx_volume_sp _occupancy_volume;
 	Kernel_sp _kernel;
 };
+
+class PciSPHPressureForce : public SPHPressureForce {
+public:
+	explicit PciSPHPressureForce(
+		idx_volume_sp occupancy_volume,
+		Kernel_sp kernel,
+		CollisionHandler_sp collision_handler
+	) : _collision_handler(collision_handler) { 
+		_occupancy_volume = duplicate_idx_volume(occupancy_volume); _kernel = kernel;
+	};
+
+	void compute(DynamicalStateDataBase_sp dsd, const double dt) const override {
+		auto sph_data = std::dynamic_pointer_cast<SPHData>(dsd);
+		if (!sph_data) throw std::runtime_error("SPHPressureForce requires SPHData");
+		compute_sph(sph_data, dt);
+	};
+
+	virtual void compute_sph(SPHData_sp sph_data, const double dt) const override;
+
+protected:
+	//void _accumulate_pressure_force(double dt);
+	double _accumulate_delta(SPHData_sp dsd, const double dt) const;
+	double _compute_beta(SPHData_sp dsd, const double dt) const;
+	void _accumulate_pressure_gradient_force(
+		SPHData_sp dsd,
+		span<Vector>& pos,
+		span<double>& densities,
+		span<double>& pressures,
+		span<Vector>& pressure_forces
+	) const;
+
+	CollisionHandler_sp _collision_handler;
+
+
+private:
+	double _max_density_error_ratio = 0.01;
+	unsigned int _max_iterations = 5;
+};
+
 
 class SPHViscosityForce : public ForceBase {
 public:
@@ -90,6 +131,12 @@ public:
 private:
 	Vector _compute_viscosity_force_for_neighbors(
 		size_t i,
+		const span<const size_t>& neighbor_indices,
+		const SPHData_sp sph_data
+	) const;
+
+	Vector _doyub_viscocity_for_neighbors(
+		size_t i, 
 		const span<const size_t>& neighbor_indices,
 		const SPHData_sp sph_data
 	) const;
@@ -145,7 +192,6 @@ private:
 	double _spring_force;
 	double _friction;
 };
-
 
 } // end namespace pba
 

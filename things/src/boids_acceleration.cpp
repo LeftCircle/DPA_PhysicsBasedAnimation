@@ -80,7 +80,10 @@ double BoidBehaviors::_fov_limiter(
     const Vector& vel,
     const BoidParams* params) const
 {
-    double cos_ab = vec_to_point * vel / (vec_to_point.magnitude() * vel.magnitude());
+    double cos_ab = 0;
+    if (vel.magnitude() != 0){
+        cos_ab = vec_to_point * vel / (vec_to_point.magnitude() * vel.magnitude());
+    }
     if (cos_ab >= params->cos_fov_angle){
         return 1.0;
     } else if (cos_ab > params->cos_fov_angle_plus_amp){

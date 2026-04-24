@@ -50,7 +50,8 @@ private:
 	Kernel_sp _kernel;
 	idx_volume_sp _occupancy_volume;
     std::shared_ptr<SPHViscosityForce> _viscosity_force;
-    std::shared_ptr<SPHPressureForce> _pressure_force;
+	std::shared_ptr<SPHPressureForce> _other_pressure_force;
+    std::shared_ptr<PciSPHPressureForce> _pressure_force;
 
 	std::vector<Triangle> _tris_to_draw;
 	std::vector<Color> _tri_colors = {

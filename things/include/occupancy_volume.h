@@ -71,6 +71,8 @@ public:
 	}
 
 	void clear() { _voxels.clear(); }
+	const AABB get_aabb() const { return _aabb; };
+	const double get_cell_size() const { return _cell_size; }
 
 private:
 	indices _get_cell_indices(const Vector& position) const {
@@ -123,6 +125,8 @@ using idx_volume_sp = std::shared_ptr<OccupancyVolume<std::vector<size_t>>>;
 inline idx_volume_sp create_idx_occupancy_volume(const AABB& aabb, double cell_size) {
 	return std::make_shared<OccupancyVolume<std::vector<size_t>>>(aabb, cell_size);
 }
+
+inline idx_volume_sp duplicate_idx_volume(idx_volume_sp ov) { return create_idx_occupancy_volume(ov->get_aabb(), ov->get_cell_size()); }
 
 using idx_vec = std::vector<size_t>;
 using idx_func = std::function<void(std::vector<size_t>, size_t)>;

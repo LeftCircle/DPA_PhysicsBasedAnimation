@@ -15,7 +15,7 @@ SPHThingyDingy::SPHThingyDingy(const std::string& nam)
 	// Let's add a single bouncing ball particle
 	_dsd = std::make_shared<SPHData>();
 
-    _dsd->set_h(0.5);
+    _dsd->set_h(0.25);
     _occupancy_volume = create_idx_occupancy_volume(bounds, _dsd->h() * 2.0);
     //_kernel = std::make_shared<CubicSplineKernel3>(_dsd->h());
 	_kernel = std::make_shared<SphSpikyKernel3>(_dsd->h());
@@ -36,14 +36,15 @@ SPHThingyDingy::SPHThingyDingy(const std::string& nam)
 	_initialize_box_collision_surface(bounds);
 	_gravity_force = std::make_shared<SimpleGravityForce>(Vector(0.0, -9.81, 0.0));
     _viscosity_force = std::make_shared<SPHViscosityForce>(_occupancy_volume, _kernel);
-    _pressure_force = std::make_shared<SPHPressureForce>(_occupancy_volume, _kernel);
-	_force_system->add_forces(_gravity_force, _viscosity_force, _pressure_force);
+    _pressure_force = std::make_shared<PciSPHPressureForce>(_occupancy_volume, _kernel, _collision_handler);
+	_other_pressure_force = std::make_shared<SPHPressureForce>(_occupancy_volume, _kernel);
+	_force_system->add_forces(_gravity_force, _viscosity_force, _other_pressure_force);
 	
     
 	// And now that the init is basically done. Let's build the solvers
 	SetSimulationTimestep(0.01667);
 	_dsd->set_rest_density(1.5);
-	_dsd->set_rest_pressure(5);
+	_dsd->set_rest_pressure(1.0);
 	_dsd->set_gamma(5.0);
 	_dsd->set_max_particle_acceleration(18);
 	_dsd->set_max_particle_speed(20);

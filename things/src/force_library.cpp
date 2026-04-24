@@ -71,12 +71,11 @@ void SPHViscosityForce::compute_sph(SPHData_sp sph_data, const double dt) const 
 			sph_data->get_position(i),
 			Vector(0.0, 0.0, 0.0),
 			[&sph_data, this](size_t idx, Vector acc, const std::vector<size_t>& neighbor_indices){
-				return acc + _compute_viscosity_force_for_neighbors(idx, neighbor_indices, sph_data);
+				return acc + _doyub_viscocity_for_neighbors(idx, neighbor_indices, sph_data);
 			}
 		);
-		sph_data->set_acceleration(i, sph_data->get_acceleration(i) + viscosity_force / sph_data->get_mass(i));
-		
-		//printf("Viscocity_force = %f %f %f\n", viscosity_force.X(), viscosity_force.Y(), viscosity_force.Z());
+		viscosity_force /= sph_data->get_mass(i);
+		sph_data->set_acceleration(i, sph_data->get_acceleration(i) - viscosity_force );
 	}
 }
 
@@ -98,6 +97,23 @@ Vector SPHViscosityForce::_compute_viscosity_force_for_neighbors(size_t i, const
 			//Vector kernel_grad = _kernel->gradient(distance, ab);
 			//Vector kernel_grad = _kernel->gradient(distance, ab);
 			return acc + sph_data->get_mass(j) * pi_ab * _kernel->gradient(distance, ab);
+		}
+	);
+}
+
+Vector SPHViscosityForce::_doyub_viscocity_for_neighbors(
+		size_t i, 
+		const span<const size_t>& neighbor_indices,
+		const SPHData_sp sph_data) const
+{
+	const auto& d = sph_data->get_double_attribute_span("density");
+	return std::accumulate(neighbor_indices.begin(), neighbor_indices.end(), Vector(0, 0, 0),
+		[&sph_data, i, &d, this](Vector acc, size_t j){
+			double dist = (sph_data->get_position(i) - sph_data->get_position(j)).magnitude();
+			acc += sph_data->viscosity_beta() * sph_data->get_mass(i) * sph_data->get_mass(j) *
+				(sph_data->get_velocity(i) - sph_data->get_velocity(j)) / d[j] * 
+				_kernel->second_derivative(dist);
+			return acc;
 		}
 	);
 }
@@ -133,4 +149,168 @@ void UniformStrutForce::_compute(std::shared_ptr<SoftBody> sb, const double dt) 
 		sb->set_acceleration(idxs.first, sb->get_acceleration(idxs.first) + edge.get_force_on_a() / sb->get_mass(idxs.first));
 		sb->set_acceleration(idxs.second, sb->get_acceleration(idxs.second) - edge.get_force_on_a() / sb->get_mass(idxs.second));
 	}
+}
+
+void PciSPHPressureForce::compute_sph(SPHData_sp dsd, const double dt) const {
+	const size_t n = dsd->n_particles();
+	double target_dens = dsd->rest_density();
+
+	auto m = dsd->get_float_attribute_span("mass");
+	auto p = dsd->get_vector_attribute_span("positions");
+	auto v = dsd->get_vector_attribute_span("velocities");
+	auto new_v = dsd->get_vector_attribute_span("new_velocities");
+	auto new_p = dsd->get_vector_attribute_span("new_positions");
+	auto p_forces = dsd->get_vector_attribute_span("pressure_force");
+	auto pressure_d = dsd->get_double_attribute_span("pressures");
+	auto a = dsd->get_vector_attribute_span("acceleration");
+	auto ds = dsd->get_double_attribute_span("predicted_density");
+	const auto& densities = dsd->get_double_attribute_span("density");
+	auto dens_error = dsd->get_double_attribute_span("density_error");
+
+	const double delta = dsd->rest_pressure();//_accumulate_delta(dsd, dt);
+	auto kernel = _kernel;
+	
+	// init buffers;
+	#pragma omp parallel for
+	for (size_t i = 0; i < n; i++){
+		p_forces[i] = Vector(0, 0, 0);
+		//pressure_d[i] = _get_pressure_at_density(densities[i], dsd->rest_pressure(), dsd->rest_density(), dsd->gamma());
+		pressure_d[i] = 0.0;
+	}
+
+	for (unsigned int k = 0; k < 50; k++){
+		// predict vel and position
+		#pragma omp parallel for
+		for (size_t i = 0; i < n; i++){
+			new_v[i] = v[i] + dt * (a[i] + p_forces[i] / m[i]);
+			new_p[i] = p[i] + dt * new_v[i]; 
+		}
+		_occupancy_volume->populate(new_p, [](std::vector<size_t>& cell, size_t i){ cell.push_back(i); });
+		// resolve collision
+		//_collision_handler->handle_collisions_no_start_pos_update(dsd, "new_positions", "new_velocities", dt);
+		// Might have to update the occupancy volume here?
+		
+		// compute pressure from density error
+		#pragma omp parallel for
+		for (size_t i = 0; i < n; i++){
+			double weight_sum = _occupancy_volume->accumulate_neighbor_cells(
+				i,
+				new_p[i],
+				0.0,
+				[&new_p, kernel](size_t index, double weight_sum, const std::vector<size_t>& n_idxs){
+					for (size_t j : n_idxs){
+						double dist = (new_p[index] - new_p[j]).magnitude();
+						weight_sum += (*kernel)(dist);
+					}  
+					return weight_sum;
+				}
+			);
+			double dens = m[i] * weight_sum;
+			double dens_error_i = dens - target_dens;
+			double pressure = delta * dens_error_i;
+
+			pressure_d[i] += pressure;
+			ds[i] = dens;
+			dens_error[i] = dens_error_i;
+		}
+		
+		// Now have to accumulate pressure gradient forces??
+		_accumulate_pressure_gradient_force(dsd, p, ds, pressure_d, p_forces);
+		// compute max density error
+		double max_density_error = *std::max_element(dens_error.begin(), dens_error.end(),
+			 [](double a, double b){ return std::max(std::abs(a), std::abs(b)); }
+		);
+		max_density_error = std::abs(max_density_error);
+		// double max_density_error = 0.0;
+		// for (size_t i = 0; i < n; i++){
+		// 	max_density_error = std::max(std::abs(dens_error[i]), std::abs(max_density_error));
+		// }
+
+		//printf("Max density error %f\n", max_density_error);
+
+		double density_error_ratio = max_density_error / target_dens;
+		if (std::abs(density_error_ratio) < _max_density_error_ratio){
+			printf("k = %zu  %f\n", k, (float)k);
+			break;
+		}
+	}
+
+	// Accumulate pressure force
+	#pragma omp parallel for
+	for (size_t i = 0; i < n; i++){
+		a[i] += p_forces[i] / dsd->get_mass(i);
+		//Vector pforce = p_forces[i] / dsd->get_mass(i);
+		//printf("pressure force = %f %f %f \n", pforce.X(), pforce.Y(), pforce.Z());
+	}
+}
+
+void PciSPHPressureForce::_accumulate_pressure_gradient_force(
+	SPHData_sp dsd,
+	span<Vector>& pos,
+	span<double>& densities,
+	span<double>& pressures,
+	span<Vector>& pressure_forces) const
+{
+	const double msq = dsd->get_mass(0) * dsd->get_mass(0);
+	#pragma omp parallel for
+	for (size_t i = 0; i < dsd->n_particles(); i++){
+		Vector p_force = _occupancy_volume->accumulate_neighbor_cells(
+			i, dsd->get_position(i), Vector(0, 0, 0), 
+			[&dsd, &pressure_forces, msq, &pressures, &densities, this](size_t index, Vector p_sum, const std::vector<size_t>& n_idxs){
+				//printf("n neighbors = %zu\n", n_idxs.size());
+				for (size_t j : n_idxs){
+					Vector vec = dsd->get_position(index) - dsd->get_position(j);
+					double dist = vec.magnitude();
+					if (dist > 0.0){
+						Vector dir = vec / dist;
+						p_sum -= ((msq *
+							(pressures[index] / (densities[index] * densities[j])) + 
+							(pressures[j] / (densities[index] + densities[j]))) *
+							_kernel->gradient(dist, dir)
+						);
+					}
+				}
+				return p_sum;
+			}
+		);
+		pressure_forces[i] += p_force;
+	}
+}
+
+double PciSPHPressureForce::_accumulate_delta(SPHData_sp dsd, const double dt) const {
+	const double h = dsd->h();
+	const double h_over_2 = h * 0.5;
+	std::vector<Vector> points(9);
+	// get the 9 points. 8 for edges of bounding box, and one in center
+	points[0] = Vector(0, 0, 0);
+	points[1] = Vector(h_over_2, h_over_2, h_over_2);
+	points[2] = Vector(h_over_2, h_over_2, -h_over_2);
+	points[3] = Vector(h_over_2, -h_over_2, h_over_2);
+	points[4] = Vector(-h_over_2, h_over_2, h_over_2);
+	points[5] = Vector(h_over_2, -h_over_2, -h_over_2);
+	points[6] = Vector(-h_over_2, h_over_2, -h_over_2);
+	points[7] = Vector(-h_over_2, -h_over_2, h_over_2);
+	points[8] = Vector(-h_over_2, -h_over_2, -h_over_2);
+
+	double denom = 0;
+	Vector denom1(0, 0, 0);
+	double denom2 = 0;
+	for (size_t i = 0; i < 9; i++){
+		const Vector& point = points[i];
+		double dsq = point * point;
+		if (dsq < h * h){
+			double d = std::sqrt(dsq);
+			Vector direction = (d > 0.0) ? point / d : Vector(0, 0, 0);
+			Vector gradWij = _kernel->gradient(d, direction);
+			denom1 += gradWij;
+			denom2 += gradWij * gradWij;
+		}
+	}
+	denom += -denom1 * denom1 - denom2;
+	return (std::abs(denom) > 0) ? -1.0 / (_compute_beta(dsd, dt) * denom) : 0;
+}
+
+double PciSPHPressureForce::_compute_beta(SPHData_sp dsd, const double dt) const {
+	double dtm_over_p = dt * dsd->get_mass(0) / dsd->rest_density();
+	return 2.0 * dtm_over_p * dtm_over_p;
 }

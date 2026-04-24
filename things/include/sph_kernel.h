@@ -12,6 +12,7 @@ public:
 	virtual ~Kernel() = default;
 	virtual double operator()(double distance) const noexcept = 0;
 	virtual Vector gradient(double distance, const Vector& direction) const noexcept = 0;
+	virtual double second_derivative(double distance) const noexcept { return 0; }
 };
 
 using Kernel_sp = std::shared_ptr<Kernel>;
@@ -101,7 +102,7 @@ public:
 	explicit SphSpikyKernel3(double radius) : h1(radius), h2 (h1 * h1), h3(h1 * h2), h4(h2 * h2), h5(h3 * h2) {};
 	double operator()(double distance) const noexcept override;
 	double first_derivative(double distance) const noexcept;
-	double second_derivative(double distance) const noexcept;
+	double second_derivative(double distance) const noexcept override;
 	Vector gradient(double distance, const Vector& direction) const noexcept override;
 };
 
