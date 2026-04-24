@@ -30,7 +30,7 @@ void SPHPressureForce::compute_sph(SPHData_sp sph_data, const double dt) const {
 					densities);
 			}
 		);
-		sph_data->set_acceleration(i, sph_data->get_acceleration(i) + pressure_force / sph_data->get_mass(i));
+		sph_data->set_acceleration(i, sph_data->get_acceleration(i) - pressure_force / sph_data->get_mass(i));
 	}
 }
 
@@ -75,6 +75,7 @@ void SPHViscosityForce::compute_sph(SPHData_sp sph_data, const double dt) const 
 			}
 		);
 		sph_data->set_acceleration(i, sph_data->get_acceleration(i) + viscosity_force / sph_data->get_mass(i));
+		//printf("Viscocity_force = %f %f %f\n", viscosity_force.X(), viscosity_force.Y(), viscosity_force.Z());
 	}
 }
 
@@ -86,14 +87,15 @@ Vector SPHViscosityForce::_compute_viscosity_force_for_neighbors(size_t i, const
 			const auto& b_pos = sph_data->get_position(j);
 			double c_a = _avg_speed_of_sound(densities[i], one_over_rd, sph_data->rest_pressure(), sph_data->gamma());
 			double c_b = _avg_speed_of_sound(densities[j], one_over_rd, sph_data->rest_pressure(), sph_data->gamma());
-			double c_ab = (c_a + c_b); // why not divide by 2??
+			double c_ab = (c_a + c_b) / 2.0; // why not divide by 2??
 			double mu_ab = _mu_ab(sph_data->get_velocity(i), sph_data->get_velocity(j), sph_data->get_position(i), b_pos, sph_data->h(), sph_data->viscosity_epsilon());
 			double pi_ab = _pi_ab(c_ab, mu_ab, densities[i], densities[j], sph_data->viscosity_alpha(), sph_data->viscosity_beta());
 			Vector ab = sph_data->get_position(i) - b_pos;
 			double distance = ab.magnitude();
 			if (ab.magnitude() > 0.0)  ab.normalize();
-			Vector thing_to_acc = sph_data->get_mass(j) * pi_ab * _kernel->gradient(distance, ab);
-			Vector kernel_grad = _kernel->gradient(distance, ab);
+			//Vector thing_to_acc = sph_data->get_mass(j) * pi_ab * _kernel->gradient(distance, ab);
+			//Vector kernel_grad = _kernel->gradient(distance, ab);
+			//Vector kernel_grad = _kernel->gradient(distance, ab);
 			return acc + sph_data->get_mass(j) * pi_ab * _kernel->gradient(distance, ab);
 		}
 	);

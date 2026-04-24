@@ -8,14 +8,14 @@ SPHThingyDingy::SPHThingyDingy(const std::string& nam)
 : PbaThingyDingy(nam) {
 	// Start with some default bounds
 	AABB bounds(Vector(-3.0, -3.0, -3.0), Vector(3.0, 3.0, 3.0));
-	AABB emission_bounds(Vector(-2.9, -2.9, -2.9), Vector(2.9,  2.9, 2.9));
+	AABB emission_bounds(Vector(-1.25, -1.25, -1.25), Vector(1.25,  1.25, 1.25));
 	_particle_emitter_sp = std::make_shared<ParticleEmitter>(emission_bounds);
-	_particle_emitter_sp->set_min_speed(1.0);
-	_particle_emitter_sp->set_max_speed(5.0);
+	_particle_emitter_sp->set_min_speed(0.0);
+	_particle_emitter_sp->set_max_speed(0.0);
 	// Let's add a single bouncing ball particle
 	_dsd = std::make_shared<SPHData>();
 
-    _dsd->set_h(1.25);
+    _dsd->set_h(0.5);
     _occupancy_volume = create_idx_occupancy_volume(bounds, _dsd->h() * 2.0);
     //_kernel = std::make_shared<CubicSplineKernel3>(_dsd->h());
 	_kernel = std::make_shared<SphSpikyKernel3>(_dsd->h());
@@ -40,7 +40,13 @@ SPHThingyDingy::SPHThingyDingy(const std::string& nam)
     
 	// And now that the init is basically done. Let's build the solvers
 	SetSimulationTimestep(0.01667);
-	_set_to_sixth_order_solver();
+	_dsd->set_rest_density(100);
+	_dsd->set_rest_pressure(50);
+	_dsd->set_gamma(5.0);
+	_dsd->set_max_particle_acceleration(18);
+	_dsd->set_max_particle_speed(20);
+	//_set_to_sixth_order_solver();
+	_set_to_leapfrog_solver();
 }
 
 void SPHThingyDingy::_add_random_particle(){
@@ -50,6 +56,9 @@ void SPHThingyDingy::_add_random_particle(){
 	size_t idx = _dsd->n_particles() - 1;
 	_dsd->set_position(idx, pos);
 	_dsd->set_velocity(idx, vel);
+	_dsd->set_mass(idx, 0.01);
+	Vector col = ParticleEmitter::generate_random_bounded_vector(0.0, 1.0);
+	_dsd->set_color(idx, Color(col.X(), col.Y(), col.Z(), 1.0));
 }
 
 void SPHThingyDingy::_set_to_backward_euler_solver(){
@@ -363,6 +372,8 @@ void SPHThingyDingy::_draw_particles(){
 	for (size_t i=0; i<_dsd->n_particles(); i++){
 		Vector pos = _dsd->get_position(i);
 		glVertex3f(pos.X(), pos.Y(), pos.Z());
+		Color col = _dsd->get_color(i);
+		glColor3d(col.red(), col.green(), col.blue());
 	}
 	glEnd();
 }

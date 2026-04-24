@@ -6,30 +6,43 @@ using namespace pba;
 
 CollidingParticlesRBDThing::CollidingParticlesRBDThing(const std::string& nam)
 : PbaThingyDingy(nam) {
-	_dsd = std::make_shared<DynamicalStateData>();
-    _rbd = std::make_shared<RigidBodyStateData>();
 	AABB bounds(Vector(-3.0, -3.0, -3.0), Vector(3.0, 3.0, 3.0));
-    AABB emission_bounds(Vector(2.7, 2.7, 2.7), Vector(2.9, 2.9, 2.9));
+	_dsd = std::make_shared<SPHData>();
+	_dsd->set_h(1.25);
+	_occupancy_volume = create_idx_occupancy_volume(bounds, _dsd->h() * 2.0);
+	_kernel = std::make_shared<SphSpikyKernel3>(_dsd->h());
+ 	_viscosity_force = std::make_shared<SPHViscosityForce>(_occupancy_volume, _kernel);
+    _pressure_force = std::make_shared<SPHPressureForce>(_occupancy_volume, _kernel);
+
+    _rbd = std::make_shared<RigidBodyStateData>();
+    AABB emission_bounds(Vector(-2.7, 2.7, -2.7), Vector(2.9, 2.9, 2.9));
     _particle_emitter_sp = std::make_shared<ParticleEmitter>(emission_bounds);
 	_particle_emitter_sp->set_min_speed(0.1);
-	_particle_emitter_sp->set_max_speed(0.8);
+	_particle_emitter_sp->set_max_speed(3.8);
 
 	_create_rigid_body_from_obj(DEFAULT_SOFT_BODY_PATH, Vector(0, 0, 0));
 
     // And now our systems, forces and collision surfaces
 	_force_system = std::make_shared<ForceSystem>();
+	_sph_force_system = std::make_shared<ForceSystem>();
 	_solver_system = create_gi_solver_system();
 	
 	_collision_handler = std::make_shared<ParticleRBDCollisionHandler>();
 	_box = create_collision_surface();
 	_initialize_box_collision_surface(bounds);
 	_main_collision_surface = _box;//_create_collision_geo_from(DEFAULT_COLL_PATH);
+	_main_collision_surface->set_restitution(0.9);
+	_main_collision_surface->set_sticky(0.9);
 	_collision_handler->register_collision_surface(_main_collision_surface);
     _collision_handler->register_rbd(_rbd);
 
 	_gravity_force = std::make_shared<SimpleGravityForce>(Vector(0.0, -9.81, 0.0));
     _force_system->add_forces(_gravity_force);
-    _emit_particles(3);
+	_sph_force_system->add_forces(_gravity_force);
+	_sph_force_system->add_force(_viscosity_force);
+	_sph_force_system->add_force(_pressure_force);
+
+    _emit_particles(300);
 	
 	// And now that the init is basically done. Let's build the solvers
 	SetSimulationTimestep(0.01667 / 2.0);
@@ -74,8 +87,10 @@ void CollidingParticlesRBDThing::_set_to_forward_euler_solver(){
 void CollidingParticlesRBDThing::_set_to_leapfrog_solver(){
 	_solver_system = create_gi_solver_system();
 	// The position partial solver should also update the rbd
-    auto advance_position_solver = std::make_shared<PartialSolverAdvancePosition>(_dsd, _collision_handler);
-    auto advance_velocity_solver = std::make_shared<AdvanceVelocityWithForces>(_dsd, _force_system);
+    // auto advance_position_solver = std::make_shared<PartialSolverAdvancePosition>(_dsd, _collision_handler);
+    // auto advance_velocity_solver = std::make_shared<AdvanceVelocityWithForces>(_dsd, _force_system);
+	auto advance_position_solver = std::make_shared<SPHPositionSolver>(_dsd, _collision_handler, _occupancy_volume, _kernel);
+    auto advance_velocity_solver = std::make_shared<SPHAdvanceVelocityWithForces>(_dsd, _sph_force_system);
 
     // auto advance_p_rbd = std::make_shared<AdvanceRotationAndCOMWithCollisions>(_rbd, _collision_handler);
     auto advance_v_rbd = std::make_shared<AdvanceAngularVelocityAndVelocity>(_rbd, _force_system);
@@ -111,15 +126,19 @@ void CollidingParticlesRBDThing::Display(){
 void CollidingParticlesRBDThing::Keyboard( unsigned char key, int x, int y ){
 	switch( key ){
 		case 'a':{
+			_adjust_acceleration_max_val(0.9);
 			break;
 		}
 		case 'A':{
+			_adjust_acceleration_max_val(1.1);
 			break;
 		}
 		case 'b':{
+			_adjust_pressure_power(0.9);
 			break;
 		}
 		case 'B':{
+			_adjust_pressure_power(1.1);
 			break;
 		}
 		case 'c':{
@@ -131,13 +150,15 @@ void CollidingParticlesRBDThing::Keyboard( unsigned char key, int x, int y ){
 			break;
 		}
 		case 'd':{
+			_adjust_base_density(0.9);
 			break;
 		}
 		case 'D':{
+			_adjust_base_density(1.1);
 			break;
 		}
 		case 'e':{
-			//_emit_particles(1);
+			_emit_particles(10);
 			break;
 		}
 		case 'g':{
@@ -157,9 +178,11 @@ void CollidingParticlesRBDThing::Keyboard( unsigned char key, int x, int y ){
 			break;
 		}
 		case 'p':{
+			_adjust_pressure_strength(0.9);			
 			break;
 		}
 		case 'P':{
+			_adjust_pressure_strength(1.1);
 			break;
 		}
 		case 'r':{
@@ -187,9 +210,11 @@ void CollidingParticlesRBDThing::Keyboard( unsigned char key, int x, int y ){
 			Usage();
 			break;
 		case 'v': {
+			_adjust_viscosity(0.9);
 			break;
 		}
 		case 'V': {
+			_adjust_viscosity(1.1);
 			break;
 		}
 		default:
@@ -253,7 +278,7 @@ void CollidingParticlesRBDThing::_create_rigid_body_from_obj(const std::string& 
 
     // we are just going to read it every time for now
     ObjReader<Vector> r(obj_file_path);
-    _rbd->create_from_obj(r, center, 2.0);
+    _rbd->create_from_obj(r, center);
 }
 
 CollisionSurface_sp CollidingParticlesRBDThing::_create_collision_geo_from(const std::string& file_name){
@@ -285,15 +310,52 @@ CollisionSurface_sp CollidingParticlesRBDThing::_create_collision_geo_from(const
 	return collision_geo;
 }
 
+void CollidingParticlesRBDThing::_adjust_viscosity(const double factor){
+	_dsd->set_viscosity_beta(_dsd->viscosity_beta() * factor);
+	printf("New viscosity beta is %f\n", _dsd->viscosity_beta());
+}
+
+void CollidingParticlesRBDThing::_adjust_pressure_strength(const double factor){
+	_dsd->set_rest_pressure(_dsd->rest_pressure() * factor);
+	printf("New rest pressure is %f\n", _dsd->rest_pressure());
+}
+
+void CollidingParticlesRBDThing::_adjust_base_density(const double factor){
+	_dsd->set_rest_density(_dsd->rest_density() * factor);
+	printf("New rest density is %f\n", _dsd->rest_density());
+}
+
+void CollidingParticlesRBDThing::_adjust_pressure_power(const double factor){
+	_dsd->set_gamma(_dsd->gamma() * factor);
+	printf("New pressure power (gamma) is %f\n", _dsd->gamma());
+}
+
+void CollidingParticlesRBDThing::_adjust_velocity_max_val(const double factor){
+	_dsd->set_max_particle_speed(_dsd->get_max_particle_speed() * factor);
+	printf("New max particle speed is %f m/s\n", _dsd->get_max_particle_speed());
+}
+
+void CollidingParticlesRBDThing::_adjust_acceleration_max_val(const double factor){
+	_dsd->set_max_particle_acceleration(_dsd->get_max_particle_acceleration() * factor);
+	printf("New max particle acceleration is %f m/s^2\n", _dsd->get_max_particle_acceleration());
+}
+
 void CollidingParticlesRBDThing::Usage(){
 	printf("SPH Controls:\n");
+	printf("  a/A: Decrease/Increase max particle acceleration\n");
+	printf("  b/B: Decrease/Increase pressure power (gamma)\n");
 	printf("  c/C: Decrease/Increase coefficient of restitution for box collisions\n");
+	printf("  d/D: Decrease/Increase base density of the fluid\n");
+	printf("  e: Emit 100 new particles\n");
 	printf("  g/G: Increase/Decrease gravity strength\n");
 	printf("  l: Switch to Leapfrog solver\n");
 	printf("  L: Switch to Sixth Order solver\n");
+	printf("  p/P: Decrease/Increase pressure strength\n");
 	printf("  r: Reset the simulation\n");
-	printf("  t/T: lower/raise timestep. BE SURE TO RESET INTEGRATION METHOD TO APPLY");
+	printf("  s/S: Decrease/Increase max particle speed\n");
+	printf("  t/T: Decrease/Increase simulation timestep\n");
 	printf("  u/U: Print this usage information\n");
+	printf("  v/V: Decrease/Increase viscosity\n");
 }
 
 void CollidingParticlesRBDThing::_draw_tris(){
@@ -321,13 +383,12 @@ void CollidingParticlesRBDThing::_draw_particles(){
 		glVertex3f(pos.X(), pos.Y(), pos.Z());
 	}
     glColor3d(0.0, 1.0, 0.0);
-    glPointSize(8.0f);
+    glPointSize(12.0f);
     for (size_t i=0; i<_rbd->n_particles(); i++){
         Vector pos = _rbd->get_vert_pos(i);
 		glVertex3f(pos.X(), pos.Y(), pos.Z());
-
     }
-    glEnd();
+	glEnd();
 }
 
 void CollidingParticlesRBDThing::_initialize_box_collision_surface(const AABB& bounds){

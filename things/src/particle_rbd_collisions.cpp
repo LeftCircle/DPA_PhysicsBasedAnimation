@@ -60,43 +60,44 @@ void ParticleRBDCollisionHandler::handle_collisions(
 void ParticleRBDCollisionHandler::_resolve_particle_rbd_collision(DSD_sp dsd, ParticleRBDHitResult& hit_info, const double dt){
 	// Everything is already updated to the correct space in time. Now we just need the particle and
 	// rbd collision response. 
+	size_t i = hit_info.particle;
     const Vector& n = hit_info.normal;
     const Vector& r = hit_info.rbd->get_rotated_lever_arm(hit_info.position);
-	const float mp = dsd->get_mass(hit_info.particle);
-    const float M = hit_info.rbd->get_total_mass() + mp;
+	const float mp = dsd->get_mass(i);
+    //const float M = hit_info.rbd->get_total_mass() + mp;
     Vector rxn = r ^ n;
     RB_sp rbd = hit_info.rbd;
 	const float rbd_m = rbd->get_total_mass();
-	//Vector COM = (mp * dsd->get_position(hit_info.particle) + rbd_m * rbd->center_of_mass) / M;
+	//Vector COM = (mp * dsd->get_position(i) + rbd_m * rbd->center_of_mass) / M;
+    Vector& vp = dsd->get_velocity(i);
 
-    // Now we have to make the rbd bounce
-    //double A_numer_a = (rbd->linear_velocity * M / rbd_m + dsd->get_velocity(hit_info.particle)) * n;
-    //double A_numer_b = rbd->angular_velocity * rxn;
-	//double A_denom = 1.0 / mp + M / (rbd_m * rbd_m) + rxn * rbd->get_inverse_moi() * rxn;
-    //double A = std::abs(2.0 * (A_numer_a + A_numer_b) / A_denom);
-    //printf("A = %f\n", A);
-	Vector w = rbd->angular_velocity;
-	double A_numer_a = -2.0 * (dsd->get_velocity(hit_info.particle) * n - rbd->linear_velocity * n);
-	double A_numer_b = w * rxn + (rbd->get_moi() * w) * (rbd->get_inverse_moi() * rxn);
+	Vector& w = rbd->angular_velocity;
+	//double A_numer_a = -2.0 * (dsd->get_velocity(i) * n - rbd->linear_velocity * n);
+	//double A_numer_b = w * rxn + (rbd->get_moi() * w) * (rbd->get_inverse_moi() * rxn);
 	//double A_numer_b = 2 * w * rxn;
-	double A_denom = (1.0 / mp) + (1.0 / rbd_m) + rxn * rbd->get_inverse_moi() * rxn;
-	double A = (A_numer_a + A_numer_b) / A_denom;
-	//A = std::abs(A);
-	printf("Particle rbd A = %f\n", A);
+	//double A_denom = (1.0 / mp) + (1.0 / rbd_m) + rxn * rbd->get_inverse_moi() * rxn;
+	//double A = (A_numer_a + A_numer_b) / A_denom;
+	
+	double A_numer = 2.0 * (w * rxn - (vp - rbd->linear_velocity) * n);
+	//double A_numer = 2.0 * (-vp * n + rbd->linear_velocity * n + w * rxn);
+	double A_denom = 1.0 / mp + 1.0 / rbd_m + (rxn * rbd->get_inverse_moi() * rxn);
+	double A = A_numer / A_denom;
+	
+	//printf("Particle rbd A = %f\n", A);
 	//A = std::abs(A);
     // Now update pos and rotation with the bounce
     rbd->linear_velocity -= A / rbd->get_total_mass() * n;
     rbd->angular_velocity -= A * rbd->get_inverse_moi() * rxn;
-	dsd->set_velocity(hit_info.particle, dsd->get_velocity(hit_info.particle) + (A / mp) * n);
+	dsd->set_velocity(i, dsd->get_velocity(i) + (A / mp) * n);
 	// Now we have to set the expected update position for this particle
-	Vector new_p = dsd->get_position(hit_info.particle) + dsd->get_velocity(hit_info.particle) * (dt - hit_info.time);
-	dsd->set_updated_position(hit_info.particle, new_p);
+	Vector new_p = dsd->get_position(i) + dsd->get_velocity(i) * (dt - hit_info.time);
+	dsd->set_updated_position(i, new_p);
 
     // Angular momentum update!!!
     rbd->angular_momentum = rbd->get_moi() * rbd->angular_velocity;
 }
 
-void ParticleRBDCollisionHandler::_update_rbd_and_particles_by(DSD_sp dsd,const double dt){
+void ParticleRBDCollisionHandler::_update_rbd_and_particles_by(DSD_sp dsd, const double dt){
 	for (auto& rbd: _rbds){
 		AdvanceRotationAndCOM::solve(rbd, dt);
 	}

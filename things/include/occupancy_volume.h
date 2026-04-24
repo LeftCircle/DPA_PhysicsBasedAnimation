@@ -78,7 +78,7 @@ private:
 		int y_idx = (int)((position.Y() - _aabb.lower_left().Y()) / _cell_size);
 		int z_idx = (int)((position.Z() - _aabb.lower_left().Z()) / _cell_size);
 		if (!(x_idx >= 0 && y_idx >= 0 && z_idx >= 0 && x_idx < _voxels.get_x_dim() && y_idx < _voxels.get_y_dim() && z_idx < _voxels.get_z_dim())) [[unlikely]]{
-			printf("Position is out of bounds of the occupancy volume. This should never happen \n");
+			//printf("Position is out of bounds of the occupancy volume. This should never happen \n");
 		}
 		x_idx = std::clamp(x_idx, 0, _voxels.get_x_dim() - 1);
 		y_idx = std::clamp(y_idx, 0, _voxels.get_y_dim() - 1);
