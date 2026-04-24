@@ -58,7 +58,7 @@ void RigidBodyStateData::create_from_obj(ObjReader<Vector>& obj, const Vector& c
 		Vector pos = verts[i] + center;
         set_initial_position(i, pos);
 		set_position(i, pos);
-		set_mass(i, 1);
+		set_mass(i, 0.05);
     }
 	_faces.resize(faces.size());
 	for (size_t i = 0; i < faces.size(); i++){
@@ -90,6 +90,17 @@ Vector RigidBodyStateData::get_rotated_lever_arm(const size_t p) const{
 
 Vector RigidBodyStateData::get_rotated_lever_arm(const Vector& pos) const {
 	return pos - center_of_mass;
+}
+
+AABB RigidBodyStateData::get_padded_bounding_box(const Vector& padd) {
+	AABB box;
+	for (size_t i = 0; i < _n_particles; i++){
+		Vector vert_pos = get_vert_pos(i);
+		box.expand_to_include(vert_pos);
+	}
+	box.expand_to_include(box.lower_left() - padd);
+	box.expand_to_include(box.upper_right() + padd);
+	return box;
 }
 
 void RigidBodyStateData::compute_com() {

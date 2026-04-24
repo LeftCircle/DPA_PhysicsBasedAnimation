@@ -74,6 +74,9 @@ private:
 	void _add_random_particle();
 	void _adjust_timestep(const double factor);
 	void _adjust_coefficient_of_sticky(const double delta);
+	void _adjust_avoidance_strength(const double factor);
+	void _adjust_centering_strength(const double factor);
+	void _adjust_vel_match_strength(const double factor);
 
 
 	BoidThingyDingy() = delete;

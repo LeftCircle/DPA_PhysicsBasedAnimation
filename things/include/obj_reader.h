@@ -6,6 +6,8 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include <sstream>
+#include <array>
 
 #include "cato_vector.h"
 
@@ -21,7 +23,7 @@ public:
 			if (line.substr(0, 2) == "v "){
 				_verts.push_back(_line_to_vec<double, Vec3>(line));
 			} else if (line.substr(0, 2) == "f "){
-				_faces.push_back(_line_to_vec<int, cato::Vec3i>(line));
+				_faces.push_back(_parse_face(line));
 			}
 		}
 	}
@@ -38,6 +40,19 @@ private:
 		T x, y, z;
 		ss >> x >> y >> z;
 		return VecType(x, y, z);
+	}
+
+	cato::Vec3i _parse_face(const std::string& l) const {
+		std::istringstream ss(l.substr(2));
+		std::array<int, 3> indices;
+		for (int i = 0; i < 3; i++) {
+			std::string token;
+			ss >> token;
+			// take only the part before the first '/'
+			indices[i] = std::stoi(token.substr(0, token.find('/')));
+		}
+		// OBJ indices are 1-based, convert to 0-based
+		return cato::Vec3i(indices[0] - 1, indices[1] - 1, indices[2] - 1);
 	}
 
 	std::vector<Vec3> _verts;

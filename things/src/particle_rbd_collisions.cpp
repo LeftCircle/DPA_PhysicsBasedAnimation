@@ -130,6 +130,11 @@ std::optional<ParticleRBDHitResult> ParticleRBDCollisionHandler::_find_earliest_
 	earliest_particle_triangle_hit.set_time(2.0 * dt);
 	for (size_t i = 0; i < dsd->n_particles(); i++){
 		for (auto& rbd: _rbds){
+			AABB padded_aabb = rbd->get_padded_bounding_box(Vector(0.1, 0.1, 0.1));
+			// First check if the particle path intersects the padded AABB of the rbd.
+			if (!padded_aabb.contains(start_positions[i]) && !padded_aabb.contains(updated_positions[i])){
+				continue;
+			}
 			// rbds can have a vector attribute that contains all of the indices for each face of the mesh
 			auto& tri_indices = rbd->get_face_indices();
 			for (auto& cato_tri_vec : tri_indices){

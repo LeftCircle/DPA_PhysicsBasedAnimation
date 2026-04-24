@@ -12,6 +12,7 @@
 #include "dynamical_state_data.h"
 #include "LinearAlgebra.h"
 #include "obj_reader.h"
+#include "AABB.h"
 
 
 namespace pba {
@@ -57,6 +58,7 @@ public:
 	void compute_lever_arms();
 	void compute_com_for_loop();
 	void compute_torque();
+	AABB get_padded_bounding_box(const Vector& padd);
 
 	Vector center_of_mass = Vector(0, 0, 0);
 	Matrix angular_rotation{1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0};

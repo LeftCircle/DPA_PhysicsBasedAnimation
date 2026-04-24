@@ -71,7 +71,8 @@ void SPHViscosityForce::compute_sph(SPHData_sp sph_data, const double dt) const 
 			sph_data->get_position(i),
 			Vector(0.0, 0.0, 0.0),
 			[&sph_data, this](size_t idx, Vector acc, const std::vector<size_t>& neighbor_indices){
-				return acc + _doyub_viscocity_for_neighbors(idx, neighbor_indices, sph_data);
+				//return acc + _doyub_viscocity_for_neighbors(idx, neighbor_indices, sph_data);
+				return acc + _compute_viscosity_force_for_neighbors(idx, neighbor_indices, sph_data);
 			}
 		);
 		viscosity_force /= sph_data->get_mass(i);

@@ -3,19 +3,27 @@
 
 using namespace pba;
 
+Color lerp_color(const Color& c1, const Color& c2, double t){
+    Color result;
+    result[0] = static_cast<float>(c1.red() + (c2.red() - c1.red()) * t);
+    result[1] = static_cast<float>(c1.green() + (c2.green() - c1.green()) * t);
+    result[2] = static_cast<float>(c1.blue() + (c2.blue() - c1.blue()) * t);
+    return result;
+}
+
 
 CollidingParticlesRBDThing::CollidingParticlesRBDThing(const std::string& nam)
 : PbaThingyDingy(nam) {
 	AABB bounds(Vector(-3.0, -3.0, -3.0), Vector(3.0, 3.0, 3.0));
 	_dsd = std::make_shared<SPHData>();
-	_dsd->set_h(1.25);
+	_dsd->set_h(0.25);
 	_occupancy_volume = create_idx_occupancy_volume(bounds, _dsd->h() * 2.0);
 	_kernel = std::make_shared<SphSpikyKernel3>(_dsd->h());
  	_viscosity_force = std::make_shared<SPHViscosityForce>(_occupancy_volume, _kernel);
     _pressure_force = std::make_shared<SPHPressureForce>(_occupancy_volume, _kernel);
 
     _rbd = std::make_shared<RigidBodyStateData>();
-    AABB emission_bounds(Vector(-2.7, 2.7, -2.7), Vector(2.9, 2.9, 2.9));
+    AABB emission_bounds(Vector(-2.7, -2.7, -2.7), Vector(-2.9, 2.9, 2.9));
     _particle_emitter_sp = std::make_shared<ParticleEmitter>(emission_bounds);
 	_particle_emitter_sp->set_min_speed(0.1);
 	_particle_emitter_sp->set_max_speed(3.8);
@@ -31,7 +39,7 @@ CollidingParticlesRBDThing::CollidingParticlesRBDThing(const std::string& nam)
 	_box = create_collision_surface();
 	_initialize_box_collision_surface(bounds);
 	_main_collision_surface = _box;//_create_collision_geo_from(DEFAULT_COLL_PATH);
-	_main_collision_surface->set_restitution(0.9);
+	_main_collision_surface->set_restitution(0.5);
 	_main_collision_surface->set_sticky(0.9);
 	_collision_handler->register_collision_surface(_main_collision_surface);
     _collision_handler->register_rbd(_rbd);
@@ -42,13 +50,14 @@ CollidingParticlesRBDThing::CollidingParticlesRBDThing(const std::string& nam)
 	_sph_force_system->add_force(_viscosity_force);
 	_sph_force_system->add_force(_pressure_force);
 
-	_dsd->set_rest_density(100);
-	_dsd->set_rest_pressure(50);
-	_dsd->set_gamma(5.0);
-	_dsd->set_max_particle_acceleration(18);
+	_dsd->set_rest_density(18);
+	_dsd->set_rest_pressure(8);
+	_dsd->set_gamma(0.8);
+	_dsd->set_viscosity_beta(0.2);
+	_dsd->set_max_particle_acceleration(20);
 	_dsd->set_max_particle_speed(20);
 
-    _emit_particles(300);
+    _emit_particles(2000);
 	
 	// And now that the init is basically done. Let's build the solvers
 	SetSimulationTimestep(0.01667 / 2.0);
@@ -243,6 +252,9 @@ void CollidingParticlesRBDThing::_add_random_particle(){
 	size_t idx = _dsd->n_particles() - 1;
 	_dsd->set_position(idx, pos);
 	_dsd->set_velocity(idx, vel);
+	_dsd->set_mass(idx, 0.01);
+	Vector col = ParticleEmitter::generate_random_bounded_vector(0.0, 1.0);
+	_dsd->set_color(idx, Color(col.X(), col.Y(), col.Z(), 1.0));
 }
 
 void CollidingParticlesRBDThing::_adjust_gravity(const Vector& delta){
@@ -387,13 +399,40 @@ void CollidingParticlesRBDThing::_draw_particles(){
 	for (size_t i=0; i<_dsd->n_particles(); i++){
 		Vector pos = _dsd->get_position(i);
 		glVertex3f(pos.X(), pos.Y(), pos.Z());
+		//Color col = _dsd->get_color(i);
+		//glColor3d(col.red(), col.green(), col.blue());
+		// The goal is to set the particles to be blue when stationary and white
+		// when vel is over 1.0
+		Vector vel = _dsd->get_velocity(i);
+		double speed = vel.magnitude();
+		double thresh = 6.0;
+		if (speed < thresh){
+			double t = speed / thresh; // Normalize speed to [0, 1]
+			Color col = lerp_color(Color(0.0, 0.0, 1.0, 1.0), Color(1.0, 1.0, 1.0, 1.0), t);
+			glColor3d(col.red(), col.green(), col.blue());
+		} else {
+			glColor3d(1.0, 1.0, 1.0);
+		}
 	}
     glColor3d(0.0, 1.0, 0.0);
-    glPointSize(12.0f);
+    glPointSize(20.0f);
     for (size_t i=0; i<_rbd->n_particles(); i++){
         Vector pos = _rbd->get_vert_pos(i);
 		glVertex3f(pos.X(), pos.Y(), pos.Z());
     }
+	glEnd();
+	// draw triangles from the box of the rbd
+	glBegin(GL_TRIANGLES);
+	auto face_indices = _rbd->get_face_indices();
+	for (size_t i=0; i<face_indices.size(); i++){
+		auto face = face_indices[i];
+		Vector v0 = _rbd->get_vert_pos(face.x());
+		Vector v1 = _rbd->get_vert_pos(face.y());
+		Vector v2 = _rbd->get_vert_pos(face.z());
+		glVertex3d(v0.X(), v0.Y(), v0.Z());
+		glVertex3d(v1.X(), v1.Y(), v1.Z());
+		glVertex3d(v2.X(), v2.Y(), v2.Z());
+	}
 	glEnd();
 }
 

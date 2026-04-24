@@ -1,5 +1,5 @@
 #include "thing_boids.h"
-
+#include <algorithm>>
 
 using namespace pba;
 
@@ -113,9 +113,11 @@ void BoidThingyDingy::Display(){
 void BoidThingyDingy::Keyboard( unsigned char key, int x, int y ){
 	switch( key ){
 		case 'a':{
+			_adjust_avoidance_strength(0.9);
 			break;
 		}
 		case 'A':{
+			_adjust_avoidance_strength(1.1);
 			break;
 		}
 		case 'b':{
@@ -133,9 +135,11 @@ void BoidThingyDingy::Keyboard( unsigned char key, int x, int y ){
 			break;
 		}
 		case 'd':{
+			_adjust_centering_strength(0.9);
 			break;
 		}
 		case 'D':{
+			_adjust_centering_strength(1.1);
 			break;
 		}
 		case 'e':{
@@ -156,6 +160,14 @@ void BoidThingyDingy::Keyboard( unsigned char key, int x, int y ){
 		}
 		case 'L':{
 			_set_to_sixth_order_solver();
+			break;
+		}
+		case 'm':{
+			_adjust_vel_match_strength(0.9);
+			break;
+		}
+		case 'M':{
+			_adjust_vel_match_strength(1.1);
 			break;
 		}
 		case 'p':{
@@ -240,14 +252,46 @@ void BoidThingyDingy::_adjust_timestep(const double factor){
 	printf("New timestep is %f seconds. RESET SOLVER TO APPLY CHANGES\n", dt);
 }
 
+void BoidThingyDingy::_adjust_avoidance_strength(const double factor){
+	auto attr = _dsd->get_double_attribute_span("coll_avoid_str");
+	for (size_t i = 0; i < _dsd->n_particles(); i++){
+		attr[i] *= factor;
+	}
+	double max_val = *std::max_element(attr.begin(), attr.end());
+	double min_val = *std::min_element(attr.begin(), attr.end());
+	printf("Avoidance range is now %f - %f\n", min_val, max_val);
+}
+
+void BoidThingyDingy::_adjust_vel_match_strength(const double factor){
+	auto attr = _dsd->get_double_attribute_span("vel_match_str");
+	for (size_t i = 0; i < _dsd->n_particles(); i++){
+		attr[i] *= factor;
+	}
+	double max_val = *std::max_element(attr.begin(), attr.end());
+	double min_val = *std::min_element(attr.begin(), attr.end());
+	printf("vel match range is now %f - %f\n", min_val, max_val);
+}
+
+void BoidThingyDingy::_adjust_centering_strength(const double factor){
+	auto attr = _dsd->get_double_attribute_span("centering_str");
+	for (size_t i = 0; i < _dsd->n_particles(); i++){
+		attr[i] *= factor;
+	}
+	double max_val = *std::max_element(attr.begin(), attr.end());
+	double min_val = *std::min_element(attr.begin(), attr.end());
+	printf("centering strength range is now %f - %f\n", min_val, max_val);
+}
 
 void BoidThingyDingy::Usage(){
 	printf("Boid Controls:\n");
+	printf("  a/A: adjust avoidance strength\n");
 	printf("  c/C: Decrease/Increase coefficient of restitution for box collisions\n");
+	printf("  d/D adjust centering strength\n");
 	printf("  e: Emit 100 new particles\n");
 	printf("  g/G: Increase/Decrease gravity strength\n");
 	printf("  l: Switch to Leapfrog solver\n");
 	printf("  L: Switch to Sixth Order solver\n");
+	printf("  m/M adjust velocity match strength\n");
 	printf("  r: Reset the simulation\n");
 	printf("  s/S: Decrease/Increase coefficient of sticky\n");
 	printf("  t/T: Decrease/Increase simulation timestep\n");

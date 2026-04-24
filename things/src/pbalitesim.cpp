@@ -27,10 +27,10 @@ int main(int argc, char** argv)
    //pba::PbaThing mything = pba::CreateMyThing();
    //viewer->AddThing(mything);
    //pba::PbaThing mything = pba::create_bouncing_ball_thing("Bouncing ball thing");
-   pba::PbaThing mything = pba::create_sph_thingy_dingy("Sph thing");
+   //pba::PbaThing mything = pba::create_sph_thingy_dingy("Sph thing");
    //pba::PbaThing mything = pba::create_soft_bunny_thing("Soft Bunny Sim");
 	//pba::PbaThing mything = pba::create_rigid_body_thing("Rigid Body Thing");  
-   //pba::PbaThing mything = pba::create_colliding_particles_rbd_thing("Colliding particles and RBD Thing");
+   pba::PbaThing mything = pba::create_colliding_particles_rbd_thing("Colliding particles and RBD Thing");
    //pba::PbaThing mything = pba::create_boid_thingy_dingy("Boid Thing!");
    viewer->AddThing(mything);
    //Optional thing to capture the screen each window and write it to a file

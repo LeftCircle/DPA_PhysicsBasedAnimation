@@ -6,8 +6,8 @@
 namespace pba{
 
 class AABB {
-
 public:
+	AABB() : llc(0, 0, 0), urc(0, 0, 0) {}
 	AABB(const Vector& lower_left, const Vector& upper_right)
 	: llc(lower_left), urc(upper_right) {}
 
@@ -19,6 +19,14 @@ public:
 				point.Z() >= llc.Z() && point.Z() <= urc.Z());
 	}
 	const Vector size() const {return urc - llc; }
+	void expand_to_include(const Vector& point) {
+		llc[0] = std::min(llc.X(), point.X());
+		llc[1] = std::min(llc.Y(), point.Y());
+		llc[2] = std::min(llc.Z(), point.Z());
+		urc[0] = std::max(urc.X(), point.X());
+		urc[1] = std::max(urc.Y(), point.Y());
+		urc[2] = std::max(urc.Z(), point.Z());
+	}
 
 private:
 	Vector llc;

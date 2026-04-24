@@ -43,10 +43,11 @@ SPHThingyDingy::SPHThingyDingy(const std::string& nam)
     
 	// And now that the init is basically done. Let's build the solvers
 	SetSimulationTimestep(0.01667);
-	_dsd->set_rest_density(1.5);
-	_dsd->set_rest_pressure(1.0);
-	_dsd->set_gamma(5.0);
-	_dsd->set_max_particle_acceleration(18);
+	_dsd->set_rest_density(18);
+	_dsd->set_rest_pressure(8);
+	_dsd->set_gamma(0.8);
+	_dsd->set_viscosity_beta(0.2);
+	_dsd->set_max_particle_acceleration(20);
 	_dsd->set_max_particle_speed(20);
 	//_set_to_sixth_order_solver();
 	_set_to_leapfrog_solver();
