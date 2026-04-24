@@ -58,7 +58,7 @@ void RigidBodyStateData::create_from_obj(ObjReader<Vector>& obj, const Vector& c
 		Vector pos = verts[i] + center;
         set_initial_position(i, pos);
 		set_position(i, pos);
-		set_mass(i, 5);
+		set_mass(i, 1);
     }
 	_faces.resize(faces.size());
 	for (size_t i = 0; i < faces.size(); i++){

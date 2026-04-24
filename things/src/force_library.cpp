@@ -75,6 +75,7 @@ void SPHViscosityForce::compute_sph(SPHData_sp sph_data, const double dt) const 
 			}
 		);
 		sph_data->set_acceleration(i, sph_data->get_acceleration(i) + viscosity_force / sph_data->get_mass(i));
+		
 		//printf("Viscocity_force = %f %f %f\n", viscosity_force.X(), viscosity_force.Y(), viscosity_force.Z());
 	}
 }

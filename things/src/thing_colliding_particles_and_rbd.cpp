@@ -42,6 +42,12 @@ CollidingParticlesRBDThing::CollidingParticlesRBDThing(const std::string& nam)
 	_sph_force_system->add_force(_viscosity_force);
 	_sph_force_system->add_force(_pressure_force);
 
+	_dsd->set_rest_density(100);
+	_dsd->set_rest_pressure(50);
+	_dsd->set_gamma(5.0);
+	_dsd->set_max_particle_acceleration(18);
+	_dsd->set_max_particle_speed(20);
+
     _emit_particles(300);
 	
 	// And now that the init is basically done. Let's build the solvers

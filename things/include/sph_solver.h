@@ -7,6 +7,7 @@
 #include <execution>
 #include <cmath>
 #include <stdexcept>
+#include <algorithm>
 
 #include "the_wheel.h"
 #include "partial_solvers.h"
@@ -53,10 +54,36 @@ public:
 
 	virtual void solve(const double dt) override;
 
-private:
+protected:
 	SPHPositionSolver() = delete;
 	idx_volume_sp _occupancy_volume;
 	Kernel_sp _kernel;
+};
+
+class PciSPHPositionSolver : public SPHPositionSolver {
+	explicit PciSPHPositionSolver(
+		SPHData_sp dsd,
+		CollisionHandler_sp collision_handler,
+		idx_volume_sp occupancy_volume,
+		Kernel_sp kernel
+	);
+
+	virtual void solve(const double dt) override;
+
+protected:
+	void _accumulate_pressure_force(double dt);
+	double _accumulate_delta(const double dt);
+	double _compute_beta(const double dt);
+	void _accumulate_pressure_gradient_force(
+		span<Vector>& pos,
+		span<double>& densities,
+		span<double>& pressures,
+		span<Vector>& pressure_forces
+	);
+
+private:
+	double _max_density_error_ratio = 0.01;
+	unsigned int _max_iterations = 5;
 };
 
 class SPHAdvanceVelocityWithForces : public AdvanceVelocityWithForces {

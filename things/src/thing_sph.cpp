@@ -29,6 +29,8 @@ SPHThingyDingy::SPHThingyDingy(const std::string& nam)
 	_force_system = std::make_shared<ForceSystem>();
 	_solver_system = create_gi_solver_system();
 	_box = create_collision_surface();
+	_box->set_restitution(0.5);
+	_box->set_sticky(0.5);
 	_collision_handler = create_collision_handler();
 	_collision_handler->register_collision_surface(_box);
 	_initialize_box_collision_surface(bounds);
@@ -40,8 +42,8 @@ SPHThingyDingy::SPHThingyDingy(const std::string& nam)
     
 	// And now that the init is basically done. Let's build the solvers
 	SetSimulationTimestep(0.01667);
-	_dsd->set_rest_density(100);
-	_dsd->set_rest_pressure(50);
+	_dsd->set_rest_density(1.5);
+	_dsd->set_rest_pressure(5);
 	_dsd->set_gamma(5.0);
 	_dsd->set_max_particle_acceleration(18);
 	_dsd->set_max_particle_speed(20);

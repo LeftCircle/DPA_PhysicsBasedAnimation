@@ -9,10 +9,32 @@ void CollisionHandler::handle_collisions(
 	const std::string& updated_pos_attr_name,
 	const double dt)
 {
+	handle_collisions(dsd, updated_pos_attr_name, "velocities", dt);
+	// const size_t n = dsd->n_particles();
+	// auto updated_positions = dsd->get_vector_attribute_span(updated_pos_attr_name);
+	// auto start_positions = dsd->get_vector_attribute_span("positions");
+	// auto velocities = dsd->get_vector_attribute_span("velocities");
+	// //#pragma omp parallel for
+	// for( size_t i=0; i<n; i++ ){
+	// 	Vector& start_pos = start_positions[i];
+	// 	Vector& updated_pos = updated_positions[i];
+	// 	Vector& velocity = velocities[i];
+	// 	_handle_particle_collisions(i, start_pos, updated_pos, velocity, dt);
+	// 	// Now set the final position to the updated one
+	// 	start_positions[i] = updated_positions[i];
+	// }
+}
+
+void CollisionHandler::handle_collisions(
+	DSD_sp dsd,
+	const std::string& updated_pos_attr,
+	const std::string& vel_attr,
+	const double dt)
+{
 	const size_t n = dsd->n_particles();
-	auto updated_positions = dsd->get_vector_attribute_span(updated_pos_attr_name);
+	auto updated_positions = dsd->get_vector_attribute_span(updated_pos_attr);
 	auto start_positions = dsd->get_vector_attribute_span("positions");
-	auto velocities = dsd->get_vector_attribute_span("velocities");
+	auto velocities = dsd->get_vector_attribute_span(vel_attr);
 	//#pragma omp parallel for
 	for( size_t i=0; i<n; i++ ){
 		Vector& start_pos = start_positions[i];
@@ -22,7 +44,9 @@ void CollisionHandler::handle_collisions(
 		// Now set the final position to the updated one
 		start_positions[i] = updated_positions[i];
 	}
+
 }
+
 
 void CollisionHandler::_handle_particle_collisions(
 	size_t particle_idx,

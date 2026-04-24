@@ -47,6 +47,7 @@ public:
 
 	virtual void register_collision_surface(const CollisionSurface_sp cs) { collision_surfaces.push_back(cs); }
 	virtual void handle_collisions(DSD_sp dsd, const std::string& updated_pos_attr_name, const double dt);
+	void handle_collisions(DSD_sp dsd, const std::string& updated_pos_attr, const std::string& vel_attr, const double dt);
 	
 protected:
 	CollisionHandleInfo _find_earliest_particle_static_geo_collision(
