@@ -62,6 +62,8 @@ private:
 		Color(0.4, 0.9, 0.7, 1.0),
 		Color(0.7, 0.4, 0.9, 1.0),
 		Color(0.9, 0.4, 0.7, 1.0),
+		Color(0.7, 0.9, 0.4, 1.0),
+		Color(0.4, 0.7, 0.9, 1.0)
 	};
 
 	void _initialize_box_collision_surface(const AABB& bounds);

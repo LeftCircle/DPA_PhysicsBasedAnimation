@@ -3,6 +3,27 @@
 
 using namespace pba;
 
+void _add_particles_in_box(AABB& bounds, float step_size, float mass, DSD_sp dsd){
+	for (float x = bounds.lower_left().X(); x < bounds.upper_right().X(); x += step_size){
+		for (float y = bounds.lower_left().Y(); y < bounds.upper_right().Y(); y += step_size){
+			for (float z = bounds.lower_left().Z(); z < bounds.upper_right().Z(); z += step_size){
+				dsd->add(1);
+				size_t idx = dsd->n_particles() - 1;
+				dsd->set_position(idx, Vector(x, y, z));
+				dsd->set_mass(idx, mass);
+			}
+		}
+		printf("on row %f\n", x);
+	}
+}
+
+Color lerp_color(const Color& c1, const Color& c2, double t){
+    Color result;
+    result[0] = static_cast<float>(c1.red() + (c2.red() - c1.red()) * t);
+    result[1] = static_cast<float>(c1.green() + (c2.green() - c1.green()) * t);
+    result[2] = static_cast<float>(c1.blue() + (c2.blue() - c1.blue()) * t);
+    return result;
+}
 
 SPHThingyDingy::SPHThingyDingy(const std::string& nam)
 : PbaThingyDingy(nam) {
@@ -15,15 +36,16 @@ SPHThingyDingy::SPHThingyDingy(const std::string& nam)
 	// Let's add a single bouncing ball particle
 	_dsd = std::make_shared<SPHData>();
 
-    _dsd->set_h(0.25);
+    _dsd->set_h(0.30);
     _occupancy_volume = create_idx_occupancy_volume(bounds, _dsd->h() * 2.0);
     //_kernel = std::make_shared<CubicSplineKernel3>(_dsd->h());
 	_kernel = std::make_shared<SphSpikyKernel3>(_dsd->h());
 
+	_add_particles_in_box(emission_bounds, _dsd->h() / 2.25, 0.015, _dsd);
 	// add a thousand particles to start with
-	for (size_t i=0; i<1000; i++){
-		_add_random_particle();
-	}
+	// for (size_t i=0; i<5000; i++){
+	// 	_add_random_particle();
+	// }
 	// And now our systems, forces and collision surfaces
 	_add_random_particle();
 	_force_system = std::make_shared<ForceSystem>();
@@ -43,12 +65,12 @@ SPHThingyDingy::SPHThingyDingy(const std::string& nam)
     
 	// And now that the init is basically done. Let's build the solvers
 	SetSimulationTimestep(0.01667);
-	_dsd->set_rest_density(18);
-	_dsd->set_rest_pressure(8);
-	_dsd->set_gamma(0.8);
-	_dsd->set_viscosity_beta(0.2);
-	_dsd->set_max_particle_acceleration(20);
-	_dsd->set_max_particle_speed(20);
+	_dsd->set_rest_density(25); // 18
+	_dsd->set_rest_pressure(8); // 8
+	_dsd->set_gamma(1.0);
+	_dsd->set_viscosity_beta(0.75);
+	_dsd->set_max_particle_acceleration(40);
+	_dsd->set_max_particle_speed(40);
 	//_set_to_sixth_order_solver();
 	_set_to_leapfrog_solver();
 }
@@ -370,14 +392,24 @@ void SPHThingyDingy::_draw_box(){
 }
 
 void SPHThingyDingy::_draw_particles(){
-	glColor3d(1.0, 0.0, 0.0);
-	glPointSize(8.0f);
+	//glColor3d(1.0, 0.0, 0.0);
+	glPointSize(4.0f);
 	glBegin(GL_POINTS);
 	for (size_t i=0; i<_dsd->n_particles(); i++){
 		Vector pos = _dsd->get_position(i);
 		glVertex3f(pos.X(), pos.Y(), pos.Z());
-		Color col = _dsd->get_color(i);
-		glColor3d(col.red(), col.green(), col.blue());
+		// Color col = _dsd->get_color(i);
+		// glColor3d(col.red(), col.green(), col.blue());
+		Vector vel = _dsd->get_velocity(i);
+		double speed = vel.magnitude();
+		double thresh = 6.0;
+		if (speed < thresh){
+			double t = speed / thresh; // Normalize speed to [0, 1]
+			Color col = lerp_color(Color(0.0, 0.0, 1.0, 1.0), Color(1.0, 1.0, 1.0, 1.0), t);
+			glColor4d(col.red(), col.green(), col.blue(), 1.0 - col.red());
+		} else {
+			glColor4d(1.0, 1.0, 1.0, 0.01);
+		}
 	}
 	glEnd();
 }

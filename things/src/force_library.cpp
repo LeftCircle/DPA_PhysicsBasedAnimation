@@ -59,7 +59,12 @@ Vector SPHPressureForce::_get_pressure_with_uniform_h(
 }
 
 double SPHPressureForce::_get_pressure_at_density(double density, double rest_pressure, double rest_density, double gamma) const {
-	return rest_pressure * (pow(density / rest_density, gamma) - 1.0);
+	double p = rest_pressure * (pow(density / rest_density, gamma) - 1.0);
+	if (p < 0){
+		//printf("Negative pressure\n");
+		p *= 0.001;
+	}
+ 	return p;
 }
 
 void SPHViscosityForce::compute_sph(SPHData_sp sph_data, const double dt) const {

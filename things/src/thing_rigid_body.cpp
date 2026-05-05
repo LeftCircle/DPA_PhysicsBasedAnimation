@@ -9,7 +9,7 @@ RigidBodyThingyDingy::RigidBodyThingyDingy(const std::string& nam)
 	_dsd = std::make_shared<RigidBodyStateData>();
 	AABB bounds(Vector(-3.0, -3.0, -3.0), Vector(3.0, 3.0, 3.0));
 	
-	_create_rigid_body_from_obj(DEFAULT_SOFT_BODY_PATH, Vector(0, 0, 0));
+	_create_rigid_body_from_obj("../../models/bunny_lo.obj", Vector(0, 0, 0));
 
     // And now our systems, forces and collision surfaces
 	_force_system = std::make_shared<ForceSystem>();
@@ -225,7 +225,7 @@ void RigidBodyThingyDingy::_adjust_timestep(const double factor){
 
 void RigidBodyThingyDingy::_create_rigid_body_from_obj(const std::string& file_name, const Vector& center){
     std::filesystem::path current_dir = std::filesystem::path(__FILE__).parent_path();
-	std::filesystem::path obj_file_path = current_dir / "../../models/simple_box.obj";
+	std::filesystem::path obj_file_path = current_dir / file_name;
 	//std::filesystem::path obj_file_path = current_dir / "../../models/bunny_lo.obj";
 
     // we are just going to read it every time for now
@@ -306,7 +306,7 @@ void RigidBodyThingyDingy::_draw_tris(){
 
 void RigidBodyThingyDingy::_draw_particles(){
 	glColor3d(1.0, 0.0, 0.0);
-	glPointSize(6.5f);
+	glPointSize(3.5f);
 	glBegin(GL_POINTS);
 	for (size_t i=0; i<_dsd->n_particles(); i++){
 		Vector pos = _dsd->get_vert_pos(i);

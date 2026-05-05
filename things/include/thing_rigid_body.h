@@ -85,7 +85,7 @@ private:
 
 	RigidBodyThingyDingy() = delete;
 	const std::string DEFAULT_COLL_PATH = "../../models/bigsphere.obj";
-	const std::string DEFAULT_SOFT_BODY_PATH = "../../models/box.obj";
+	const std::string DEFAULT_SOFT_BODY_PATH = "../../models/bunny_superlo_scaled.obj";
 };
 
 
