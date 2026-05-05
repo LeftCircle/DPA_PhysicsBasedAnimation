@@ -1,10 +1,10 @@
 # Godot Boids Simulation with C++ GDExtension and CUDA
 
-![](gif goes here)
+
 
 ## Description
 
-This is a C++ physics library developed based off of lectures from [Dr. Tessendorf's](https://jtessen.people.clemson.edu/) class DPA 6190: Introduction to Physically Based Modeling and Animation.  
+This is a C++ physics library developed based off of lectures from [Dr. Tessendorf's](https://jtessen.people.clemson.edu/) class DPA 6190: Introduction to Physically Based Modeling and Animation. All of the code that I have written is in the things folder. The rest were provided helpful classes like some linear algebra stuff and the Things framework for viewing the simulations. 
 
 ## Features
 
@@ -12,7 +12,7 @@ This is a C++ physics library developed based off of lectures from [Dr. Tessendo
 *   **Generic Integrator Solvers:** Composable integrators allowing users to use standard integrators such as forward/backward eulor or leapfrog solvers with collision detection and spatial hashing optimizations.
 *   **Soft Body Dynamics** Solvers and data structures for spring strut networks for soft bodies.
 *   **Rigid Body Dynamics** Solvers and collision response for Rigid Bodies.
-![](images/rbd_output_faster.gif)
+![](images/rbd_output_faster_small.gif)
 *   **SPH** Solvers, data structures, and spatial hashing optimizations for Smoothed Particle Hydrodynamics.
 ![](images/sph_output.gif)
 *   **Flocking Simulations** Flocking based on the classic Boids algorithm using a functional approach to particle behaviors.
