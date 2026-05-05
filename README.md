@@ -4,7 +4,9 @@
 
 ## Description
 
-This is a C++ physics library developed based off of lectures from [Dr. Tessendorf's](https://jtessen.people.clemson.edu/) class DPA 6190: Introduction to Physically Based Modeling and Animation. All of the code that I have written is in the things folder. The rest were provided helpful classes like some linear algebra stuff and the Things framework for viewing the simulations. 
+This is a C++ physics library developed based off of lectures from [Dr. Tessendorf's](https://jtessen.people.clemson.edu/) class DPA 6190: Introduction to Physically Based Modeling and Animation. 
+
+All of the code that I have written is in the things folder. The rest were provided helpful classes like some linear algebra stuff and the Things framework for viewing the simulations. 
 
 ## Features
 
