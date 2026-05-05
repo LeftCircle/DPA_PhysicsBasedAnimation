@@ -11,7 +11,7 @@ This is a C++ physics library developed based off of lectures from [Dr. Tessendo
 *   **Dynamical State Data:** A structure of arrays container for particle data.
 *   **Generic Integrator Solvers:** Composable integrators allowing users to use standard integrators such as forward/backward eulor or leapfrog solvers with collision detection and spatial hashing optimizations.
 *   **Soft Body Dynamics** Solvers and data structures for spring strut networks for soft bodies.
-<img src="images/soft_body_out.gif" width="480"/>
+<img src="images/soft_body_output.gif" width="480"/>
 *   **Rigid Body Dynamics** Solvers and collision response for Rigid Bodies.
 <img src="images/rbd_output_faster_small.gif" width="480"/>
 *   **SPH** Solvers, data structures, and spatial hashing optimizations for Smoothed Particle Hydrodynamics.
