@@ -53,6 +53,7 @@ private:
 	std::shared_ptr<GISolverSystem> _solver_system;
 	CollisionHandler_sp _collision_handler;
     std::shared_ptr<UniformStrutForce> _uniform_strut_force;
+	CollisionSurface_sp _box;
 
 	std::vector<Triangle> _tris_to_draw;
 	std::vector<Color> _tri_colors = {
@@ -77,13 +78,15 @@ private:
 	void _adjust_timestep(const double factor);
     void _adjust_strut_force(const double delta);
     void _adjust_strut_friction(const double delta);
+	void _draw_box();
 
     void _create_uniform_soft_body_from_obj(const std::string& file_name, const Vector& center = Vector(0, 0, 0));
 	CollisionSurface_sp _create_collision_geo_from(const std::string& file_name);
+	void _initialize_box_collision_surface(const AABB& bounds);
 
 	SoftBunnyThingyDingy() = delete;
 	const std::string DEFAULT_COLL_PATH = "../../models/bigsphere.obj";
-	const std::string DEFAULT_SOFT_BODY_PATH = "../../models/bunny_superlo_scaled.obj";
+	const std::string DEFAULT_SOFT_BODY_PATH = "../../models/bunny_lo.obj";
 };
 
 

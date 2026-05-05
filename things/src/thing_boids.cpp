@@ -10,12 +10,11 @@ BoidThingyDingy::BoidThingyDingy(const std::string& nam)
 	AABB bounds(Vector(-3.0, -3.0, -3.0), Vector(3.0, 3.0, 3.0));
 	AABB emission_bounds(Vector(-2.9, -2.9, -2.9), Vector(2.9,  2.9, 2.9));
 	_particle_emitter_sp = std::make_shared<ParticleEmitter>(emission_bounds);
-	_particle_emitter_sp->set_min_speed(0.0);
-	_particle_emitter_sp->set_max_speed(5.0);
+	_particle_emitter_sp->set_min_speed(7.0);
+	_particle_emitter_sp->set_max_speed(15.0);
     _dsd = std::make_shared<BoidStateData>();
 
-    // currently 2 because range = 1 and range_amp = 1
-    _occupancy_volume = create_idx_occupancy_volume(bounds, 1.0);
+    _occupancy_volume = create_idx_occupancy_volume(bounds, 2.0);
 
 	// add a thousand particles to start with
 	for (size_t i=0; i<1000; i++){
@@ -44,18 +43,18 @@ void BoidThingyDingy::_add_random_particle(){
 	size_t idx = _dsd->n_particles() - 1;
 	_dsd->set_position(idx, pos);
 	_dsd->set_velocity(idx, vel);
-    _dsd->set_double_attribute("range", idx, 0.5);
-    _dsd->set_double_attribute("range_amp", idx, 0.5);
-    _dsd->set_double_attribute("acc_budget", idx, 100);
-    _dsd->set_double_attribute("cos_fov_angle", idx, 0);
-    _dsd->set_double_attribute("cos_fov_plus_amp", idx, -.6);
-	double r_cent = ParticleEmitter::rand_d(0.1, 1);
-	double r_vel_match = ParticleEmitter::rand_d(0.1, 0.8);
-	double r_coll_avoid = ParticleEmitter::rand_d(0.1, 1.0);
+    _dsd->set_double_attribute("range", idx, 1.0);
+    _dsd->set_double_attribute("range_amp", idx, 1.0);
+    _dsd->set_double_attribute("acc_budget", idx, 20);
+    _dsd->set_double_attribute("cos_fov_angle", idx, 0.25);
+    _dsd->set_double_attribute("cos_fov_plus_amp", idx, 0);
+	double r_cent = ParticleEmitter::rand_d(2.75, 4.5);
+	double r_vel_match = ParticleEmitter::rand_d(0.5, 2.8);
+	double r_coll_avoid = ParticleEmitter::rand_d(0.5, 1.0);
     _dsd->set_double_attribute("centering_str", idx, r_cent);
     _dsd->set_double_attribute("vel_match_str", idx, r_vel_match);
 	_dsd->set_double_attribute("coll_avoid_str", idx, r_coll_avoid);
-	Vector col = ParticleEmitter::generate_random_bounded_vector(0.0, 1.0);
+	Vector col = ParticleEmitter::generate_random_bounded_vector(0.75, 3.0);
 	_dsd->set_color(idx, Color(col.X(), col.Y(), col.Z(), 1.0));
 }
 
@@ -370,7 +369,7 @@ void BoidThingyDingy::_draw_box(){
 
 void BoidThingyDingy::_draw_particles(){
 	glColor3d(1.0, 0.0, 0.0);
-	glPointSize(4.0f);
+	glPointSize(5.0f);
 	glBegin(GL_POINTS);
 	for (size_t i=0; i<_dsd->n_particles(); i++){
 		Vector pos = _dsd->get_position(i);

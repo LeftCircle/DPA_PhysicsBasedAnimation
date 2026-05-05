@@ -6,20 +6,27 @@ using namespace pba;
 
 SoftBunnyThingyDingy::SoftBunnyThingyDingy(const std::string& nam)
 : PbaThingyDingy(nam) {
+	AABB bounds(Vector(-1.0, -1.0, -1.0), Vector(1.0, 1.0, 1.0));
+
 	_dsd = std::make_shared<SoftBody>();
 	
-	_create_uniform_soft_body_from_obj(DEFAULT_SOFT_BODY_PATH, Vector(0, 10, 0));
+	_create_uniform_soft_body_from_obj("../../models/bunny_superlo_scaled.obj", Vector(0, 0, 0));
+	//_create_uniform_soft_body_from_obj(DEFAULT_SOFT_BODY_PATH, Vector(0, 0, 0));
 
     // And now our systems, forces and collision surfaces
 	_force_system = std::make_shared<ForceSystem>();
 	_solver_system = create_gi_solver_system();
 	
 	_collision_handler = create_collision_handler();
-	_main_collision_surface = _create_collision_geo_from(DEFAULT_COLL_PATH);
+	//_main_collision_surface = _create_collision_geo_from(DEFAULT_COLL_PATH);
+	_box = std::make_shared<CollisionSurface>();
+	_initialize_box_collision_surface(bounds);
+	_main_collision_surface = _box;
 	_collision_handler->register_collision_surface(_main_collision_surface);
+	_main_collision_surface->set_sticky(0.5);
 
 	_gravity_force = std::make_shared<SimpleGravityForce>(Vector(0.0, -9.81, 0.0));
-	_uniform_strut_force = std::make_shared<UniformStrutForce>(20.0, 0.3);
+	_uniform_strut_force = std::make_shared<UniformStrutForce>(10.0, 0.3);
     _force_system->add_forces(_gravity_force, _uniform_strut_force);
 	
     
@@ -30,7 +37,7 @@ SoftBunnyThingyDingy::SoftBunnyThingyDingy(const std::string& nam)
 
 void SoftBunnyThingyDingy::Init( const std::vector<std::string>& args ) {
 	//void SetCameraEyeViewUp( float eyex, float eyey, float eyez, float viewx, float viewy, float viewz, float upx, float upy, float upz ); 
-	viewer->SetCameraEyeViewUp(0, 0, -130, 0, 0, 1, 0, 1, 0);
+	viewer->SetCameraEyeViewUp(0, 0, -10, 0, 0, 1, 0, 1, 0);
 }
 
 
@@ -82,6 +89,7 @@ void SoftBunnyThingyDingy::solve(){
 
 void SoftBunnyThingyDingy::Display(){
 	_draw_tris();
+	//_draw_box();
 	_draw_particles();
 }
 
@@ -177,7 +185,7 @@ void SoftBunnyThingyDingy::Keyboard( unsigned char key, int x, int y ){
 }
 
 void SoftBunnyThingyDingy::_emit_particles(const size_t n){
-    _create_uniform_soft_body_from_obj(DEFAULT_SOFT_BODY_PATH, Vector(0, 10, 0));
+    _create_uniform_soft_body_from_obj("../../models/bunny_superlo_scaled.obj", Vector(0, 0, 0));
 	printf("Emitted %zu new particles. Total particle count is now %zu.\n", n, _dsd->n_particles());
 }
 
@@ -225,9 +233,12 @@ void SoftBunnyThingyDingy::_create_uniform_soft_body_from_obj(const std::string&
         _dsd->add();
         _dsd->set_position(i + n_starting_particles, verts[i] + center);
         _dsd->set_velocity(i + n_starting_particles, vel);
+		Vector col = ParticleEmitter::generate_random_bounded_vector(1.0, 3.0);
+		_dsd->set_color(i + n_starting_particles, Color(col.X(), col.Y(), col.Z(), 1.0));
     }
     // And now the connections:
     _dsd->connect_all_particles_in_range(n_starting_particles, _dsd->n_particles());
+	printf("Done reading file\n");
 }
 
 CollisionSurface_sp SoftBunnyThingyDingy::_create_collision_geo_from(const std::string& file_name){
@@ -283,6 +294,76 @@ void SoftBunnyThingyDingy::Usage(){
     printf("  v/V: incrase/decrease strut friction\n");
 }
 
+
+void SoftBunnyThingyDingy::_initialize_box_collision_surface(const AABB& bounds){
+	// Let's start by just defining the 8 points of the box
+	Vector bll = Vector(bounds.lower_left().X(), bounds.lower_left().Y(), bounds.lower_left().Z());
+	Vector blf = Vector(bounds.lower_left().X(), bounds.lower_left().Y(),  bounds.upper_right().Z());
+	Vector brl = Vector(bounds.upper_right().X(), bounds.lower_left().Y(), bounds.lower_left().Z());
+	Vector brf = Vector(bounds.upper_right().X(), bounds.lower_left().Y(),  bounds.upper_right().Z());
+	Vector tll = Vector(bounds.lower_left().X(),  bounds.upper_right().Y(), bounds.lower_left().Z());
+	Vector tlf = Vector(bounds.lower_left().X(),  bounds.upper_right().Y(),  bounds.upper_right().Z());
+	Vector trl = Vector(bounds.upper_right().X(),  bounds.upper_right().Y(), bounds.lower_left().Z());
+	Vector trf = Vector(bounds.upper_right().X(),  bounds.upper_right().Y(),  bounds.upper_right().Z());
+
+	// Now let's create the 12 triangles that make up the box
+	// All the normals will point into the box
+	Triangle b1 = Triangle(bll, brf, brl);
+	Triangle b2 = Triangle(bll, blf, brf);
+	_box->add_collision_object(std::make_shared<CollisionTriangle>(b1));
+	_box->add_collision_object(std::make_shared<CollisionTriangle>(b2));
+	Triangle t1 = Triangle(tll, trl, trf);
+	Triangle t2 = Triangle(tll, trf, tlf);
+	_box->add_collision_object(std::make_shared<CollisionTriangle>(t1));
+	_box->add_collision_object(std::make_shared<CollisionTriangle>(t2));
+	Triangle l1 = Triangle(bll, tlf, blf);
+	Triangle l2 = Triangle(bll, tll, tlf);
+	_box->add_collision_object(std::make_shared<CollisionTriangle>(l1));
+	_box->add_collision_object(std::make_shared<CollisionTriangle>(l2));
+	Triangle r1 = Triangle(brl, brf, trf);
+	Triangle r2 = Triangle(brl, trf, trl);
+	_box->add_collision_object(std::make_shared<CollisionTriangle>(r1));
+	_box->add_collision_object(std::make_shared<CollisionTriangle>(r2));
+	Triangle back1 = Triangle(bll, brl, trl);
+	Triangle back2 = Triangle(bll, trl, tll);
+	_box->add_collision_object(std::make_shared<CollisionTriangle>(back1));
+	_box->add_collision_object(std::make_shared<CollisionTriangle>(back2));
+	Triangle front1 = Triangle(blf, trf, brf);
+	Triangle front2 = Triangle(blf, tlf, trf);
+	_box->add_collision_object(std::make_shared<CollisionTriangle>(front1));
+	_box->add_collision_object(std::make_shared<CollisionTriangle>(front2));
+	
+	_tris_to_draw.push_back(b1);
+	_tris_to_draw.push_back(b2);
+	_tris_to_draw.push_back(t1);
+	_tris_to_draw.push_back(t2);
+	_tris_to_draw.push_back(l1);
+	_tris_to_draw.push_back(l2);
+	_tris_to_draw.push_back(r1);
+	_tris_to_draw.push_back(r2);
+	_tris_to_draw.push_back(back1);
+	_tris_to_draw.push_back(back2);
+	_tris_to_draw.push_back(front1);
+	_tris_to_draw.push_back(front2);
+}
+
+void SoftBunnyThingyDingy::_draw_box(){
+	// Draw all of the triangles except the last two in the box collision surface
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
+	glFrontFace(GL_CCW);
+	for (size_t i=0; i<_tris_to_draw.size(); i++){
+		Color col = _tri_colors[i % _tri_colors.size()];
+		glColor3f(col.X(), col.Y(), col.Z());
+		const Triangle& tri = _tris_to_draw[i];
+		glBegin(GL_TRIANGLES);
+			glVertex3d(tri.v0.X(), tri.v0.Y(), tri.v0.Z());
+			glVertex3d(tri.v1.X(), tri.v1.Y(), tri.v1.Z());
+			glVertex3d(tri.v2.X(), tri.v2.Y(), tri.v2.Z());
+		glEnd();
+	}
+}
+
 void SoftBunnyThingyDingy::_draw_tris(){
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
@@ -300,11 +381,13 @@ void SoftBunnyThingyDingy::_draw_tris(){
 }
 
 void SoftBunnyThingyDingy::_draw_particles(){
-	glColor3d(1.0, 0.0, 0.0);
-	glPointSize(8.0f);
+	//glColor3d(1.0, 0.0, 0.0);
+	glPointSize(6.0f);
 	glBegin(GL_POINTS);
 	for (size_t i=0; i<_dsd->n_particles(); i++){
 		Vector pos = _dsd->get_position(i);
+		Color col = _dsd->get_color(i);
+		glColor3d(col.red(), col.green(), col.blue());
 		glVertex3f(pos.X(), pos.Y(), pos.Z());
 	}
 	glEnd();
