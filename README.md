@@ -15,8 +15,7 @@ All of the code that I have written is in the things folder. The rest were provi
 *   **Soft Body Dynamics** Solvers and data structures for spring strut networks for soft bodies.
     <img src="images/soft_body_output.gif" width="480"/>
 *   **Rigid Body Dynamics** Solvers and collision response for Rigid Bodies.
-<img src="images/rbd_output_faster_small.gif" width="480"/>
-
+    <img src="images/rbd_output_faster_small.gif" width="480"/>
 *   **SPH** Solvers, data structures, and spatial hashing optimizations for Smoothed Particle Hydrodynamics.
     <img src="images/sph_output.gif" width="480"/>
 *   **Flocking Simulations** Flocking based on the classic Boids algorithm using a functional approach to particle behaviors.
