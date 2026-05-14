@@ -10,7 +10,7 @@ using namespace pba;
 
 using vec_st = std::vector<size_t>;
 
-void PartialSolverAdvancePosition::partial_update(DSDB_sp dsd, const double dt){
+void PartialSolverAdvancePosition::partial_update(DSD_sp dsd, const double dt){
 	auto start_pos = dsd->get_vector_attribute_span("positions");
 	auto vel = dsd->get_vector_attribute_span("velocities");
 	for (size_t i = 0; i < dsd->n_particles(); i++){

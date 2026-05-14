@@ -16,7 +16,6 @@ T factorial(T val) {
     return val;
 };
 
-
 } // end namespace pba
 
 

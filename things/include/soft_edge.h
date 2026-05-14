@@ -31,8 +31,32 @@ private:
 };
 
 class SoftTriangle{
+public:
+	SoftTriangle(
+		size_t idx_a,
+		size_t idx_b,
+		size_t idx_c,
+		double area,
+		double force = 1.0,
+		double friction = 0.0
+	) :	_area(area), _k(force), _friction(friction) {_idxs[0] = idx_a; _idxs[1] = idx_b; _idxs[2] = idx_c; }
 
+	const size_t idx0() const noexcept { return _idxs[0]; }
+	const size_t idx1() const noexcept { return _idxs[1]; }
+	const size_t idx2() const noexcept { return _idxs[2]; }
+	const size_t& operator[] (const int idx) const { return _idxs[idx]; }
+
+	const double rest_area() const noexcept { return _area; } 
+	const double k() const noexcept { return _k; }
+	const double u() const noexcept { return _friction; }
+private:
+	size_t _idxs[3];
+	double _area;
+	double _k;
+	double _friction;
 };
+
+
 
 
 }// end namepspace pba

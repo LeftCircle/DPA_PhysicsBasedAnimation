@@ -39,7 +39,7 @@ public:
 
 private:
 	std::pair<RB_sp, RBDHitResult> _find_earliest_rbd_static_collision_from_all_rbds(const double dt) const;
-	std::optional<ParticleRBDHitResult> _find_earliest_particle_rbd_collision(DSDB_sp dsd, const double dt) const;
+	std::optional<ParticleRBDHitResult> _find_earliest_particle_rbd_collision(DSD_sp dsd, const double dt) const;
 	std::optional<ParticleRBDHitResult> _bisect_particle_rbd_collision(
 		size_t particle_idx,
 		Vector p_start,

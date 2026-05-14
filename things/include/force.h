@@ -14,7 +14,7 @@ class ForceBase{
 public:
 	ForceBase() = default;
 	virtual ~ForceBase() = default;
-	virtual void compute(DynamicalStateDataBase_sp dsd, const double dt) const = 0;
+	virtual void compute(DSD_sp dsd, const double dt) const = 0;
 };
 using Force_sp = std::shared_ptr<ForceBase>;
 
@@ -24,15 +24,28 @@ public:
 	ForceSystem() = default;
 	~ForceSystem() = default;
 	void add_force(Force_sp force) { _forces.push_back(force); }
+	
 	template<typename... Forces>
 	void add_forces(Forces... forces) {
 		(_forces.push_back(forces), ...);
 	}
-	void compute(DynamicalStateDataBase_sp dsd, const double dt) const override;
+	void compute(DSD_sp dsd, const double dt) const override;
+	static void reset_accelerations(DSD_sp dsd) noexcept;
 
 private:
-	void _reset_accelerations(DynamicalStateDataBase_sp dsd) const noexcept;
 	std::vector<Force_sp> _forces;
+};
+
+using ForceFunction = std::function<void(DSD_sp, double)>;
+
+class ForceFunctionSystem : public ForceBase{
+public:
+	void add(ForceFunction fn) {_forces.push_back(std::move(fn)); }
+
+	void compute(DSD_sp dsd, const double dt) const override;
+
+private:
+	std::vector<ForceFunction> _forces;
 };
 
 using ForceSystem_sp = std::shared_ptr<ForceSystem>;

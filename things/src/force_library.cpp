@@ -4,7 +4,7 @@
 using namespace pba;
 
 
-void SimpleGravityForce::compute(DynamicalStateDataBase_sp dsd, const double dt) const {
+void SimpleGravityForce::compute(DSD_sp dsd, const double dt) const {
 	const size_t n = dsd->n_particles();
 	auto acc = dsd->get_vector_attribute_span("acceleration");
 	std::for_each(acc.begin(), acc.end(),
@@ -319,4 +319,56 @@ double PciSPHPressureForce::_accumulate_delta(SPHData_sp dsd, const double dt) c
 double PciSPHPressureForce::_compute_beta(SPHData_sp dsd, const double dt) const {
 	double dtm_over_p = dt * dsd->get_mass(0) / dsd->rest_density();
 	return 2.0 * dtm_over_p * dtm_over_p;
+}
+
+void SoftTriangleForce::compute(
+	DSD_sp dsd,
+	const double dt,
+	span<const SoftTriangle> soft_triangles) const 
+{
+	for (auto tri : soft_triangles){
+		Vector e1 = dsd->p(tri[1] - tri[0]);
+		Vector e2 = dsd->p(tri[2] - tri[0]);
+
+		auto get_mid = [&dsd, &tri](int a, int b){return 0.5 * (dsd->p(tri[a]) + dsd->p(tri[b])); };
+		Vector m1 = get_mid(0, 1);
+		Vector m2 = get_mid(0, 2);
+		Vector m3 = get_mid(1, 2);
+
+		Vector d0 = dsd->p(tri[0]) - m3;
+		Vector d1 = dsd->p(tri[1]) - m2;
+		Vector d2 = dsd->p(tri[2]) - m1;
+		double a = 0.5 * (e1 ^ e2).magnitude();
+		double force_mag = tri.k() * (1.0 -  a / tri.rest_area());
+
+
+		Vector f0 = force_mag * d0;
+		Vector f1 = force_mag * d1;
+		Vector f2 = force_mag * d2;
+		dsd->set_acceleration(tri[0], dsd->a(tri[0]) + f0);
+		dsd->set_acceleration(tri[1], dsd->a(tri[1]) + f1);
+		dsd->set_acceleration(tri[2], dsd->a(tri[2]) + f2);
+	}
+}
+
+TriForces SoftTriangleForce::compute_soft_tri_forces(
+	span<const Vector> positions,
+	const SoftTriangle& tri
+) const {
+	const Vector& p0 = positions[tri[0]];
+    const Vector& p1 = positions[tri[1]];
+    const Vector& p2 = positions[tri[2]];
+
+    const Vector d0 = (p0 - 0.5 * (p1 + p2)).unitvector();
+    const Vector d1 = (p1 - 0.5 * (p0 - p2)).unitvector();
+    const Vector d2 = (p2 - 0.5 * (p0 - p1)).unitvector();
+
+    const double area = 0.5 * ((p1 - p0) ^ (p2 - p0)).magnitude();
+    const double force_mag = tri.k() * (1.0 - area / tri.rest_area());
+
+    return {{
+        {tri[0], force_mag * d0},
+        {tri[1], force_mag * d1},
+        {tri[2], force_mag * d2},
+    }};
 }

@@ -7,6 +7,7 @@
 #include <stdexcept>
 #include <execution>
 #include <algorithm>
+#include <ranges>
 
 #include "the_wheel.h"
 #include "force.h"
@@ -16,6 +17,7 @@
 #include "soft_body_data.h"
 #include "boids_acceleration.h"
 #include "collision_handler.h"
+#include "soft_edge.h"
 
 namespace pba{
 
@@ -25,7 +27,7 @@ public:
 	SimpleGravityForce(const Vector& gravity) : _gravity(gravity) {}
 	~SimpleGravityForce() = default;
 
-	void compute(DynamicalStateDataBase_sp dsd, const double dt) const override;
+	void compute(DSD_sp dsd, const double dt) const override;
 
 	const Vector& get_gravity() const noexcept { return _gravity; }
 	void set_gravity(const Vector& gravity) { _gravity = gravity; }
@@ -43,7 +45,7 @@ public:
 	~SPHPressureForce() = default;
 
 	// This is a bit of a hack to let us use the same force interface for SPH and standard forces
-	void compute(DynamicalStateDataBase_sp dsd, const double dt) const override {
+	void compute(DSD_sp dsd, const double dt) const override {
 		auto sph_data = std::dynamic_pointer_cast<SPHData>(dsd);
 		if (!sph_data) throw std::runtime_error("SPHPressureForce requires SPHData");
 		compute_sph(sph_data, dt);
@@ -82,7 +84,7 @@ public:
 		_occupancy_volume = duplicate_idx_volume(occupancy_volume); _kernel = kernel;
 	};
 
-	void compute(DynamicalStateDataBase_sp dsd, const double dt) const override {
+	void compute(DSD_sp dsd, const double dt) const override {
 		auto sph_data = std::dynamic_pointer_cast<SPHData>(dsd);
 		if (!sph_data) throw std::runtime_error("SPHPressureForce requires SPHData");
 		compute_sph(sph_data, dt);
@@ -120,7 +122,7 @@ public:
 	
 	~SPHViscosityForce() = default;
 
-	void compute(DynamicalStateDataBase_sp dsd, const double dt) const override {
+	void compute(DSD_sp dsd, const double dt) const override {
 		auto sph_data = std::dynamic_pointer_cast<SPHData>(dsd);
 		if (!sph_data) throw std::runtime_error("SPHViscosityForce requires SPHData");
 		compute_sph(sph_data, dt);
@@ -173,7 +175,7 @@ public:
 	UniformStrutForce(const double spring, const double friction)
 	 : _spring_force(spring), _friction(friction) {}
 
-	void compute(DynamicalStateDataBase_sp dsd, const double dt) const override{
+	void compute(DSD_sp dsd, const double dt) const override{
 		auto soft_body_sp = std::dynamic_pointer_cast<SoftBody>(dsd);
 		if (!soft_body_sp) throw std::runtime_error("Strut forces require a soft body");
 		_compute(soft_body_sp, dt); 
@@ -191,6 +193,22 @@ private:
 
 	double _spring_force;
 	double _friction;
+};
+
+struct IndexedForce {
+	size_t idx;
+	Vector force;
+};
+
+using TriForces = std::array<IndexedForce, 3>;
+
+class SoftTriangleForce : public ForceBase{
+public:
+	explicit SoftTriangleForce() {}
+	void compute(DSD_sp dsd, const double dt) const override;
+	void compute(DSD_sp dsd, const double dt, span<const SoftTriangle> soft_triangles) const;
+	TriForces compute_soft_tri_forces(span<const Vector> pos, const SoftTriangle& tri) const;
+
 };
 
 } // end namespace pba

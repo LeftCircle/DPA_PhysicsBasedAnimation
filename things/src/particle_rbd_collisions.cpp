@@ -120,7 +120,7 @@ std::pair<RB_sp, RBDHitResult> ParticleRBDCollisionHandler::_find_earliest_rbd_s
 	return result;
 }
 
-std::optional<ParticleRBDHitResult> ParticleRBDCollisionHandler::_find_earliest_particle_rbd_collision(DSDB_sp dsd, const double dt) const 
+std::optional<ParticleRBDHitResult> ParticleRBDCollisionHandler::_find_earliest_particle_rbd_collision(DSD_sp dsd, const double dt) const 
 {
 	auto start_positions = dsd->get_vector_attribute_span("positions");
 	auto updated_positions = dsd->get_vector_attribute_span("new_positions");

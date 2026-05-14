@@ -16,8 +16,10 @@ TEST_CASE("test compute COM on add/resize"){
 	rb.add();
 	rb.set_initial_position(0, Vector(0, 0, 0));
 	rb.set_initial_position(1, Vector(10, 0, 0));
+	rb.init_rbd();
 	REQUIRE(rb.center_of_mass == Vector(5, 0, 0));
 	rb.add(50);
+	rb.init_rbd();
 	REQUIRE(rb.center_of_mass.X() < 5.0);
 	REQUIRE(rb.center_of_mass.X() > 0.0);
 }

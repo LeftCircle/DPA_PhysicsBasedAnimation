@@ -24,16 +24,20 @@ public:
 
 	// accessors for common attributes
 	const Vector& get_position(size_t i) const { return _pos_map_iter->second.get(i); }
+	const Vector& p(size_t i) const { return get_position(i); }
 	const Vector& get_updated_position(size_t i) const { return _updated_pos_map_iter->second.get(i); }
 	const Vector& get_velocity(size_t i) const { return _vel_map_iter->second.get(i); }
 	const Vector& get_acceleration(size_t i) const { return _acc_map_iter->second.get(i); }
+	const Vector& a(size_t i) const { return get_acceleration(i); }
 	const float& get_mass(size_t i) const { return _mass_map_iter->second.get(i); }
 	const Color& get_color(size_t i) const { return _color_map_iter->second.get(i); }
 	
 	Vector& get_position(size_t i) { return _pos_map_iter->second.get(i); }
+	Vector& p(size_t i) { return get_position(i); }
 	Vector& get_updated_position(size_t i) { return _updated_pos_map_iter->second.get(i); }
 	Vector& get_velocity(size_t i) { return _vel_map_iter->second.get(i); }
 	Vector& get_acceleration(size_t i) { return _acc_map_iter->second.get(i); }
+	Vector& a(size_t i) { return get_acceleration(i); }
 	float& get_mass(size_t i) { return _mass_map_iter->second.get(i); }
 	Color& get_color(size_t i) { return _color_map_iter->second.get(i); }
 
