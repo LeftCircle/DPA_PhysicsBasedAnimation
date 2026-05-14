@@ -208,7 +208,7 @@ public:
 	void compute(DSD_sp dsd, const double dt) const override;
 	void compute(DSD_sp dsd, const double dt, span<const SoftTriangle> soft_triangles) const;
 	TriForces compute_soft_tri_forces(span<const Vector> pos, const SoftTriangle& tri) const;
-
+	std::vector<Vector> compute_soft_tri_acceleration_deltas(DSD_sp dsd, span<const SoftTriangle> soft_triangles) const; 
 };
 
 } // end namespace pba

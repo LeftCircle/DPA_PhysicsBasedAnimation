@@ -326,30 +326,35 @@ void SoftTriangleForce::compute(
 	const double dt,
 	span<const SoftTriangle> soft_triangles) const 
 {
-	for (auto tri : soft_triangles){
-		Vector e1 = dsd->p(tri[1] - tri[0]);
-		Vector e2 = dsd->p(tri[2] - tri[0]);
-
-		auto get_mid = [&dsd, &tri](int a, int b){return 0.5 * (dsd->p(tri[a]) + dsd->p(tri[b])); };
-		Vector m1 = get_mid(0, 1);
-		Vector m2 = get_mid(0, 2);
-		Vector m3 = get_mid(1, 2);
-
-		Vector d0 = dsd->p(tri[0]) - m3;
-		Vector d1 = dsd->p(tri[1]) - m2;
-		Vector d2 = dsd->p(tri[2]) - m1;
-		double a = 0.5 * (e1 ^ e2).magnitude();
-		double force_mag = tri.k() * (1.0 -  a / tri.rest_area());
-
-
-		Vector f0 = force_mag * d0;
-		Vector f1 = force_mag * d1;
-		Vector f2 = force_mag * d2;
-		dsd->set_acceleration(tri[0], dsd->a(tri[0]) + f0);
-		dsd->set_acceleration(tri[1], dsd->a(tri[1]) + f1);
-		dsd->set_acceleration(tri[2], dsd->a(tri[2]) + f2);
+	auto deltas = compute_soft_tri_acceleration_deltas(dsd, soft_triangles);
+	
+	// This part could be parallelized as well
+	for (size_t i = 0; i < dsd->n_particles(); i++){
+		dsd->set_acceleration(i, dsd->a(i) + deltas[i]);
 	}
 }
+
+std::vector<Vector> SoftTriangleForce::compute_soft_tri_acceleration_deltas(
+	DSD_sp dsd,
+	span<const SoftTriangle> soft_triangles
+) const{
+	auto positions = dsd->get_vector_attribute_span("positions");
+	// Assuming that all of the particles are part of the soft triangles 
+	std::vector<Vector> deltas(dsd->n_particles(), Vector(0, 0, 0));
+
+	// could parallelize here
+	auto contributions = soft_triangles 
+		| std::views::transform([&](const SoftTriangle& tri) {
+			return compute_soft_tri_forces(positions, tri);
+		});
+	
+	for (const auto& tri_forces : contributions){
+		for (const auto& f : tri_forces){
+			deltas[f.idx] += f.force;
+		}
+	}
+	return std::move(deltas);
+} 
 
 TriForces SoftTriangleForce::compute_soft_tri_forces(
 	span<const Vector> positions,
