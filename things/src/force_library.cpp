@@ -322,6 +322,15 @@ double PciSPHPressureForce::_compute_beta(SPHData_sp dsd, const double dt) const
 }
 
 void SoftTriangleForce::compute(
+	DSD_sp dsd, 
+	const double dt
+) const {
+	auto soft_body_sp = std::dynamic_pointer_cast<SoftBody>(dsd);
+	if (!soft_body_sp) throw std::runtime_error("Strut forces require a soft body");
+	compute(dsd, dt, span(soft_body_sp->soft_triangles.data(), soft_body_sp->soft_triangles.size()));
+}
+
+void SoftTriangleForce::compute(
 	DSD_sp dsd,
 	const double dt,
 	span<const SoftTriangle> soft_triangles) const 
@@ -344,7 +353,7 @@ std::vector<Vector> SoftTriangleForce::compute_soft_tri_acceleration_deltas(
 
 	// could parallelize here
 	auto contributions = soft_triangles 
-		| std::views::transform([&](const SoftTriangle& tri) {
+		| std::views::transform([&](const SoftTriangle& tri) -> TriForces {
 			return compute_soft_tri_forces(positions, tri);
 		});
 	
@@ -364,9 +373,9 @@ TriForces SoftTriangleForce::compute_soft_tri_forces(
     const Vector& p1 = positions[tri[1]];
     const Vector& p2 = positions[tri[2]];
 
-    const Vector d0 = (p0 - 0.5 * (p1 + p2)).unitvector();
-    const Vector d1 = (p1 - 0.5 * (p0 - p2)).unitvector();
-    const Vector d2 = (p2 - 0.5 * (p0 - p1)).unitvector();
+    const Vector d0 = (p0 - 0.5 * (p1 + p2));
+    const Vector d1 = (p1 - 0.5 * (p0 + p2));
+    const Vector d2 = (p2 - 0.5 * (p0 + p1));
 
     const double area = 0.5 * ((p1 - p0) ^ (p2 - p0)).magnitude();
     const double force_mag = tri.k() * (1.0 - area / tri.rest_area());

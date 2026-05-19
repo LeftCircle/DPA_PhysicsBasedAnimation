@@ -25,6 +25,7 @@ public:
 	size_t get_n_soft_edges() const noexcept { return edges.size(); }
 
 	std::vector<SoftEdge> edges;
+	std::vector<SoftTriangle> soft_triangles;
 };
 
 

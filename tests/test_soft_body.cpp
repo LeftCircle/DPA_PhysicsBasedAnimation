@@ -75,35 +75,32 @@ TEST_CASE("Test piping"){
     SoftTriangle soft_tri(0, 1, 2, area, 1.0);
     SoftTriangle soft_tri_2(1, 2, 0, area, 1.0);
     SoftTriangle soft_tri_3(2, 0, 1, area, 1.0);
-    std::vector<SoftTriangle> soft_triangles{soft_tri, soft_tri_2, soft_tri_3};
+    std::vector<SoftTriangle> soft_triangles{soft_tri};
 
-    auto get_area = [&dsd](const SoftTriangle& st){ 
-        double area= Triangle::get_area(dsd->p(st.idx0()), dsd->p(st.idx1()), dsd->p(st.idx2())); 
-        return std::pair(&st, area);
-    };
-    auto updated_tris = soft_triangles | std::views::transform(get_area);
-    std::vector<std::pair<const SoftTriangle*, double>> areas_vec;
-    
-    auto get_edges = [&dsd](const SoftTriangle& st){
-        std::array<Vector, 3> edges;
-        edges[0] = dsd->p(1) - dsd->p(0);
-        edges[1] = dsd->p(2) - dsd->p(0);
-        edges[2] = dsd->p(2) - dsd->p(1);
-        return edges;
-    };
+    auto stf = SoftTriangleForce();
 
-    auto edges = soft_triangles | std::views::transform(get_edges);
+    stf.compute(dsd, 1.0, soft_triangles);
 
-    // for (auto a : areas){
-    //     areas_vec.push_back(a);
-    // }
-    // REQUIRE(areas_vec.size() == 3);
+    // assert accelerations are zero
+    for (int i = 0; i < dsd->n_particles(); i++){
+        REQUIRE(dsd->a(i).magnitude() == 0);
+        printf("Pre acceleration %zu = %f, %f, %f \n", i, dsd->a(i).X(), dsd->a(i).Y(), dsd->a(i).Z());
+    }
 
-    // Let's calculate the force and see that it is zero
-    // auto forces = soft_triangles | std::views::transform()
-    // 1. determine areas
-	// 2. determine edges/midpoints
-	// 3. get directions
-	// 4. compute force
+    // move a point
+    dsd->set_position(0, Vector(-1, -1, 0));
+    stf.compute(dsd, 1.0, soft_triangles);
+    Vector total_acceleration(0, 0, 0);
+    for (size_t i = 0; i < dsd->n_particles(); i++){
+        REQUIRE(dsd->a(i).magnitude() != 0);
+        REQUIRE(dsd->a(i).Z() == 0);
+        total_acceleration += dsd->a(i);
+        printf("Post acceleration %zu = %f, %f, %f \n", i, dsd->a(i).X(), dsd->a(i).Y(), dsd->a(i).Z());
+    }
 
+    REQUIRE(total_acceleration.magnitude() == 0);
+}
+
+TEST_CASE("Test no net force for different massed particles"){
+    REQUIRE(false);
 }
