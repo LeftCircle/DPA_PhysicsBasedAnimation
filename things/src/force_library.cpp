@@ -140,6 +140,12 @@ double SPHViscosityForce::_pi_ab(double c_ab, double mu_ab, double density_a, do
 	return (-alpha * c_ab * mu_ab + beta * mu_ab * mu_ab) / (density_a + density_b);
 }
 
+idx_force_vec UniformStrutForce::compute_acceleration(DSD_scp dsd, const double dt) const {
+	std::shared_ptr<const SoftBody> sb = std::dynamic_pointer_cast<const SoftBody>(dsd);
+	std::vector<IndexedForce> idx_force;
+	if (!sb) return idx_force;
+}
+
 void UniformStrutForce::_compute(std::shared_ptr<SoftBody> sb, const double dt) const {
 	// For each edge, determine spring force and friction based on position, rest length, and velocity
 	span<const Vector> positions = sb->get_vector_attribute_span("positions");
@@ -335,7 +341,7 @@ void SoftTriangleForce::compute(
 	const double dt,
 	span<const SoftTriangle> soft_triangles) const 
 {
-	auto deltas = compute_soft_tri_acceleration_deltas(dsd, soft_triangles);
+	auto deltas = compute_acceleration(dsd, soft_triangles);
 	
 	// This part could be parallelized as well
 	for (size_t i = 0; i < dsd->n_particles(); i++){
@@ -343,8 +349,8 @@ void SoftTriangleForce::compute(
 	}
 }
 
-std::vector<Vector> SoftTriangleForce::compute_soft_tri_acceleration_deltas(
-	DSD_sp dsd,
+std::vector<Vector> SoftTriangleForce::compute_acceleration(
+	const DSD_scp dsd,
 	span<const SoftTriangle> soft_triangles
 ) const{
 	auto positions = dsd->get_vector_attribute_span("positions");

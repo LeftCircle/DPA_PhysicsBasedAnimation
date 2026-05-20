@@ -60,7 +60,21 @@ TEST_CASE("test no net force in soft triangles"){
 }
 
 TEST_CASE("test soft triangle force can be used with Accumulating Force"){
-    REQUIRE(false);
+     auto dsd = std::make_shared<SoftBody>();
+    dsd->add(3);
+    dsd->set_position(0, Vector(0, 0, 0));
+    dsd->set_position(1, Vector(1, 0, 0));
+    dsd->set_position(2, Vector(0, 1, 0));
+
+    double area = Triangle::get_area(dsd->p(0), dsd->p(1), dsd->p(2));
+    SoftTriangle soft_tri(0, 1, 2, area, 1.0);
+    std::vector<SoftTriangle> soft_triangles{soft_tri};
+    auto stf = SoftTriangleForce();
+
+    dsd->soft_triangles = soft_triangles;
+    dsd->set_position(0, Vector(-1, -1, 0));
+    stf.compute(dsd, 1.0);
+    REQUIRE(dsd->a(0).magnitude() != 0);
 }
 
 

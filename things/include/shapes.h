@@ -20,7 +20,7 @@ struct Triangle{
 		return dist_to_tri < std::max(std::max((v0 - v1).magnitude(), (v2 - v1).magnitude()), (v0 - v2).magnitude());
 	}
 
-	double get_area() { get_area(v0, v1, v2); }
+	double get_area() { return get_area(v0, v1, v2); }
 
 	static double get_area(const Vector& a, const Vector& b, const Vector& c) {
 		return ((b - a) ^ (c - a)).magnitude() * 0.5;

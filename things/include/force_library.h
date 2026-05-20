@@ -21,6 +21,12 @@
 
 namespace pba{
 
+struct IndexedForce {
+	size_t idx;
+	Vector force;
+};
+
+using idx_force_vec = std::vector<IndexedForce>;
 
 class SimpleGravityForce : public ForceBase{
 public:
@@ -180,6 +186,8 @@ public:
 		if (!soft_body_sp) throw std::runtime_error("Strut forces require a soft body");
 		_compute(soft_body_sp, dt); 
 	}
+	
+	idx_force_vec compute_acceleration(DSD_scp dsd, const double dt) const;
 
 	void set_spring_force(double new_force) noexcept {_spring_force = new_force; }
 	void set_friction(double new_friction) noexcept {_friction = new_friction; }
@@ -195,11 +203,6 @@ private:
 	double _friction;
 };
 
-struct IndexedForce {
-	size_t idx;
-	Vector force;
-};
-
 using TriForces = std::array<IndexedForce, 3>;
 
 class SoftTriangleForce : public ForceBase{
@@ -208,7 +211,7 @@ public:
 	void compute(DSD_sp dsd, const double dt) const override;
 	void compute(DSD_sp dsd, const double dt, span<const SoftTriangle> soft_triangles) const;
 	TriForces compute_soft_tri_forces(span<const Vector> pos, const SoftTriangle& tri) const;
-	std::vector<Vector> compute_soft_tri_acceleration_deltas(DSD_sp dsd, span<const SoftTriangle> soft_triangles) const; 
+	std::vector<Vector> compute_acceleration(const DSD_scp dsd, span<const SoftTriangle> soft_triangles) const; 
 };
 
 } // end namespace pba

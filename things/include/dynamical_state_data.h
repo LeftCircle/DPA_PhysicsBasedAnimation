@@ -64,6 +64,7 @@ protected:
 
 using DynamicalStateData_sp = std::shared_ptr<DynamicalStateData>;
 using DSD_sp = std::shared_ptr<DynamicalStateData>;
+using DSD_scp = std::shared_ptr<const DynamicalStateData>;
 
 inline DynamicalStateData_sp create_dynamical_state_data() { return std::make_shared<DynamicalStateData>(); };
 

@@ -19,6 +19,12 @@ public:
 		const double spring_force,
 		const double friction
 	);
+	Vector get_acceleration_on_a(
+		span<const Vector> positions,
+		span<const Vector> vels,
+		const double spring_force,
+		const double friction
+	) const;
 	const Vector& get_force_on_a() const noexcept { return _force_on_a; }
 	idxs get_indices() const noexcept {return idxs(_index_a, _index_b); }
 
