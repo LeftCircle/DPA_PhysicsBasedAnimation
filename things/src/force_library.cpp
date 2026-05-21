@@ -4,6 +4,12 @@
 using namespace pba;
 
 
+void reduce_indexed_force_into(idx_force_vec& idx_force, span<Vector> results){
+	for (auto& idx_f : idx_force){
+		results[idx_f.idx] += idx_f.force;
+	}
+}
+
 void SimpleGravityForce::compute(DSD_sp dsd, const double dt) const {
 	const size_t n = dsd->n_particles();
 	auto acc = dsd->get_vector_attribute_span("acceleration");
@@ -382,7 +388,7 @@ std::vector<Vector> SoftTriangleForce::compute_acceleration(
 		}
 	}
 	return std::move(deltas);
-} 
+}
 
 TriForces SoftTriangleForce::compute_soft_tri_forces(
 	span<const Vector> positions,

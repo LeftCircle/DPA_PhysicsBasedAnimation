@@ -28,6 +28,8 @@ struct IndexedForce {
 
 using idx_force_vec = std::vector<IndexedForce>;
 
+static void reduce_indexed_force_into(idx_force_vec& idx_force, span<Vector> results);
+
 class SimpleGravityForce : public ForceBase{
 public:
 	SimpleGravityForce(const Vector& gravity) : _gravity(gravity) {}
