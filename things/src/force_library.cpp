@@ -140,10 +140,23 @@ double SPHViscosityForce::_pi_ab(double c_ab, double mu_ab, double density_a, do
 	return (-alpha * c_ab * mu_ab + beta * mu_ab * mu_ab) / (density_a + density_b);
 }
 
-idx_force_vec UniformStrutForce::compute_acceleration(DSD_scp dsd, const double dt) const {
+idx_force_vec UniformStrutForce::compute_acceleration(DSD_scp dsd) const {
+	idx_force_vec forces;
 	std::shared_ptr<const SoftBody> sb = std::dynamic_pointer_cast<const SoftBody>(dsd);
 	std::vector<IndexedForce> idx_force;
 	if (!sb) return idx_force;
+
+	span<const Vector> positions = sb->get_vector_attribute_span("positions");
+	span<const Vector> vels = sb->get_vector_attribute_span("velocities");
+	const size_t n_edges = sb->edges.size();
+	//#pragma omp parallel for
+	for (size_t i = 0; i < n_edges; i++){
+		Vector acc = sb->edges[i].get_acceleration_on_a(positions, vels, _spring_force, _friction);
+		auto idxs = sb->edges[i].get_indices();
+		forces.emplace_back(idxs.first, acc / sb->get_mass(idxs.first));
+		forces.emplace_back(idxs.second, -acc / sb->get_mass(idxs.second));
+	};
+	return forces;
 }
 
 void UniformStrutForce::_compute(std::shared_ptr<SoftBody> sb, const double dt) const {

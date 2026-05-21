@@ -187,7 +187,7 @@ public:
 		_compute(soft_body_sp, dt); 
 	}
 	
-	idx_force_vec compute_acceleration(DSD_scp dsd, const double dt) const;
+	idx_force_vec compute_acceleration(DSD_scp dsd) const;
 
 	void set_spring_force(double new_force) noexcept {_spring_force = new_force; }
 	void set_friction(double new_friction) noexcept {_friction = new_friction; }
