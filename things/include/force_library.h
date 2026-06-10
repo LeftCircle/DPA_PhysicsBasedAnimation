@@ -178,6 +178,21 @@ private:
 	Kernel_sp _kernel;
 };
 
+class StrutForce : public ForceBase{
+public:
+	StrutForce() = default;
+	~StrutForce() = default;
+
+	void compute(DSD_sp dsd, const double dt) const override{
+		auto soft_body_sp = std::dynamic_pointer_cast<SoftBody>(dsd);
+		if (!soft_body_sp) throw std::runtime_error("Strut forces require a soft body");
+		_compute(soft_body_sp, dt); 
+	}
+
+private:
+	void _compute(std::shared_ptr<SoftBody> sb, const double dt) const;
+};
+
 class UniformStrutForce : public ForceBase{
 public:
 	UniformStrutForce(const double spring, const double friction)

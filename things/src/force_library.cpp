@@ -165,6 +165,22 @@ idx_force_vec UniformStrutForce::compute_acceleration(DSD_scp dsd) const {
 	return forces;
 }
 
+void StrutForce::_compute(std::shared_ptr<SoftBody> sb, const double dt) const{
+	span<const Vector> positions = sb->get_vector_attribute_span("positions");
+	span<const Vector> vels = sb->get_vector_attribute_span("velocities");
+	const size_t n_edges = sb->edges.size();
+	#pragma omp parallel for
+	for (size_t i = 0; i < n_edges; i++){
+		sb->edges[i].compute(positions, vels, sb->edges[i].get_k(), sb->edges[i].get_friction());
+	}
+	// Now we have to write the forces in. Can't be parallel b/c edges point to multiple points
+	for (auto& edge : sb->edges){
+		std::pair<size_t, size_t> idxs = edge.get_indices();
+		sb->set_acceleration(idxs.first, sb->get_acceleration(idxs.first) + edge.get_force_on_a() / sb->get_mass(idxs.first));
+		sb->set_acceleration(idxs.second, sb->get_acceleration(idxs.second) - edge.get_force_on_a() / sb->get_mass(idxs.second));
+	}
+}
+
 void UniformStrutForce::_compute(std::shared_ptr<SoftBody> sb, const double dt) const {
 	// For each edge, determine spring force and friction based on position, rest length, and velocity
 	span<const Vector> positions = sb->get_vector_attribute_span("positions");
@@ -358,7 +374,7 @@ void SoftTriangleForce::compute(
 void SoftTriangleForce::compute(
 	DSD_sp dsd,
 	const double dt,
-	span<const SoftTriangle> soft_triangles) const 
+	span<const SoftTriangle> soft_triangles) const
 {
 	auto deltas = compute_acceleration(dsd, soft_triangles);
 	

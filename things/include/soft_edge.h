@@ -28,11 +28,16 @@ public:
 	const Vector& get_force_on_a() const noexcept { return _force_on_a; }
 	idxs get_indices() const noexcept {return idxs(_index_a, _index_b); }
 
+	double get_k() const { return _k; }
+	double get_friction() const { return _friction; }
+
 private:
 	SoftEdge() = delete;
 
 	size_t _index_a, _index_b;
 	double _rest_length;
+	double _k;
+	double _friction;
 	Vector _force_on_a = Vector(0.0, 0.0, 0.0); 
 };
 
