@@ -1,0 +1,6 @@
+/home/left/programming/DPA_PhysicsBasedAnimation/build/CMakeFiles/pba.dir
+/home/left/programming/DPA_PhysicsBasedAnimation/build/CMakeFiles/pbalitesim.dir
+/home/left/programming/DPA_PhysicsBasedAnimation/build/CMakeFiles/test_runner.dir
+/home/left/programming/DPA_PhysicsBasedAnimation/build/CMakeFiles/test.dir
+/home/left/programming/DPA_PhysicsBasedAnimation/build/CMakeFiles/edit_cache.dir
+/home/left/programming/DPA_PhysicsBasedAnimation/build/CMakeFiles/rebuild_cache.dir

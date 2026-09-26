@@ -7,7 +7,6 @@
 #include <stdexcept>
 #include <execution>
 #include <algorithm>
-#include <ranges>
 
 #include "the_wheel.h"
 #include "force.h"

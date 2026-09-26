@@ -12,7 +12,7 @@
 #include <type_traits> // for std::enable_if
 #include <vector>
 
-namespace cato{
+namespace pba{
 
 template <typename T>
 class span {
@@ -60,19 +60,19 @@ private:
 }// end namespace cato
 
 
-template <typename T>
-using span = cato::span<T>;
+// template <typename T>
+// using span = cato::span<T>;
 
-//using cato::clamp;
+// //using cato::clamp;
 
-#else
-#include <span>
-template <typename T>
-using span = std::span<T>;
+// #else
+// #include <span>
+// template <typename T>
+// using span = std::span<T>;
 
-#include <algorithm>
-template <typename T>
-using clamp = std::clamp<T>;
+// #include <algorithm>
+// template <typename T>
+// using clamp = std::clamp<T>;
 
 #endif
 

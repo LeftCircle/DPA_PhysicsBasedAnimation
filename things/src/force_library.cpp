@@ -1,5 +1,5 @@
 #include "force_library.h"
-
+#include <boost/range/adaptor/transformed.hpp>
 
 using namespace pba;
 
@@ -159,8 +159,8 @@ idx_force_vec UniformStrutForce::compute_acceleration(DSD_scp dsd) const {
 	for (size_t i = 0; i < n_edges; i++){
 		Vector acc = sb->edges[i].get_acceleration_on_a(positions, vels, _spring_force, _friction);
 		auto idxs = sb->edges[i].get_indices();
-		forces.emplace_back(idxs.first, acc / sb->get_mass(idxs.first));
-		forces.emplace_back(idxs.second, -acc / sb->get_mass(idxs.second));
+		forces.push_back({idxs.first, acc / sb->get_mass(idxs.first)});
+		forces.push_back({idxs.second, -acc / sb->get_mass(idxs.second)});
 	};
 	return forces;
 }
@@ -393,14 +393,24 @@ std::vector<Vector> SoftTriangleForce::compute_acceleration(
 	std::vector<Vector> deltas(dsd->n_particles(), Vector(0, 0, 0));
 
 	// could parallelize here
-	auto contributions = soft_triangles 
-		| std::views::transform([&](const SoftTriangle& tri) -> TriForces {
-			return compute_soft_tri_forces(positions, tri);
-		});
+	// auto contributions = soft_triangles 
+	// 	| boost::adaptors::transformed(
+	// 		[&](const SoftTriangle& tri) -> TriForces {
+	// 			return compute_soft_tri_forces(positions, tri);
+	// 	}
+	// );
 	
-	for (const auto& tri_forces : contributions){
-		for (const auto& f : tri_forces){
-			deltas[f.idx] += f.force;
+	// for (const auto& tri_forces : contributions){
+	// 	for (const auto& f : tri_forces){
+	// 		deltas[f.idx] += f.force;
+	// 	}
+	// }
+	for (const SoftTriangle& tri : soft_triangles) {
+		const TriForces tri_forces =
+			compute_soft_tri_forces(positions, tri);
+
+		for (const auto& force : tri_forces) {
+			deltas[force.idx] += force.force;
 		}
 	}
 	return std::move(deltas);

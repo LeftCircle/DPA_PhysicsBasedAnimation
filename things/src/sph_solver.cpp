@@ -5,7 +5,7 @@ using namespace pba;
 
 double pba::get_density_with_uniform_h_parallel(
     size_t i,
-    const span<const size_t>& neighbor_indices,
+    const pba::span<const size_t>& neighbor_indices,
     const DynamicalStateData_sp& dsd,
     const Kernel& kernel)
 {
@@ -27,7 +27,7 @@ double pba::get_density_with_uniform_h_parallel(
 
 double pba::get_density_with_uniform_h(
     size_t i,
-    const span<const size_t>& neighbor_indices,
+    const pba::span<const size_t>& neighbor_indices,
     const DynamicalStateData_sp& dsd,
     const Kernel& kernel)
 {
@@ -42,7 +42,7 @@ double pba::get_density_with_uniform_h(
 
 double pba::get_density_with_uniform_h_silly_loop(
     size_t i,
-    const span<const size_t>& neighbor_indices,
+    const pba::span<const size_t>& neighbor_indices,
     const DynamicalStateData_sp& dsd,
     const Kernel& kernel)
 {
@@ -84,7 +84,7 @@ void SPHPositionSolver::solve(const double dt) {
 		}
 	);
 
-	span<double> densities = _state_data->get_double_attribute_span("density");
+	pba::span<double> densities = _state_data->get_double_attribute_span("density");
 	#pragma omp parallel for
 	for (size_t i = 0; i < _state_data->n_particles(); i++) {
 		double density = _occupancy_volume->accumulate_neighbor_cells(
@@ -92,7 +92,7 @@ void SPHPositionSolver::solve(const double dt) {
 			_state_data->get_position(i),
 			0.0,
 			[&densities, this](size_t idx, double acc, const std::vector<size_t>& neighbor_indices){
-				return acc + get_density_with_uniform_h(idx, span<const size_t>(neighbor_indices), _state_data, *_kernel);	
+				return acc + get_density_with_uniform_h(idx, pba::span<const size_t>(neighbor_indices), _state_data, *_kernel);	
 			}
 		);
 		densities[i] = density;
@@ -132,3 +132,5 @@ Vector SPHAdvanceVelocityWithForces::_clamp_vector(const Vector& vec, double max
 	}
 	return vec;
 }
+
+//} // end namespace pba

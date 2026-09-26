@@ -9,6 +9,7 @@
 #include <sstream>
 #include <array>
 
+#include "the_wheel.h"
 #include "cato_vector.h"
 
 template <typename Vec3>
@@ -28,8 +29,8 @@ public:
 		}
 	}
 
-	auto get_verts() { return span<Vec3>(_verts); }
-	auto get_faces() { return span<const cato::Vec3i>(_faces); }
+	auto get_verts() { return pba::span<Vec3>(_verts); }
+	auto get_faces() { return pba::span<const cato::Vec3i>(_faces); }
 
 private:
 	ObjReader() = delete;
