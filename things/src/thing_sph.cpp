@@ -3,7 +3,7 @@
 
 using namespace pba;
 
-void _add_particles_in_box(AABB& bounds, float step_size, float mass, DSD_sp dsd){
+void _add_particles_in_box(AABB<Vector>& bounds, float step_size, float mass, DSD_sp dsd){
 	for (float x = bounds.lower_left().X(); x < bounds.upper_right().X(); x += step_size){
 		for (float y = bounds.lower_left().Y(); y < bounds.upper_right().Y(); y += step_size){
 			for (float z = bounds.lower_left().Z(); z < bounds.upper_right().Z(); z += step_size){
@@ -322,7 +322,7 @@ void SPHThingyDingy::Usage(){
 }
 
 
-void SPHThingyDingy::_initialize_box_collision_surface(const AABB& bounds){
+void SPHThingyDingy::_initialize_box_collision_surface(const AABB<Vector>& bounds){
 	// Let's start by just defining the 8 points of the box
 	Vector bll = Vector(bounds.lower_left().X(), bounds.lower_left().Y(), bounds.lower_left().Z());
 	Vector blf = Vector(bounds.lower_left().X(), bounds.lower_left().Y(),  bounds.upper_right().Z());

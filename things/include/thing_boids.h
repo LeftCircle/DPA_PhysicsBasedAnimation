@@ -61,7 +61,7 @@ private:
 		Color(0.9, 0.4, 0.7, 1.0),
 	};
 
-	void _initialize_box_collision_surface(const AABB& bounds);
+	void _initialize_box_collision_surface(const AABB<Vector>& bounds);
 	void _draw_box();
 	void _draw_particles();
 	void _set_to_leapfrog_solver();

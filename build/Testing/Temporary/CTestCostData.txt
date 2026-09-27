@@ -1,1 +1,3 @@
+physics_tests 0 0
 ---
+physics_tests

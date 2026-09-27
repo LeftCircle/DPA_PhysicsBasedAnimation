@@ -23,7 +23,7 @@ struct indices {
 template <typename CellType>
 class OccupancyVolume {
 public:
-	OccupancyVolume(const AABB& aabb, double cell_size) :
+	OccupancyVolume(const AABB<Vector>& aabb, double cell_size) :
 		_aabb(aabb),
 		_cell_size(cell_size),
 		_voxels(
@@ -71,7 +71,7 @@ public:
 	}
 
 	void clear() { _voxels.clear(); }
-	const AABB get_aabb() const { return _aabb; };
+	const AABB<Vector> get_aabb() const { return _aabb; };
 	const double get_cell_size() const { return _cell_size; }
 
 private:
@@ -114,7 +114,7 @@ private:
 		return _voxels(idx.i, idx.j, idx.k);
 	}
 
-	AABB _aabb;
+	AABB<Vector> _aabb;
 	double _cell_size;
 	Array3D<CellType> _voxels;
 
@@ -122,7 +122,7 @@ private:
 
 using idx_volume_sp = std::shared_ptr<OccupancyVolume<std::vector<size_t>>>;
 
-inline idx_volume_sp create_idx_occupancy_volume(const AABB& aabb, double cell_size) {
+inline idx_volume_sp create_idx_occupancy_volume(const AABB<Vector>& aabb, double cell_size) {
 	return std::make_shared<OccupancyVolume<std::vector<size_t>>>(aabb, cell_size);
 }
 

@@ -58,7 +58,7 @@ public:
 	void compute_lever_arms();
 	void compute_com_for_loop();
 	void compute_torque();
-	AABB get_padded_bounding_box(const Vector& padd);
+	AABB<Vector> get_padded_bounding_box(const Vector& padd);
 
 	Vector center_of_mass = Vector(0, 0, 0);
 	Matrix angular_rotation{1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0};

@@ -92,8 +92,8 @@ Vector RigidBodyStateData::get_rotated_lever_arm(const Vector& pos) const {
 	return pos - center_of_mass;
 }
 
-AABB RigidBodyStateData::get_padded_bounding_box(const Vector& padd) {
-	AABB box;
+AABB<Vector> RigidBodyStateData::get_padded_bounding_box(const Vector& padd) {
+	AABB<Vector> box;
 	for (size_t i = 0; i < _n_particles; i++){
 		Vector vert_pos = get_vert_pos(i);
 		box.expand_to_include(vert_pos);

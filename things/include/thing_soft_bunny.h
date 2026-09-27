@@ -82,7 +82,7 @@ private:
 
     void _create_uniform_soft_body_from_obj(const std::string& file_name, const Vector& center = Vector(0, 0, 0));
 	CollisionSurface_sp _create_collision_geo_from(const std::string& file_name);
-	void _initialize_box_collision_surface(const AABB& bounds);
+	void _initialize_box_collision_surface(const AABB<Vector>& bounds);
 
 	SoftBunnyThingyDingy() = delete;
 	const std::string DEFAULT_COLL_PATH = "../../models/bigsphere.obj";

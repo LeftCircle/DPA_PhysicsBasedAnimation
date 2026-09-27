@@ -295,7 +295,7 @@ void SoftBunnyThingyDingy::Usage(){
 }
 
 
-void SoftBunnyThingyDingy::_initialize_box_collision_surface(const AABB& bounds){
+void SoftBunnyThingyDingy::_initialize_box_collision_surface(const AABB<Vector>& bounds){
 	// Let's start by just defining the 8 points of the box
 	Vector bll = Vector(bounds.lower_left().X(), bounds.lower_left().Y(), bounds.lower_left().Z());
 	Vector blf = Vector(bounds.lower_left().X(), bounds.lower_left().Y(),  bounds.upper_right().Z());

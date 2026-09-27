@@ -10,7 +10,7 @@ namespace pba{
 
 class ParticleEmitter {
 public:
-	ParticleEmitter(AABB bounds) : _bounds(std::move(bounds)) {}
+	ParticleEmitter(AABB<Vector> bounds) : _bounds(std::move(bounds)) {}
 	void emit(Vector& pos, Vector& vel) const noexcept;
 
 	const double get_min_speed() const noexcept { return _min_speed; }
@@ -31,7 +31,7 @@ public:
 private:
 	void _generate_random_bounded_position(Vector& pos) const noexcept;
 	void _generate_random_bounded_velocity(Vector& vel) const noexcept;
-	AABB _bounds;
+	AABB<Vector> _bounds;
 	double _min_speed = 0.0;
 	double _max_speed = 1.0;
 	mutable std::uniform_real_distribution<double> dist{0.0, 1.0};
