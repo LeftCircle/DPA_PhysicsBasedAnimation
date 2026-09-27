@@ -1,13 +1,19 @@
-Start testing: Sep 27 16:16 EDT
+Start testing: Sep 27 16:23 EDT
 ----------------------------------------------------------
 1/1 Testing: physics_tests
 1/1 Test: physics_tests
 Command: "/home/left/programming/DPA_PhysicsBasedAnimation/build/bin/test_runner"
 Directory: /home/left/programming/DPA_PhysicsBasedAnimation/build
-"physics_tests" start time: Sep 27 16:16 EDT
+"physics_tests" start time: Sep 27 16:23 EDT
 Output:
 ----------------------------------------------------------
-Randomness seeded to: 1907911325
+Randomness seeded to: 412247736
+Pre acceleration 0 = 0.000000, 0.000000, 0.000000 
+Pre acceleration 1 = 0.000000, 0.000000, 0.000000 
+Pre acceleration 2 = 0.000000, 0.000000, 0.000000 
+Post acceleration 0 = 3.000000, 3.000000, 0.000000 
+Post acceleration 1 = -3.000000, 0.000000, 0.000000 
+Post acceleration 2 = 0.000000, -3.000000, 0.000000 
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 test_runner is a Catch2 v3.12.0 host application.
@@ -22,23 +28,17 @@ Test no net force for different massed particles
 /home/left/programming/DPA_PhysicsBasedAnimation/tests/test_soft_body.cpp:119: FAILED:
   REQUIRE( false )
 
-Pre acceleration 0 = 0.000000, 0.000000, 0.000000 
-Pre acceleration 1 = 0.000000, 0.000000, 0.000000 
-Pre acceleration 2 = 0.000000, 0.000000, 0.000000 
-Post acceleration 0 = 3.000000, 3.000000, 0.000000 
-Post acceleration 1 = -3.000000, 0.000000, 0.000000 
-Post acceleration 2 = 0.000000, -3.000000, 0.000000 
 Boids initialized
 ===============================================================================
 test cases:   34 |   33 passed | 1 failed
 assertions: 3403 | 3402 passed | 1 failed
 
 <end of output>
-Test time =   0.42 sec
+Test time =   0.20 sec
 ----------------------------------------------------------
 Test Failed.
-"physics_tests" end time: Sep 27 16:16 EDT
+"physics_tests" end time: Sep 27 16:23 EDT
 "physics_tests" time elapsed: 00:00:00
 ----------------------------------------------------------
 
-End testing: Sep 27 16:16 EDT
+End testing: Sep 27 16:23 EDT

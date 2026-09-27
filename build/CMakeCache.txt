@@ -252,6 +252,9 @@ OpenMP_gomp_LIBRARY:FILEPATH=/usr/lib/gcc/x86_64-redhat-linux/14/libgomp.so
 //Path to the pthread library for OpenMP
 OpenMP_pthread_LIBRARY:FILEPATH=/usr/lib64/libpthread.a
 
+//Build PhysicsBasedAnimation tests
+PBA_BUILD_TESTS:BOOL=ON
+
 //Arguments to supply to pkg-config
 PKG_CONFIG_ARGN:STRING=
 

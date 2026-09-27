@@ -69,17 +69,21 @@ file(GLOB TEST_SOURCES CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/tests/*.cpp"
 )
 
-add_executable(test_runner
-    ${TEST_SOURCES}
-    tests/catch2/catch_amalgamated.cpp
-)
+option(PBA_BUILD_TESTS "Build PhysicsBasedAnimation tests" ON)
 
-target_include_directories(test_runner
-    PRIVATE
-        "${CMAKE_CURRENT_SOURCE_DIR}/tests/catch2"
-)
+if(PBA_BUILD_TESTS)
+    add_executable(test_runner
+        ${TEST_SOURCES}
+        tests/catch2/catch_amalgamated.cpp
+    )
 
-target_link_libraries(test_runner PRIVATE pba)
+    target_include_directories(test_runner
+        PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/tests/catch2"
+    )
 
-enable_testing()
-add_test(NAME physics_tests COMMAND test_runner)
+    target_link_libraries(test_runner PRIVATE pba)
+
+    enable_testing()
+    add_test(NAME physics_tests COMMAND test_runner)
+endif()
